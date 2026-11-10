@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESU Graphics Center</title>
+<meta name="description" content="Welcome to the ESU Graphics Center. Pick a badge, answer a few questions, and make something you can take home.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF5EA;
+  --ink:#141414;
+  --red:#C8102E;      /* ESU red */
+  --red-deep:#8E0B20;
+  --sun:#FFC72C;
+  --teal:#00A3AD;
+  --pink:#FF7AB6;
+  --lime:#C6E84B;
+  --muted:#5b5650;
+  --display:'Bricolage Grotesque', system-ui, sans-serif;
+  --body:'Instrument Sans', system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  background-image:radial-gradient(rgba(20,20,20,.07) 1px, transparent 1.2px);
+  background-size:14px 14px;
+  color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5;
+  min-height:100vh;overflow-x:hidden;
+}
+a{color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+
+/* ticker */
+.ticker{background:var(--ink);color:var(--paper);overflow:hidden;border-bottom:3px solid var(--ink)}
+.ticker-track{display:flex;width:max-content;animation:scroll 38s linear infinite}
+.ticker span{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;padding:10px 0;white-space:nowrap}
+.ticker i{display:inline-block;width:10px;height:10px;background:var(--sun);border-radius:50%;margin:0 22px;vertical-align:middle}
+.ticker i:nth-of-type(3n+2){background:var(--pink)}
+.ticker i:nth-of-type(3n){background:var(--teal)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* header */
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 0 0}
+.mark{display:flex;align-items:center;gap:12px;text-decoration:none}
+.mark-box{width:46px;height:46px;background:var(--red);border:3px solid var(--ink);border-radius:12px;display:grid;place-items:center;color:#fff;font-family:var(--display);font-weight:800;font-size:20px;transform:rotate(-6deg);box-shadow:3px 3px 0 var(--ink)}
+.mark-text{font-family:var(--display);font-weight:800;font-size:20px;line-height:1.05}
+.mark-text small{display:block;font-family:var(--body);font-weight:500;font-size:13px;color:var(--muted);letter-spacing:.02em}
+.pill{font-family:var(--display);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.1em;background:var(--sun);border:3px solid var(--ink);border-radius:999px;padding:8px 16px;box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+
+/* hero */
+.hero{position:relative;padding:56px 0 40px}
+.kicker{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(52px,9.5vw,132px);line-height:.88;letter-spacing:-.035em;margin-top:14px;max-width:11ch}
+h1 .ln{display:block}
+h1 .hl{position:relative;display:inline-block;color:#fff;padding:0 .12em;z-index:0}
+h1 .hl::before{content:"";position:absolute;inset:.08em -.02em .02em;background:var(--red);border:3px solid var(--ink);border-radius:.14em;transform:rotate(-2deg);z-index:-1;box-shadow:5px 5px 0 var(--ink)}
+.lede{font-size:clamp(19px,2vw,23px);max-width:34ch;margin-top:26px;color:#2b2825}
+.lede b{font-weight:600}
+
+/* stickers floating */
+.sticker{position:absolute;font-family:var(--display);font-weight:800;border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);display:grid;place-items:center;text-align:center;line-height:1}
+.s1{right:4%;top:70px;width:150px;height:150px;border-radius:50%;background:var(--teal);color:#fff;font-size:26px;transform:rotate(10deg);display:flex;flex-direction:column;justify-content:center}
+.s1 span{font-size:13px;letter-spacing:.12em;display:block;margin-top:4px}
+.s2{right:22%;top:200px;padding:12px 18px;border-radius:14px;background:var(--pink);font-size:20px;transform:rotate(-8deg)}
+.s3{right:9%;top:290px;width:96px;height:96px;background:var(--lime);font-size:15px;clip-path:polygon(50% 0%,61% 20%,83% 12%,80% 35%,100% 50%,80% 65%,83% 88%,61% 80%,50% 100%,39% 80%,17% 88%,20% 65%,0% 50%,20% 35%,17% 12%,39% 20%);border:none;box-shadow:none}
+
+/* how */
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:8px 0 56px}
+.step{display:flex;gap:14px;align-items:flex-start;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:18px 20px}
+.step b{flex:none;width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--sun);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:20px}
+.step h3{font-family:var(--display);font-weight:800;font-size:21px;line-height:1.1}
+.step p{font-size:16px;color:var(--muted);margin-top:4px}
+
+/* badges */
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(36px,5vw,58px);line-height:.95;letter-spacing:-.025em}
+.sec-head p{color:var(--muted);font-size:17px;max-width:36ch}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.card{position:relative;display:flex;flex-direction:column;text-decoration:none;border:3px solid var(--ink);border-radius:26px;padding:26px;min-height:380px;box-shadow:7px 7px 0 var(--ink);transition:transform .15s ease, box-shadow .15s ease;overflow:hidden}
+.card:hover,.card:focus-visible{transform:translate(-3px,-3px) rotate(-.6deg);box-shadow:11px 11px 0 var(--ink);outline:none}
+.card:active{transform:translate(4px,4px);box-shadow:2px 2px 0 var(--ink)}
+.c-critter{background:var(--sun)}
+.c-trail{background:var(--teal);color:#fff}
+.c-heart{background:var(--pink)}
+.art{height:120px;margin:-4px 0 18px}
+.art svg{height:100%;width:auto;overflow:visible}
+.card h3{font-family:var(--display);font-weight:800;font-size:38px;line-height:.95;letter-spacing:-.02em}
+.card p{margin-top:12px;font-size:17px;max-width:30ch}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:20px}
+.tag{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.75);color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:4px 11px}
+.go{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:3px dashed currentColor;font-family:var(--display);font-weight:800;font-size:22px}
+.go .arrow{width:48px;height:48px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:24px;transition:transform .15s}
+.card:hover .arrow{transform:rotate(-45deg)}
+.num{position:absolute;top:20px;right:22px;font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:.1em;opacity:.7}
+
+.soon{margin-top:24px;display:flex;align-items:center;gap:20px;border:3px dashed var(--ink);border-radius:26px;padding:24px 28px;background:rgba(255,255,255,.55)}
+.soon .dots{display:flex;gap:8px;flex:none}
+.soon .dots i{width:18px;height:18px;border-radius:50%;border:3px solid var(--ink);background:var(--lime)}
+.soon .dots i:nth-child(2){background:var(--sun)} .soon .dots i:nth-child(3){background:var(--red)}
+.soon h3{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.05}
+.soon p{color:var(--muted);font-size:16px;margin-top:2px}
+
+/* make strip */
+.make{margin:64px 0 0;background:var(--red);color:#fff;border-top:3px solid var(--ink);border-bottom:3px solid var(--ink)}
+.make .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:32px;align-items:center;padding-top:48px;padding-bottom:48px}
+.make h2{color:#fff}
+.make p{font-size:19px;margin-top:14px;max-width:38ch;color:#ffe9ec}
+.gear{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.gear div{background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:16px;padding:16px 18px;box-shadow:4px 4px 0 var(--ink);font-family:var(--display);font-weight:800;font-size:21px;line-height:1.1}
+.gear div small{display:block;font-family:var(--body);font-weight:500;font-size:14px;color:var(--muted);margin-top:4px}
+.gear div:nth-child(2){transform:rotate(1.5deg)} .gear div:nth-child(3){transform:rotate(-1.5deg)}
+
+footer{padding:32px 0 40px;font-size:15px;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer b{color:var(--ink);font-weight:600}
+
+@media (max-width:980px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .s1,.s2,.s3{display:none}
+  .make .wrap{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:680px){
+  .wrap{padding:0 16px}
+  .grid,.how{grid-template-columns:minmax(0,1fr)}
+  .pill{display:none}
+  .card{min-height:0}
+  .hero{padding-top:36px}
+  .soon{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion:reduce){
+  .ticker-track{animation:none}
+  .card,.arrow{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <span>Open House <i></i> Make a badge <i></i> Buttons <i></i> Stickers <i></i> Iron-ons <i></i> Free to try <i></i> Walk-ins welcome <i></i> Open House <i></i> Make a badge <i></i> Buttons <i></i> Stickers <i></i> Iron-ons <i></i> Free to try <i></i> Walk-ins welcome <i></i></span>
+    <span>Open House <i></i> Make a badge <i></i> Buttons <i></i> Stickers <i></i> Iron-ons <i></i> Free to try <i></i> Walk-ins welcome <i></i> Open House <i></i> Make a badge <i></i> Buttons <i></i> Stickers <i></i> Iron-ons <i></i> Free to try <i></i> Walk-ins welcome <i></i></span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="./">
+      <span class="mark-box" aria-hidden="true">GC</span>
+      <span class="mark-text">Graphics Center<small>Student Activity Association</small></span>
+    </a>
+    <span class="pill">No sign-in needed</span>
+  </header>
+
+  <section class="hero">
+    <div class="kicker">Hey Warriors, welcome in</div>
+    <h1><span class="ln">Make it.</span><span class="ln"><span class="hl">Press</span> it.</span><span class="ln">Keep it.</span></h1>
+    <p class="lede">Pick a badge, answer a few quick questions, and watch your design build itself. Then <b>we'll help you turn it into a button, keychain, sticker, or shirt</b> right here.</p>
+    <div class="sticker s1" aria-hidden="true">Made<span>by you</span></div>
+    <div class="sticker s2" aria-hidden="true">100% free</div>
+    <div class="sticker s3" aria-hidden="true">NEW!</div>
+  </section>
+
+  <div class="how">
+    <div class="step"><b>1</b><div><h3>Pick a badge</h3><p>Choose one below. Each takes a few minutes.</p></div></div>
+    <div class="step"><b>2</b><div><h3>Answer and build</h3><p>Every choice adds to your design.</p></div></div>
+    <div class="step"><b>3</b><div><h3>Make it real</h3><p>Print it, press it, and take it with you.</p></div></div>
+  </div>
+
+  <section id="badges" aria-labelledby="badges-h">
+    <div class="sec-head">
+      <h2 id="badges-h">Pick your badge</h2>
+      <p>Tap a card to start. Ask anyone on staff if you get stuck.</p>
+    </div>
+
+    <div class="grid">
+      <a class="card c-critter" href="critter-crew/">
+        <span class="num">01</span>
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 140 120"><circle cx="70" cy="74" r="38" fill="#fff" stroke="#141414" stroke-width="4"/><circle cx="30" cy="34" r="15" fill="#fff" stroke="#141414" stroke-width="4"/><circle cx="58" cy="18" r="14" fill="#fff" stroke="#141414" stroke-width="4"/><circle cx="88" cy="18" r="14" fill="#fff" stroke="#141414" stroke-width="4"/><circle cx="114" cy="36" r="15" fill="#fff" stroke="#141414" stroke-width="4"/><circle cx="57" cy="70" r="5" fill="#141414"/><circle cx="83" cy="70" r="5" fill="#141414"/><path d="M58 88 q12 10 24 0" fill="none" stroke="#141414" stroke-width="4" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Critter Crew</h3>
+        <p>Find the animal that matches how you lead, plus the motto you live by.</p>
+        <div class="tags"><span class="tag">Leadership</span><span class="tag">Button</span><span class="tag">Keychain</span><span class="tag">Sticker</span><span class="tag">Shirt</span></div>
+        <div class="go">Start <span class="arrow">→</span></div>
+      </a>
+
+      <a class="card c-trail" href="trail-badge/">
+        <span class="num">02</span>
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 150 120"><path d="M6 110 L54 30 L80 70 L100 44 L144 110 Z" fill="#FBF5EA" stroke="#141414" stroke-width="4" stroke-linejoin="round"/><path d="M41 52 L54 30 L66 50 L58 46 L50 54 Z" fill="#141414"/><circle cx="118" cy="22" r="14" fill="#FFC72C" stroke="#141414" stroke-width="4"/><path d="M30 110 q20 -20 40 -6 t40 -10" fill="none" stroke="#C8102E" stroke-width="5" stroke-dasharray="2 9" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Trail Badge Builder</h3>
+        <p>Choose your route, take the fork, and map the kind of leader you're becoming.</p>
+        <div class="tags"><span class="tag">Reflection</span><span class="tag">Button</span><span class="tag">Keychain</span><span class="tag">Sticker</span><span class="tag">Shirt</span></div>
+        <div class="go">Start <span class="arrow">→</span></div>
+      </a>
+
+      <a class="card c-heart" href="heart-language/">
+        <span class="num">03</span>
+        <div class="art" aria-hidden="true">
+          <svg viewBox="0 0 130 120"><rect x="28" y="6" width="74" height="16" rx="5" fill="#141414"/><path d="M22 26 h86 v70 a18 18 0 0 1 -18 18 h-50 a18 18 0 0 1 -18 -18 Z" fill="#FBF5EA" stroke="#141414" stroke-width="4"/><path d="M65 96 C40 80 38 58 52 54 C60 52 64 58 65 62 C66 58 70 52 78 54 C92 58 90 80 65 96 Z" fill="#C8102E" stroke="#141414" stroke-width="4" stroke-linejoin="round"/><circle cx="44" cy="44" r="5" fill="#FFC72C" stroke="#141414" stroke-width="2.5"/><circle cx="88" cy="40" r="4" fill="#00A3AD" stroke="#141414" stroke-width="2.5"/></svg>
+        </div>
+        <h3>Heart Language</h3>
+        <p>Discover how you give and receive care, then fill your jar.</p>
+        <div class="tags"><span class="tag">Connection</span><span class="tag">Button</span><span class="tag">Keychain</span><span class="tag">Sticker</span><span class="tag">Shirt</span></div>
+        <div class="go">Start <span class="arrow">→</span></div>
+      </a>
+    </div>
+
+    <div class="soon">
+      <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div>
+        <h3>More badges dropping soon</h3>
+        <p>New designs are in the works. Check back, or tell us what you'd want to make.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="make">
+  <div class="wrap">
+    <div>
+      <h2>Leave with something you made.</h2>
+      <p>Your badge isn't just on a screen. Our student staff will help you print it and press it with the gear in the room.</p>
+    </div>
+    <div class="gear">
+      <div>Button maker<small>Pin it to your bag</small></div>
+      <div>Heat press<small>Put it on a shirt</small></div>
+      <div>Cricut<small>Cut stickers and vinyl</small></div>
+      <div>Laminator<small>Make it last</small></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span><b>ESU Graphics Center</b> · Student Activity Association, Inc.</span>
+    <span>Nothing you type here is collected or saved.</span>
+  </div>
+</footer>
+
+</body>
+</html>
