@@ -1,0 +1,993 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<a href="../" class="gc-home" aria-label="Back to all badges">&larr; All badges</a>
+<style>.gc-home{position:fixed;left:16px;bottom:16px;z-index:50;font:700 15px system-ui,sans-serif;color:#141414;background:#FFC72C;border:3px solid #141414;border-radius:999px;padding:9px 16px;box-shadow:3px 3px 0 #141414;text-decoration:none}.gc-home:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #141414}@media print{.gc-home{display:none}}</style>
+
+<title>Heart Language Badge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: kiosk split — question card on the left, the heart jar / live badge on the right; stacks on phones */
+:root{
+  --bg:#FFEFF3; --dot:#FFDCE6; --surface:#FFFFFF; --ink:#2A1B33; --muted:#6E5A78;
+  --edge:#2A1B33; --accent:#E8336A; --on-accent:#FFFFFF; --sun:#FFC83D; --on-sun:#2A1B33;
+  --mint:#1FA486; --chip:#FFF6F9; --track:#F2CAD7;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1D1326; --dot:#2A1C36; --surface:#2B1E39; --ink:#FFF1F6; --muted:#CBB6D4;
+  --edge:#0B060F; --accent:#FF5C8A; --on-accent:#FFFFFF; --sun:#FFD25E; --on-sun:#2A1B33;
+  --mint:#3FCBA8; --chip:#382748; --track:#4B365B; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1D1326; --dot:#2A1C36; --surface:#2B1E39; --ink:#FFF1F6; --muted:#CBB6D4;
+  --edge:#0B060F; --accent:#FF5C8A; --on-accent:#FFFFFF; --sun:#FFD25E; --on-sun:#2A1B33;
+  --mint:#3FCBA8; --chip:#382748; --track:#4B365B; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  background-image:radial-gradient(var(--dot) 2.5px, transparent 2.6px);background-size:28px 28px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.5px;line-height:1}
+.brand span{color:var(--accent)}
+.brand small{display:block;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.restart{font:700 14px var(--body);background:transparent;color:var(--muted);border:2px solid var(--track);border-radius:999px;padding:8px 16px;cursor:pointer}
+.restart.armed{border-color:var(--accent);color:var(--accent)}
+.progress{display:grid;grid-template-columns:10fr 6fr;gap:18px}
+.leg{display:flex;flex-direction:column;gap:6px;min-width:0}
+.leg b{font:700 12px var(--body);letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.leg.on b{color:var(--ink)}
+.pips{display:grid;gap:5px}
+.pip{height:12px;border-radius:6px;background:var(--track);transition:background .25s}
+.pip.done{background:var(--accent)}
+.pip.now{background:var(--sun);box-shadow:0 0 0 2px var(--edge)}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:28px;align-items:start}
+.panel{background:var(--surface);border:3px solid var(--edge);border-radius:28px;box-shadow:0 8px 0 var(--edge);
+  padding:30px 30px 26px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.panel.enter{animation:pop .28s ease-out}
+@keyframes pop{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+.kicker{font:800 13px var(--body);letter-spacing:1.6px;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,40px);line-height:1.12;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.sub{margin:0;color:var(--muted);font-size:17px;max-width:60ch}
+p{margin:0;max-width:62ch}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opts.one{grid-template-columns:minmax(0,1fr)}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);background:var(--surface);
+  border:3px solid var(--edge);border-radius:20px;box-shadow:0 5px 0 var(--edge);padding:14px 16px;cursor:pointer;
+  transition:transform .08s, box-shadow .08s, background .15s;min-width:0}
+.opt:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--edge)}
+.opt:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.opt[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.opt .k{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 15px var(--display);
+  background:var(--chip);color:var(--ink);border:2px solid var(--edge)}
+.opt[aria-pressed="true"] .k{background:var(--edge);color:var(--sun)}
+.opt .t{display:flex;flex-direction:column;min-width:0}
+.opt .t b{font-weight:800;font-size:18px;line-height:1.25}
+.opt .t span{font-size:14.5px;opacity:.8;line-height:1.35}
+.sw{flex:none;display:flex;gap:4px}
+.sw i{width:22px;height:22px;border-radius:50%;border:2px solid var(--edge);display:block}
+
+.duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;align-items:stretch}
+.opt.big{min-height:150px;justify-content:center;text-align:center}
+.opt.big .t{align-items:center}
+.opt.big .t b{font-family:var(--display);font-weight:600;font-size:23px;line-height:1.2}
+.or{align-self:center;font:700 20px var(--display);background:var(--accent);color:var(--on-accent);border:3px solid var(--edge);border-radius:50%;width:56px;height:56px;display:grid;place-items:center}
+.rounds{display:flex;align-items:center;gap:8px}
+.rd{width:36px;height:36px;border-radius:50%;border:2px solid var(--edge);background:var(--chip);color:var(--ink);font:700 15px var(--display);cursor:pointer}
+.rd.got{background:var(--mint);color:#fff}
+.rd.cur{box-shadow:0 0 0 3px var(--sun)}
+
+.opts.pics{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt.pic{flex-direction:column;align-items:stretch;padding:10px;gap:8px}
+.opt.pic img{width:100%;height:auto;border-radius:12px;border:2px solid var(--edge);display:block}
+.opt.pic .t{align-items:center;text-align:center}
+.opt.pic .t b{font-size:15.5px}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:700 16px var(--body);color:var(--ink);background:var(--chip);border:2px solid var(--edge);border-radius:999px;padding:8px 16px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font:800 13px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.field input{font:700 22px var(--display);color:var(--ink);background:var(--chip);border:3px solid var(--edge);border-radius:16px;padding:12px 16px;width:100%;max-width:420px}
+.field input:focus{outline:3px solid var(--accent);outline-offset:2px}
+.hint{font-size:14px;color:var(--muted)}
+
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}
+.btn{font:700 18px var(--display);letter-spacing:.3px;border:3px solid var(--edge);border-radius:999px;padding:12px 26px;cursor:pointer;
+  background:var(--surface);color:var(--ink);box-shadow:0 5px 0 var(--edge);transition:transform .08s, box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.btn.go{background:var(--accent);color:var(--on-accent);margin-left:auto}
+.btn.big{font-size:22px;padding:16px 36px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:0 5px 0 var(--edge)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.sliders{display:flex;flex-direction:column;gap:22px}
+.sl{display:flex;flex-direction:column;gap:6px}
+.sl .q{font:600 19px var(--display)}
+.sl .ends{display:flex;justify-content:space-between;gap:12px;font-weight:800;font-size:15.5px}
+.sl .ends span:last-child{text-align:right}
+.sl input{width:100%;accent-color:var(--accent);height:30px;cursor:pointer}
+.read{font:600 15px var(--display);color:var(--accent);text-align:center}
+
+.rates{display:flex;flex-direction:column;gap:12px}
+.rate{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:10px 14px}
+.rate b{font-weight:800;font-size:16px;line-height:1.3}
+.hs{display:flex;gap:2px}
+.hb{width:40px;height:40px;border:0;background:transparent;cursor:pointer;padding:2px;border-radius:10px}
+.hb svg{width:100%;height:100%;display:block}
+.hb path{fill:var(--track);stroke:var(--edge);stroke-width:2.4}
+.hb.on path{fill:var(--accent)}
+
+.rank{display:flex;flex-direction:column;gap:10px}
+.rank .opt{padding:12px 16px}
+.rank .num{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--display);border:2px dashed var(--track);color:var(--muted)}
+.rank .opt[aria-pressed="true"] .num{border:2px solid var(--edge);background:var(--edge);color:var(--sun)}
+
+.chat{display:flex;flex-direction:column;gap:10px;background:var(--chip);border:2px solid var(--edge);border-radius:20px;padding:16px}
+.bub{align-self:flex-start;max-width:80%;background:var(--surface);border:2px solid var(--edge);border-radius:18px 18px 18px 4px;padding:8px 14px;font-weight:700}
+.bub small{display:block;font:800 11px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.bub.me{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-radius:18px 18px 4px 18px}
+.flip{font:600 18px var(--display);padding-top:12px;border-top:3px dashed var(--track)}
+
+.sentence{font:600 clamp(21px,2.4vw,28px)/1.45 var(--display);background:var(--chip);border:3px solid var(--edge);border-radius:20px;padding:14px 18px}
+.gap{color:var(--muted)}
+.fill{background:var(--sun);color:var(--on-sun);border-radius:10px;padding:0 8px}
+.then{display:flex;flex-direction:column;gap:12px}
+
+.left{font:600 20px var(--display)}
+.left b{font-size:34px;color:var(--accent);font-variant-numeric:tabular-nums}
+.alloc{display:flex;flex-direction:column;gap:14px}
+.al{display:grid;grid-template-columns:150px 42px minmax(0,1fr) 42px 26px;gap:10px;align-items:center}
+.nm{font-weight:800;line-height:1.25}
+.pm{width:42px;height:42px;border-radius:50%;border:3px solid var(--edge);background:var(--surface);color:var(--ink);font:700 22px var(--display);cursor:pointer;box-shadow:0 3px 0 var(--edge);line-height:1}
+.pm:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.pm:disabled{opacity:.35;cursor:default}
+.pdots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.pdots i{height:18px;border-radius:5px;background:var(--track)}
+.pdots i.on{background:var(--accent)}
+.al em{font-style:normal;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+
+.mix{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:170px minmax(0,1fr) 46px;gap:10px;align-items:center;font-weight:800;font-size:15px}
+.bar .tr{height:16px;border-radius:8px;background:var(--track);overflow:hidden;border:2px solid var(--edge)}
+.bar .fl{height:100%}
+.bar em{font-style:normal;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.bar.top{font-size:16.5px}
+.note{background:var(--chip);border:2px dashed var(--track);border-radius:16px;padding:12px 16px;font-size:15px;color:var(--muted)}
+.note b{color:var(--ink)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:12px 16px;min-width:0}
+.card span{display:block;font:800 11.5px var(--body);letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.card ul{margin:0;padding-left:18px;font-weight:700;font-size:15.5px;line-height:1.4;display:flex;flex-direction:column;gap:4px}
+.seg{display:flex;gap:10px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15.5px}
+.credit{font-size:13px;color:var(--muted)}
+
+.easel{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.stage{width:100%;max-width:520px;aspect-ratio:1;position:relative}
+.stage.tall{aspect-ratio:2/3;max-width:400px}
+.stage canvas,.stage img{width:100%;height:100%;display:block;object-fit:contain}
+.cap{font:700 15px var(--body);color:var(--muted);text-align:center;max-width:42ch}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.lg{display:flex;align-items:center;gap:6px;font:700 13.5px var(--body);background:var(--surface);border:2px solid var(--edge);border-radius:999px;padding:4px 10px 4px 6px}
+.lg i{width:16px;height:16px;border-radius:50%;border:2px solid var(--edge)}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .easel{position:static;order:-1}
+  .stage{max-width:300px}
+  .stage.tall{max-width:260px}
+  .panel{padding:22px 18px 20px}
+}
+@media (max-width:560px){
+  .opts,.cols{grid-template-columns:minmax(0,1fr)}
+  .opts.pics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .duo{grid-template-columns:minmax(0,1fr)} .or{justify-self:center}
+  .al{grid-template-columns:92px 38px minmax(0,1fr) 38px 22px;gap:6px}
+  .pm{width:38px;height:38px}
+  .bar{grid-template-columns:110px minmax(0,1fr) 42px;font-size:14px}
+  .rate{grid-template-columns:minmax(0,1fr)}
+  .hb{width:36px;height:36px}
+  .progress{grid-template-columns:minmax(0,1fr);gap:10px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Heart <span>Language</span><small>Graphics Center · Fill your heart jar</small></div>
+    <button type="button" class="restart" id="restart">Start over</button>
+  </header>
+  <div class="progress" aria-label="Progress">
+    <div class="leg" id="leg1"><b>Part 1 · Fill your jar</b><div class="pips" id="pips1" style="grid-template-columns:repeat(10,1fr)"></div></div>
+    <div class="leg" id="leg2"><b>Part 2 · Design your badge</b><div class="pips" id="pips2" style="grid-template-columns:repeat(6,1fr)"></div></div>
+  </div>
+  <div class="app">
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <aside class="easel">
+      <div class="stage" id="stage">
+        <canvas id="badge" width="1080" height="1080" aria-label="Your heart jar and badge, updating as you answer"></canvas>
+        <img id="outimg" alt="" hidden>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="cap" id="cap"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =============================== DATA =============================== */
+const INK = '#2A1B33';
+const LANGS = ['words', 'time', 'acts', 'gifts', 'touch'];
+const LANG = {
+  words: { n: 'Words of Affirmation', s: 'Kind words', col: '#FF4F79', tint: '#FFE1E9',
+    blurb: 'Kind words land with you. A specific “I noticed what you did” can carry you for days.',
+    love: ['Tell me what you appreciate, and be specific', 'Send the text, even if it feels small', 'Say it out loud: “I’m proud of you”'],
+    show: ['You hype people up and mean it', 'You notice effort and name it', 'You know what someone needs to hear'],
+    watch: 'Harsh words can hit you harder than most. Tell people what you need instead of waiting for them to guess.',
+    phrases: ['PROUD OF YOU', 'YOU GOT THIS', 'SAY IT OUT LOUD', 'KIND WORDS ONLY'] },
+  time: { n: 'Quality Time', s: 'Time together', col: '#7A5CFA', tint: '#E8E1FF',
+    blurb: 'Undivided attention is how you feel it. Phones away, eyes up, and you know you matter.',
+    love: ['Put the phone down when we talk', 'Make plans and keep them', 'Keep small rituals: a walk, a meal, a weekly call'],
+    show: ['You make time even when you’re busy', 'You listen all the way to the end', 'You turn hangouts into memories'],
+    watch: 'Canceled plans can feel personal. A busy week is not the same as not caring.',
+    phrases: ['PHONES DOWN', 'HERE FOR YOU', 'ALL EARS', 'LET’S HANG OUT'] },
+  acts: { n: 'Acts of Service', s: 'Helping out', col: '#1FA486', tint: '#D9F5EC',
+    blurb: 'Actions say it best for you. When someone lightens your load, you feel seen.',
+    love: ['Help without being asked', 'Follow through on what you said you’d do', 'Take one task off my plate on a hard day'],
+    show: ['You jump in when something needs doing', 'People can count on you', 'You notice what would make life easier'],
+    watch: 'You might help until you burn out, or quietly keep score. Let people help you too.',
+    phrases: ['I GOT YOU', 'HAPPY TO HELP', 'ON IT', 'SHOW, DON’T TELL'] },
+  gifts: { n: 'Thoughtful Gifts', s: 'Little surprises', col: '#F2A20C', tint: '#FFF0CC',
+    blurb: 'It’s never about the price. A small gift is proof someone was thinking about you.',
+    love: ['Bring back something small that made you think of me', 'Remember the little things I like', 'Mark the moments that matter'],
+    show: ['You remember details people forget', 'You turn small things into big moments', 'You make people feel thought of'],
+    watch: 'A forgotten birthday can sting more than people realize. Say what matters to you so they know.',
+    phrases: ['THOUGHT OF YOU', 'JUST BECAUSE', 'LITTLE THINGS', 'SAVED YOU ONE'] },
+  touch: { n: 'Physical Touch', s: 'Hugs & high-fives', col: '#FF7A33', tint: '#FFE5D6',
+    blurb: 'Closeness helps you feel safe and connected: a hug, a high-five, sitting side by side.',
+    love: ['Ask first, then go for the hug', 'High-fives and fist bumps count', 'Sit close when we hang out'],
+    show: ['You make people feel welcome right away', 'Your hugs are famous', 'You bring warmth into a room'],
+    watch: 'Not everyone shares your comfort zone. Ask first, and take a “no” in stride.',
+    phrases: ['HUGS WELCOME', 'HIGH FIVE', 'BRING IT IN', 'ASK, THEN HUG'] }
+};
+
+const Q1 = [
+  { t: 'wyr', k: 'Would you rather', h: 'Would you rather…', sub: 'Three quick rounds. Go with your gut.', rounds: [
+    [['Get a long text listing why a friend appreciates you', 'words'], ['Have your favorite snack show up at your door', 'gifts']],
+    [['Have a friend help you move into your room', 'acts'], ['Have a friend stay up talking with you until 2 a.m.', 'time']],
+    [['Get a big hug after a rough day', 'touch'], ['Get a handwritten card after a rough day', 'words']]] },
+  { t: 'pics', k: 'Picture this', h: 'Which one feels most like being cared for?', sub: 'Pick the picture that hits you first.', opts: [
+    ['words', 'A note that says “You got this!”'], ['time', 'A whole afternoon, just the two of you'], ['acts', 'Your to-do list, done for you'],
+    ['gifts', 'A small wrapped surprise'], ['touch', 'A hug that lasts a few seconds longer']] },
+  { t: 'slider', k: 'Spectrum', h: 'Where do you land?', sub: 'Slide each one. The middle means “both.”', rows: [
+    ['When I’m stressed, I want someone to…', ['Talk me through it', 'words'], ['Take something off my plate', 'acts']],
+    ['My ideal birthday is…', ['A thoughtful present', 'gifts'], ['A whole day together', 'time']],
+    ['When a close friend heads home, I want…', ['A long hug goodbye', 'touch'], ['A plan for next time', 'time']]] },
+  { t: 'rate', k: 'Rate it', h: 'How loved would you feel?', sub: 'Give each one 1 to 5 hearts.', items: [
+    ['Your roommate does your dishes without being asked', 'acts'], ['A friend says, “I’m proud of you”', 'words'],
+    ['Someone saves you a seat and puts their phone away', 'time'], ['A friend brings back a souvenir that made them think of you', 'gifts'],
+    ['A friend throws an arm around you at the game', 'touch']] },
+  { t: 'rank', k: 'Rank it', h: 'It’s your best friend’s birthday. What do you do first?', sub: 'Tap all five in order, first to last.', items: [
+    ['Plan a day with just the two of you', 'time'], ['Write a long card about why they matter', 'words'],
+    ['Hunt down the perfect gift', 'gifts'], ['Handle their chores so they can relax', 'acts'], ['Show up at midnight with a big bear hug', 'touch']] },
+  { t: 'pick', k: 'Care package', h: 'A friend had a rough week. Pack three things for them.', sub: 'Pick exactly three.', items: [
+    ['A note about what you love about them', 'words'], ['Your whole evening, phone off', 'time'], ['A coupon: “I’ll do your laundry”', 'acts'],
+    ['Their favorite snacks', 'gifts'], ['A cozy blanket and a long hug', 'touch']] },
+  { t: 'chat', k: 'Group chat', h: 'Pick your reply.', rounds: [
+    { who: 'Your friend', msg: 'ugh. worst day ever.', ask: 'What do you send back?', opts: [
+      ['You are SO strong. Tell me everything.', 'words'], ['On my way. Want to grab food?', 'time'], ['What can I take off your plate tonight?', 'acts'],
+      ['Sending you boba right now.', 'gifts'], ['Come here. Hug incoming.', 'touch']] },
+    { who: 'You', msg: 'ugh. worst day ever.', ask: 'Now flip it. You had the worst day. Which reply would help you most?', opts: [
+      ['I’m proud of how you’re handling this.', 'words'], ['Clearing my night. I’m all yours.', 'time'], ['I already picked up your stuff from the library.', 'acts'],
+      ['Check your door. I left you something.', 'gifts'], ['Bringing hugs. Be there in 5.', 'touch']] }] },
+  { t: 'blank', k: 'Fill in the blank', h: 'Finish the sentences.', s: [
+    ['I feel most appreciated when someone', [['tells me what I did right', 'words'], ['makes time just for me', 'time'], ['pitches in without being asked', 'acts'], ['remembers the little things I like', 'gifts'], ['gives me a big hug', 'touch']]],
+    ['And I show I care by', [['hyping people up', 'words'], ['showing up and staying', 'time'], ['doing the stuff no one wants to do', 'acts'], ['bringing a little something', 'gifts'], ['hugs, high-fives, and fist bumps', 'touch']]]] },
+  { t: 'one', k: 'Identity', h: 'I’m the friend who…', sub: 'Pick the one that sounds most like you.', opts: [
+    ['hypes everyone up', 'words'], ['is always down to hang', 'time'], ['shows up with jumper cables', 'acts'],
+    ['always has the perfect gift', 'gifts'], ['gives the best hugs', 'touch']] },
+  { t: 'alloc', k: 'Heart points', h: 'Spend 10 heart points on what matters most to you in a close friendship.', sub: 'Use + and − until all 10 are spent.', rows: [
+    ['Kind words', 'words'], ['Time together', 'time'], ['Help when I need it', 'acts'], ['Little surprises', 'gifts'], ['Hugs & high-fives', 'touch']] }
+];
+
+const PALS = {
+  match: { n: 'My language color', d: 'Matches your result' },
+  berry: { n: 'Berry', c: '#C2185B', l: '#FFE3EE', p: '#FFC83D' },
+  sunset: { n: 'Sunset', c: '#FF6B57', l: '#FFE9D6', p: '#7A5CFA' },
+  ocean: { n: 'Ocean', c: '#2D7DD2', l: '#DDEEFF', p: '#FFC83D' },
+  mint: { n: 'Mint', c: '#1FA486', l: '#DDF7EE', p: '#FF4F79' },
+  midnight: { n: 'Midnight', c: '#2A2350', l: '#E6E1FF', p: '#FF4F79' }
+};
+const FRAMES = { heart: 'Big heart', sparkle: 'Sparkle heart', double: 'Double heart', none: 'Icon only' };
+const BGS = { dots: 'Polka dots', stripes: 'Stripes', hearts: 'Tiny hearts', rays: 'Sunburst', plain: 'Plain' };
+const Q2 = [
+  { k: 'pal', h: 'Pick your colors', sub: 'This sets your ring, your heart, and your background.' },
+  { k: 'frame', h: 'Pick the shape around your icon' },
+  { k: 'bg', h: 'Pick a background' },
+  { k: 'phrase', h: 'Pick the words for your ring', sub: 'Choose one, or write your own (up to 18 letters).' },
+  { k: 'mix', h: 'Show your heart mix on the badge?', sub: 'Five little hearts, sized by your scores.' },
+  { k: 'name', h: 'Put your name on it' }
+];
+const FLOW = ['intro', ...Q1.map((_, i) => ({ p: 1, i })), 'reveal', ...Q2.map((_, i) => ({ p: 2, i })), 'finish'];
+const REVEAL = Q1.length + 1;
+
+function initA(q) {
+  switch (q.t) {
+    case 'wyr': return q.rounds.map(() => null);
+    case 'slider': return { v: q.rows.map(() => 2), t: q.rows.map(() => false) };
+    case 'rate': return q.items.map(() => null);
+    case 'rank': case 'pick': return [];
+    case 'chat': return [null, null];
+    case 'blank': return { a: null, b: null };
+    case 'alloc': return q.rows.map(() => 0);
+    default: return null;
+  }
+}
+function fresh() {
+  return { a1: Q1.map(initA), picked: null, pal: null, frame: null, bg: null, phrase: null, custom: '', mix: null, name: '',
+    format: 'button', mono: false, shirt: 'color', mirror: false };
+}
+let st = fresh(), pos = 0, ui = { r: 0 }, hover = null, pourStart = null;
+
+/* tokens: up to 3 hearts per question */
+function tokens(i) {
+  const q = Q1[i], a = st.a1[i], out = [];
+  switch (q.t) {
+    case 'wyr': a.forEach((c, r) => { if (c != null) out.push(q.rounds[r][c][1]); }); break;
+    case 'pics': case 'one': if (a != null) { const l = q.opts[a][0] in LANG ? q.opts[a][0] : q.opts[a][1]; out.push(l, l, l); } break;
+    case 'slider': q.rows.forEach((row, r) => { if (!a.t[r]) return; if (a.v[r] < 2) out.push(row[1][1]); else if (a.v[r] > 2) out.push(row[2][1]); }); break;
+    case 'rate': {
+      const rated = q.items.map((it, k) => [a[k], k]).filter(x => x[0] != null).sort((x, y) => y[0] - x[0] || x[1] - y[1]);
+      if (rated[0]) out.push(q.items[rated[0][1]][1], q.items[rated[0][1]][1]);
+      if (rated[1]) out.push(q.items[rated[1][1]][1]);
+      break; }
+    case 'rank': if (a[0] != null) out.push(q.items[a[0]][1], q.items[a[0]][1]); if (a[1] != null) out.push(q.items[a[1]][1]); break;
+    case 'pick': a.forEach(k => out.push(q.items[k][1])); break;
+    case 'chat': if (a[0] != null) out.push(q.rounds[0].opts[a[0]][1]); if (a[1] != null) out.push(q.rounds[1].opts[a[1]][1], q.rounds[1].opts[a[1]][1]); break;
+    case 'blank': if (a.a != null) out.push(q.s[0][1][a.a][1], q.s[0][1][a.a][1]); if (a.b != null) out.push(q.s[1][1][a.b][1]); break;
+    case 'alloc': {
+      const sum = a.reduce((x, y) => x + y, 0); if (!sum) break;
+      const raw = a.map((p, k) => ({ k, v: p * 3 / sum })), fl = raw.map(r => Math.floor(r.v));
+      let left = 3 - fl.reduce((x, y) => x + y, 0);
+      raw.map(r => ({ k: r.k, f: r.v - Math.floor(r.v) })).sort((x, y) => y.f - x.f).forEach(r => { if (left > 0) { fl[r.k]++; left--; } });
+      fl.forEach((n, k) => { for (let j = 0; j < n; j++) out.push(q.rows[k][1]); });
+      break; }
+  }
+  return out.slice(0, 3);
+}
+function done(i) {
+  const q = Q1[i], a = st.a1[i];
+  switch (q.t) {
+    case 'wyr': return a.every(x => x != null);
+    case 'slider': return a.t.every(Boolean);
+    case 'rate': return a.every(x => x != null);
+    case 'rank': return a.length === q.items.length;
+    case 'pick': return a.length === 3;
+    case 'chat': return a[0] != null && a[1] != null;
+    case 'blank': return a.a != null && a.b != null;
+    case 'alloc': return a.reduce((x, y) => x + y, 0) === 10;
+    default: return a != null;
+  }
+}
+function allTokens() { const out = []; Q1.forEach((_, i) => tokens(i).forEach((l, k) => out.push({ key: i + '-' + k, l }))); return out; }
+function counts() {
+  const c = Object.fromEntries(LANGS.map(l => [l, 0]));
+  allTokens().forEach(t => c[t.l]++);
+  const alloc = st.a1[Q1.length - 1];
+  const order = [...LANGS].sort((x, y) => c[y] - c[x] || alloc[LANGS.indexOf(y)] - alloc[LANGS.indexOf(x)] || LANGS.indexOf(x) - LANGS.indexOf(y));
+  const total = Object.values(c).reduce((x, y) => x + y, 0) || 1;
+  return { c, order, total };
+}
+
+/* =============================== DRAWING =============================== */
+const R = (a, b) => a + Math.random() * (b - a);
+function hash(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return ((h >>> 0) % 1000) / 1000; }
+function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+function S(c, fill, lw = 6, ink = INK) { if (fill) { c.fillStyle = fill; c.fill(); } if (lw) { c.lineWidth = lw; c.strokeStyle = ink; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke(); } }
+function poly(c, pts, close = true) { c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); if (close) c.closePath(); }
+function line(c, pts, color = INK, lw = 6) { poly(c, pts, false); c.lineWidth = lw; c.strokeStyle = color; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); }
+function heartPath(c, x, y, s) {
+  const w = s / 2; c.beginPath(); c.moveTo(x, y + w * .86);
+  c.bezierCurveTo(x - w * 1.28, y + w * .02, x - w * .78, y - w * 1.02, x, y - w * .38);
+  c.bezierCurveTo(x + w * .78, y - w * 1.02, x + w * 1.28, y + w * .02, x, y + w * .86); c.closePath();
+}
+function lum(hex) { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt)));
+  return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(f).map(v => v.toString(16).padStart(2, '0')).join('');
+}
+const easeOutBack = t => { const k = 1.70158; return 1 + (k + 1) * Math.pow(t - 1, 3) + k * Math.pow(t - 1, 2); };
+const easeOutBounce = t => { const n = 7.5625, d = 2.75; if (t < 1 / d) return n * t * t; if (t < 2 / d) return n * (t -= 1.5 / d) * t + .75; if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + .9375; return n * (t -= 2.625 / d) * t + .984375; };
+
+function arcText(c, text, r, color, top, size) {
+  c.save(); let sz = size;
+  const fit = () => { c.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`; return [...text].reduce((s, ch) => s + c.measureText(ch).width + sz * .14, 0); };
+  while (fit() / r > 2.5 && sz > 14) sz -= 1;
+  c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const sp = sz * .14, ws = [...text].map(ch => c.measureText(ch).width + sp), total = ws.reduce((a, b) => a + b, 0) - sp;
+  let a = top ? -Math.PI / 2 - total / r / 2 : Math.PI / 2 + total / r / 2;
+  [...text].forEach((ch, i) => {
+    const w = ws[i], mid = top ? a + (w - sp) / 2 / r : a - (w - sp) / 2 / r;
+    c.save(); c.translate(300 + Math.cos(mid) * r, 300 + Math.sin(mid) * r); c.rotate(top ? mid + Math.PI / 2 : mid - Math.PI / 2);
+    c.fillText(ch, 0, 0); c.restore(); a += top ? w / r : -w / r;
+  });
+  c.restore();
+}
+
+/* icons in a ~200px box centred on 0,0. fill=null → outline only (vinyl) */
+function drawIcon(c, lang, x, y, k, fill, ink = INK, lw = 8) {
+  c.save(); c.translate(x, y); c.scale(k, k);
+  const s = (f) => S(c, f, lw, ink);
+  if (lang === 'words') {
+    c.beginPath(); c.moveTo(-56, -70); c.lineTo(56, -70); c.quadraticCurveTo(90, -70, 90, -36); c.lineTo(90, 16); c.quadraticCurveTo(90, 50, 56, 50);
+    c.lineTo(-8, 50); c.lineTo(-60, 90); c.lineTo(-44, 50); c.lineTo(-56, 50); c.quadraticCurveTo(-90, 50, -90, 16); c.lineTo(-90, -36); c.quadraticCurveTo(-90, -70, -56, -70); c.closePath(); s(fill);
+    heartPath(c, 0, -10, 70); c.fillStyle = ink; c.fill();
+  } else if (lang === 'time') {
+    c.beginPath(); c.moveTo(-54, -72); c.lineTo(54, -72); c.quadraticCurveTo(54, -22, 9, 0); c.quadraticCurveTo(54, 22, 54, 72); c.lineTo(-54, 72); c.quadraticCurveTo(-54, 22, -9, 0); c.quadraticCurveTo(-54, -22, -54, -72); c.closePath();
+    if (fill) { c.fillStyle = fill; c.fill(); }
+    poly(c, [[-36, 66], [36, 66], [0, 30]]); c.fillStyle = ink; c.fill();
+    poly(c, [[-30, -46], [30, -46], [0, -14]]); c.fillStyle = ink; c.fill();
+    c.beginPath(); c.moveTo(-54, -72); c.lineTo(54, -72); c.quadraticCurveTo(54, -22, 9, 0); c.quadraticCurveTo(54, 22, 54, 72); c.lineTo(-54, 72); c.quadraticCurveTo(-54, 22, -9, 0); c.quadraticCurveTo(-54, -22, -54, -72); c.closePath(); s(null);
+    rr(c, -74, -96, 148, 24, 10); s(fill); rr(c, -74, 72, 148, 24, 10); s(fill);
+  } else if (lang === 'acts') {
+    rr(c, -72, -78, 144, 176, 18); s(fill);
+    rr(c, -34, -98, 68, 36, 12); c.fillStyle = ink; c.fill();
+    for (let i = 0; i < 3; i++) { const yy = -26 + i * 42; line(c, [[-48, yy], [-36, yy + 11], [-16, yy - 11]], ink, lw); line(c, [[4, yy], [48, yy]], ink, lw); }
+  } else if (lang === 'gifts') {
+    rr(c, -74, -18, 148, 110, 12); s(fill);
+    rr(c, -88, -50, 176, 38, 12); s(fill);
+    line(c, [[0, -50], [0, 92]], ink, lw * 1.6);
+    c.save(); c.translate(-30, -72); c.rotate(-.45); c.beginPath(); c.ellipse(0, 0, 32, 19, 0, 0, Math.PI * 2); c.restore(); s(fill);
+    c.save(); c.translate(30, -72); c.rotate(.45); c.beginPath(); c.ellipse(0, 0, 32, 19, 0, 0, Math.PI * 2); c.restore(); s(fill);
+    circ(c, 0, -62, 12); c.fillStyle = ink; c.fill();
+  } else if (lang === 'touch') {
+    rr(c, -92, -6, 96, 104, 44); s(fill);
+    rr(c, -4, -6, 96, 104, 44); s(fill);
+    circ(c, -44, -48, 32); s(fill); circ(c, 44, -48, 32); s(fill);
+    c.beginPath(); c.moveTo(-62, 30); c.quadraticCurveTo(-10, 64, 40, 18); c.lineWidth = lw; c.strokeStyle = ink; c.lineCap = 'round'; c.stroke();
+    c.beginPath(); c.moveTo(62, 30); c.quadraticCurveTo(10, 64, -40, 18); c.stroke();
+    heartPath(c, 0, -98, 44); c.fillStyle = ink; c.fill();
+  }
+  c.restore();
+}
+
+function palOf(key, lang) {
+  if (!key || key === 'match') { const L = LANG[lang || 'words']; return { c: L.col, l: L.tint, p: lang === 'gifts' ? '#FF4F79' : '#FFC83D' }; }
+  return PALS[key];
+}
+
+/* ---------- the jar ---------- */
+let hearts = [];
+function slotXY(s) { const r = Math.floor(s / 6), col = s % 6; return [188 + col * 43 + (r % 2 ? 21.5 : 0), 452 - r * 43]; }
+function syncHearts(now) {
+  const toks = allTokens(), next = [];
+  toks.forEach((t, s) => {
+    const [tx, ty] = slotXY(s);
+    let h = hearts.find(z => z.key === t.key);
+    if (h && h.l === t.l) { h.tx = tx; h.ty = ty; }
+    else {
+      const born = now + (t.key.split('-')[1] * 140);
+      h = { key: t.key, l: t.l, tx, ty, x: tx + R(-30, 30), y: 60, vy: 0, born, rot: (hash(t.key) - .5) * .7, land: false };
+      if (reduce) { h.x = tx; h.y = ty; h.land = true; }
+    }
+    next.push(h);
+  });
+  hearts = next;
+}
+function stepHearts(now) {
+  hearts.forEach(h => {
+    if (now < h.born) return;
+    h.x += (h.tx - h.x) * .18;
+    if (Math.abs(h.y - h.ty) < .6 && Math.abs(h.vy) < .6) { h.y = h.ty; h.vy = 0; return; }
+    if (h.y > h.ty + 2) { h.y += (h.ty - h.y) * .2; return; }
+    h.vy += 1.1; h.y += h.vy;
+    if (h.y >= h.ty) { h.y = h.ty; h.vy = Math.abs(h.vy) > 3 ? -h.vy * .32 : 0; }
+  });
+}
+function jarPath(c) {
+  c.beginPath(); c.moveTo(222, 150); c.lineTo(378, 150); c.lineTo(378, 176); c.quadraticCurveTo(452, 188, 452, 252);
+  c.lineTo(452, 440); c.quadraticCurveTo(452, 488, 404, 488); c.lineTo(196, 488); c.quadraticCurveTo(148, 488, 148, 440);
+  c.lineTo(148, 252); c.quadraticCurveTo(148, 188, 222, 176); c.closePath();
+}
+function drawJar(c, now, o = {}) {
+  const fadeOthers = o.fade || 0, top = o.top, glow = o.glow || 0;
+  c.save();
+  if (o.shake) { c.translate(300, 470); c.rotate(o.shake); c.translate(-300, -470); }
+  // shadow
+  c.beginPath(); c.ellipse(300, 496, 150, 16, 0, 0, Math.PI * 2); c.fillStyle = 'rgba(42,27,51,.13)'; c.fill();
+  if (glow) { c.save(); c.shadowColor = LANG[top].col; c.shadowBlur = 80 * glow; jarPath(c); c.fillStyle = `rgba(255,255,255,${.5 + .4 * glow})`; c.fill(); c.restore(); }
+  jarPath(c); c.fillStyle = 'rgba(255,255,255,.55)'; c.fill();
+  c.save(); jarPath(c); c.clip();
+  line(c, [[166, 262], [166, 420]], 'rgba(255,255,255,.9)', 9);
+  hearts.forEach(h => {
+    if (now < h.born) return;
+    c.save(); c.globalAlpha = (top && h.l !== top) ? 1 - fadeOthers * .7 : 1;
+    c.translate(h.x, h.y); c.rotate(h.rot); heartPath(c, 0, 0, 46); S(c, LANG[h.l].col, 4);
+    circ(c, -9, -8, 4.5); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill(); c.restore();
+  });
+  c.restore();
+  // hearts still falling above the jar mouth
+  hearts.forEach(h => { if (now >= h.born && h.y < 176) { c.save(); c.translate(h.x, h.y); c.rotate(h.rot); heartPath(c, 0, 0, 46); S(c, LANG[h.l].col, 4); c.restore(); } });
+  jarPath(c); S(c, null, 7);
+  rr(c, 210, 134, 180, 22, 10); S(c, '#FFFFFF', 6);
+  if (o.lidY != null) { rr(c, 200, o.lidY, 200, 40, 12); S(c, '#E8336A', 6); rr(c, 224, o.lidY + 10, 152, 8, 4); c.fillStyle = 'rgba(255,255,255,.5)'; c.fill(); }
+  c.restore();
+}
+
+function drawBg(c, kind, P, mono) {
+  if (mono) return;
+  c.fillStyle = P.l; c.fillRect(0, 0, 600, 600);
+  const d = shade(P.l, -.07);
+  if (kind === 'dots') { c.fillStyle = d; for (let y = 30; y < 600; y += 44) for (let x = (y / 44 % 2 ? 52 : 30); x < 600; x += 44) { circ(c, x, y, 7); c.fill(); } }
+  else if (kind === 'stripes') { c.save(); c.translate(300, 300); c.rotate(-.6); c.fillStyle = d; for (let x = -480; x < 480; x += 56) c.fillRect(x, -480, 24, 960); c.restore(); }
+  else if (kind === 'hearts') { c.fillStyle = d; for (let y = 34; y < 600; y += 58) for (let x = (Math.round(y / 58) % 2 ? 60 : 30); x < 620; x += 60) { heartPath(c, x, y, 26); c.fill(); } }
+  else if (kind === 'rays') { c.fillStyle = d; for (let i = 0; i < 18; i++) { const a = i * Math.PI / 9; c.beginPath(); c.moveTo(300, 300); c.arc(300, 300, 440, a, a + Math.PI / 18); c.closePath(); c.fill(); } }
+}
+function ribbon(c, text, P, y, mono) {
+  c.save(); c.font = "700 34px Fredoka, 'Trebuchet MS', sans-serif";
+  let sz = 34; while (c.measureText(text).width > 300 && sz > 20) { sz--; c.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`; }
+  const w = Math.max(200, c.measureText(text).width + 70), x0 = 300 - w / 2;
+  const fill = mono ? null : P.p, sh = mono ? null : shade(P.p, -.25);
+  poly(c, [[x0 - 34, y + 8], [x0 + 8, y + 8], [x0 + 8, y + 52], [x0 - 34, y + 52], [x0 - 20, y + 30]]); S(c, sh, 5);
+  poly(c, [[x0 + w + 34, y + 8], [x0 + w - 8, y + 8], [x0 + w - 8, y + 52], [x0 + w + 34, y + 52], [x0 + w + 20, y + 30]]); S(c, sh, 5);
+  rr(c, x0, y, w, 52, 10); S(c, fill, 5);
+  c.fillStyle = INK; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, 300, y + 28); c.restore();
+}
+function star(c, x, y, s, col, mono) {
+  c.beginPath(); for (let i = 0; i < 8; i++) { const r = i % 2 ? s * .38 : s, a = i * Math.PI / 4 - Math.PI / 2; c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } c.closePath(); S(c, mono ? null : col, 4);
+}
+function drawCenter(c, lang, frame, P, cy, k, mono) {
+  const main = mono ? null : P.c, white = mono ? null : '#FFFFFF';
+  if (frame === 'double') { c.save(); c.translate(388, cy - 74); c.rotate(.35); heartPath(c, 0, 0, 120 * k); S(c, mono ? null : P.p, 6); c.restore(); }
+  if (frame === 'none') { drawIcon(c, lang, 300, cy + 6, 1.18 * k, white, INK, 9); return; }
+  c.save(); if (!mono) { c.shadowColor = 'rgba(42,27,51,.25)'; c.shadowOffsetY = 8; } heartPath(c, 300, cy, 300 * k); S(c, main, 7); c.restore();
+  heartPath(c, 300, cy, 300 * k); S(c, null, 7);
+  if (!mono) { c.save(); c.beginPath(); c.ellipse(300 - 82 * k, cy - 70 * k, 22 * k, 12 * k, -.7, 0, Math.PI * 2); c.fillStyle = 'rgba(255,255,255,.45)'; c.fill(); c.restore(); }
+  drawIcon(c, lang, 300, cy - 6 * k, .62 * k, white, INK, 9);
+  if (frame === 'sparkle') { star(c, 140, cy - 92, 22, P.p, mono); star(c, 462, cy - 40, 16, P.p, mono); star(c, 452, cy + 80, 12, P.p, mono); star(c, 150, cy + 60, 13, P.p, mono); }
+}
+function drawMix(c, y, mono) {
+  const { c: cn } = counts(), mx = Math.max(1, ...Object.values(cn));
+  LANGS.forEach((l, i) => { const s = 20 + 26 * (cn[l] / mx); heartPath(c, 300 + (i - 2) * 50, y, s); S(c, mono ? null : LANG[l].col, 4); });
+}
+
+/* mode: 'jar' | 'pour' | 'badge' */
+function drawBadge(c, v, mode, now, e = 0, mono = false) {
+  const lang = v.lang, P = palOf(v.pal, lang);
+  const showBadge = mode === 'badge' || (mode === 'pour' && e > 1850);
+  const rim = mono ? null : (showBadge ? P.c : INK);
+  c.save();
+  circ(c, 300, 300, 296); S(c, rim, 6);
+  c.save(); circ(c, 300, 300, 252); c.clip();
+  if (!showBadge) { drawBg(c, 'dots', { l: '#FFF1F5' }, false); }
+  if (mode === 'jar') drawJar(c, now);
+  else if (mode === 'pour') drawPour(c, v, P, now, e);
+  else {
+    drawBg(c, v.bg || 'dots', P, mono);
+    const hasName = !!(v.name || '').trim(), mix = v.mix === 'yes';
+    const k = mix ? .84 : (hasName ? .94 : 1), cy = mix ? 248 : (hasName ? 270 : 296);
+    drawCenter(c, lang, v.frame || 'heart', P, cy, k, mono);
+    if (mix) drawMix(c, hasName ? 402 : 430, mono);
+    if (hasName) ribbon(c, v.name.trim().toUpperCase(), P, 448, mono);
+  }
+  c.restore();
+  circ(c, 300, 300, 252); S(c, null, 6);
+  const tc = mono ? INK : (lum(rim || '#FFFFFF') > .62 ? INK : '#FFFFFF');
+  if (showBadge) {
+    arcText(c, phraseText(v) || 'MY HEART LANGUAGE', 274, tc, true, 32);
+    arcText(c, LANG[lang].n.toUpperCase(), 276, tc, false, 22);
+  } else {
+    arcText(c, 'HEART LANGUAGE', 274, tc, true, 32);
+    arcText(c, 'ESU GRAPHICS CENTER', 276, tc, false, 20);
+  }
+  if (mono) { circ(c, 300, 300, 296); S(c, null, 6); }
+  c.restore();
+}
+
+const CONF = Array.from({ length: 26 }, (_, i) => ({ a: i / 26 * Math.PI * 2 + R(-.15, .15), v: R(.22, .42), s: R(16, 30), l: LANGS[i % 5], spin: R(-.006, .006) }));
+const P_END = 3500;
+function drawPour(c, v, P, now, e) {
+  const top = v.lang;
+  if (e < 1850) {
+    const lidT = Math.min(1, e / 600), lidY = -80 + easeOutBounce(lidT) * 186;
+    const g = Math.max(0, Math.min(1, (e - 500) / 1000));
+    const shake = e > 500 ? Math.sin(e / 30) * (.015 + .05 * g) : 0;
+    drawJar(c, now, { lidY, fade: g, top, glow: g, shake });
+  } else {
+    const q = e - 1850, k = easeOutBack(Math.min(1, q / 700));
+    drawBg(c, 'dots', P, false);
+    c.save(); c.translate(300, 296); c.scale(Math.max(.01, k), Math.max(.01, k)); c.translate(-300, -296);
+    drawCenter(c, top, 'heart', P, 296, 1, false); c.restore();
+    if (q < 1500) CONF.forEach((h, i) => {
+      const x = 300 + Math.cos(h.a) * h.v * q, y = 296 + Math.sin(h.a) * h.v * q + .0009 * q * q;
+      c.save(); c.globalAlpha = Math.max(0, 1 - q / 1500); c.translate(x, y); c.rotate(h.spin * q + i); heartPath(c, 0, 0, h.s); S(c, LANG[h.l].col, 3); c.restore();
+    });
+  }
+  if (e > 1450 && e < 2350) { const a = e < 1850 ? (e - 1450) / 400 : 1 - (e - 1850) / 500; c.fillStyle = `rgba(255,255,255,${Math.max(0, Math.min(1, a)) * .94})`; c.fillRect(0, 0, 600, 600); }
+}
+
+function phraseText(v) { if (!v.phrase) return ''; if (v.phrase === 'custom') return (v.custom || '').trim().toUpperCase(); return v.phrase; }
+function view() {
+  const v = { lang: st.picked || counts().order[0], pal: st.pal, frame: st.frame, bg: st.bg, phrase: st.phrase, custom: st.custom, mix: st.mix, name: st.name };
+  if (hover) v[hover.k] = hover.v;
+  return v;
+}
+function mode() { return pos < REVEAL ? 'jar' : (pos === REVEAL && pourStart != null) ? 'pour' : 'badge'; }
+
+const cv = document.getElementById('badge'), cx = cv.getContext('2d');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function paint(now) {
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  cx.setTransform(cv.width / 600, 0, 0, cv.width / 600, 0, 0);
+  const m = mode();
+  drawBadge(cx, view(), m, now, m === 'pour' ? now - pourStart : 0);
+}
+function loop() {
+  const now = performance.now();
+  if (mode() === 'pour' && now - pourStart > P_END) { pourStart = null; render(); }
+  if (FLOW[pos] !== 'finish') { stepHearts(now); paint(now); }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- export ---------- */
+function wrapText(c, text, x, y, w, lh) {
+  const words = text.split(' '); let lineS = '';
+  words.forEach((wd, i) => { const t = lineS ? lineS + ' ' + wd : wd; if (c.measureText(t).width > w && lineS) { c.fillText(lineS, x, y); y += lh; lineS = wd; } else lineS = t; });
+  if (lineS) { c.fillText(lineS, x, y); y += lh; }
+  return y;
+}
+function compose(fmt) {
+  const v = view(), mono = st.mono && fmt !== 'shirt';
+  if (fmt === 'card') return composeCard(v);
+  const size = fmt === 'shirt' ? 2400 : 1500;
+  const out = document.createElement('canvas'); out.width = out.height = size;
+  const o = out.getContext('2d'), s = size / 600;
+  o.setTransform(s, 0, 0, s, 0, 0);
+  if (fmt === 'shirt') {
+    if (st.mirror) { o.translate(600, 0); o.scale(-1, 1); }
+    drawBadge(o, v, 'badge', 0, 0, st.shirt === 'vinyl');
+  } else if (fmt === 'button') drawBadge(o, v, 'badge', 0);
+  else if (fmt === 'sticker') {
+    circ(o, 300, 300, 296); o.fillStyle = '#FFFFFF'; o.fill();
+    o.save(); o.setLineDash([10, 8]); circ(o, 300, 300, 294); o.lineWidth = 3; o.strokeStyle = '#9A8AA3'; o.stroke(); o.restore();
+    o.save(); o.translate(300, 300); o.scale(.9, .9); o.translate(-300, -300); drawBadge(o, v, 'badge', 0); o.restore();
+  } else {
+    const P = palOf(v.pal, v.lang);
+    o.save(); o.beginPath(); o.arc(300, 330, 268, 0, Math.PI * 2); o.moveTo(342, 40); o.arc(300, 40, 42, 0, Math.PI * 2); o.fillStyle = '#FFFFFF'; o.fill(); o.restore();
+    o.save(); o.setLineDash([10, 8]); o.lineWidth = 3; o.strokeStyle = '#9A8AA3'; circ(o, 300, 330, 266); o.stroke(); circ(o, 300, 40, 40); o.stroke(); o.restore();
+    rr(o, 278, 40, 44, 50, 10); S(o, P.c, 5); circ(o, 300, 40, 30); S(o, P.c, 5); circ(o, 300, 40, 11); S(o, '#FFFFFF', 4);
+    o.save(); o.translate(300, 330); o.scale(.86, .86); o.translate(-300, -300); drawBadge(o, v, 'badge', 0); o.restore();
+  }
+  return mono ? gray(out) : out;
+}
+function gray(src) { const g = document.createElement('canvas'); g.width = src.width; g.height = src.height; const gx = g.getContext('2d'); gx.filter = 'grayscale(1) contrast(1.15)'; gx.drawImage(src, 0, 0); return g; }
+function composeCard(v) {
+  const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
+  const o = out.getContext('2d'), L = LANG[v.lang], P = palOf(v.pal, v.lang), { c: cn, total, order } = counts();
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  o.fillStyle = P.l; o.fillRect(0, 0, W, 760);
+  o.fillStyle = P.c; o.fillRect(0, 0, W, 120);
+  o.fillStyle = lum(P.c) > .62 ? INK : '#FFFFFF'; o.font = "700 54px Fredoka, 'Trebuchet MS', sans-serif"; o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillText('MY HEART LANGUAGE', W / 2, 62);
+  o.save(); o.translate(W / 2 - 310, 140); o.scale(620 / 600, 620 / 600); drawBadge(o, v, 'badge', 0); o.restore();
+  o.textAlign = 'center'; o.textBaseline = 'alphabetic'; o.fillStyle = INK;
+  o.font = "700 70px Fredoka, 'Trebuchet MS', sans-serif"; o.fillText((v.name || '').trim() || 'Me', W / 2, 870);
+  o.fillStyle = shade(P.c, -.15); o.font = "600 48px Fredoka, 'Trebuchet MS', sans-serif"; o.fillText(L.n, W / 2, 935);
+  o.textAlign = 'left'; o.fillStyle = '#6E5A78'; o.font = "800 26px Nunito, system-ui, sans-serif"; o.fillText('MY HEART MIX', 110, 1010);
+  LANGS.forEach((l, i) => {
+    const y = 1040 + i * 50, pct = Math.round(cn[l] / total * 100);
+    o.fillStyle = INK; o.font = `${l === v.lang ? 800 : 700} 28px Nunito, system-ui, sans-serif`; o.fillText(LANG[l].n, 110, y + 26);
+    rr(o, 470, y + 4, 520, 28, 14); S(o, '#F2E6EC', 3);
+    if (pct) { o.save(); rr(o, 470, y + 4, 520, 28, 14); o.clip(); o.fillStyle = LANG[l].col; o.fillRect(470, y + 4, 520 * pct / 100, 28); o.restore(); rr(o, 470, y + 4, 520, 28, 14); S(o, null, 3); }
+    o.textAlign = 'right'; o.fillStyle = '#6E5A78'; o.fillText(pct + '%', 1090, y + 27); o.textAlign = 'left';
+  });
+  const col = (x, title, items) => {
+    o.fillStyle = '#6E5A78'; o.font = "800 26px Nunito, system-ui, sans-serif"; o.fillText(title, x, 1340);
+    o.fillStyle = INK; o.font = "700 29px Nunito, system-ui, sans-serif"; let y = 1388;
+    items.forEach(t => { heartPath(o, x + 10, y - 9, 20); o.fillStyle = P.c; o.fill(); o.fillStyle = INK; y = wrapText(o, t, x + 34, y, 430, 38) + 14; });
+  };
+  col(110, 'HOW TO LOVE ME', L.love); col(640, 'HOW I SHOW UP', L.show);
+  o.fillStyle = '#9A8AA3'; o.font = "700 22px Nunito, system-ui, sans-serif"; o.textAlign = 'center';
+  o.fillText('ESU Graphics Center · Inspired by Gary Chapman’s five love languages', W / 2, 1750);
+  return st.mono ? gray(out) : out;
+}
+
+/* tile images for "Picture this" */
+const TILE = {};
+LANGS.forEach(l => {
+  const t = document.createElement('canvas'); t.width = 300; t.height = 210; const c = t.getContext('2d');
+  c.fillStyle = LANG[l].tint; c.fillRect(0, 0, 300, 210);
+  c.fillStyle = shade(LANG[l].tint, -.06); for (let y = 18; y < 210; y += 34) for (let x = (y / 34 % 2 ? 34 : 17); x < 300; x += 34) { circ(c, x, y, 4); c.fill(); }
+  drawIcon(c, l, 150, 108, .74, LANG[l].col, INK, 8);
+  TILE[l] = t.toDataURL('image/png');
+});
+
+/* =============================== UI =============================== */
+const panel = document.getElementById('panel'), cap = document.getElementById('cap'), outimg = document.getElementById('outimg');
+const legend = document.getElementById('legend'), stage = document.getElementById('stage');
+const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const LET = 'ABCDE';
+function seeded(n, seed) { let s = seed * 9301 + 49297; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280; const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const HEARTSVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 35 C 4 24, 4 11, 12 8 C 16 6.5, 19 9, 20 12 C 21 9, 24 6.5, 28 8 C 36 11, 36 24, 20 35 Z"/></svg>';
+
+function pips() {
+  [['pips1', 1, Q1.length], ['pips2', REVEAL + 1, Q2.length]].forEach(([id, start, n]) => {
+    let h = ''; for (let i = 0; i < n; i++) { const at = start + i; h += `<span class="pip ${pos > at ? 'done' : pos === at ? 'now' : ''}"></span>`; }
+    document.getElementById(id).innerHTML = h;
+  });
+  document.getElementById('leg1').classList.toggle('on', pos >= 1 && pos < REVEAL);
+  document.getElementById('leg2').classList.toggle('on', pos > REVEAL);
+}
+function canNext() {
+  const f = FLOW[pos];
+  if (f === 'intro' || f === 'reveal') return true;
+  if (f.p === 1) return done(f.i);
+  const k = Q2[f.i].k;
+  if (k === 'phrase') return !!phraseText(st);
+  if (k === 'name') return !!st.name.trim();
+  return st[k] != null;
+}
+function navHTML(label) {
+  return `<div class="nav">${pos > 0 ? '<button type="button" class="btn" data-a="back">Back</button>' : ''}<button type="button" class="btn go" id="next" data-a="next" ${canNext() ? '' : 'disabled'}>${label}</button></div>`;
+}
+function refreshNext() { const n = document.getElementById('next'); if (n) n.disabled = !canNext(); }
+
+function q1Body(i) {
+  const q = Q1[i], a = st.a1[i], ord = seeded(5, i + 3);
+  const pr = (on) => `aria-pressed="${on}"`;
+  switch (q.t) {
+    case 'wyr': {
+      const r = ui.r, [A, B] = q.rounds[r];
+      return `<div class="rounds">${q.rounds.map((_, k) => `<button type="button" class="rd ${a[k] != null ? 'got' : ''} ${k === r ? 'cur' : ''}" data-a="round" data-v="${k}" aria-label="Round ${k + 1}">${k + 1}</button>`).join('')}</div>
+        <div class="duo"><button type="button" class="opt big" data-a="wyr" data-v="0" ${pr(a[r] === 0)}><span class="t"><b>${esc(A[0])}</b></span></button>
+        <div class="or">OR</div>
+        <button type="button" class="opt big" data-a="wyr" data-v="1" ${pr(a[r] === 1)}><span class="t"><b>${esc(B[0])}</b></span></button></div>`;
+    }
+    case 'pics': return `<div class="opts pics">${ord.map(k => { const [l, txt] = q.opts[k]; return `<button type="button" class="opt pic" data-a="set" data-v="${k}" ${pr(a === k)}><img src="${TILE[l]}" alt=""><span class="t"><b>${esc(txt)}</b></span></button>`; }).join('')}</div>`;
+    case 'slider': return `<div class="sliders">${q.rows.map((row, r) => `<div class="sl"><div class="q">${esc(row[0])}</div>
+        <div class="ends"><span>${esc(row[1][0])}</span><span>${esc(row[2][0])}</span></div>
+        <input type="range" min="0" max="4" step="1" id="sl-${i}-${r}" data-r="${r}" value="${a.v[r]}" aria-label="${esc(row[0])}">
+        <div class="read" id="rd-${r}">${a.t[r] ? readout(row, a.v[r]) : 'Slide to choose'}</div></div>`).join('')}</div>`;
+    case 'rate': return `<div class="rates">${ord.map(k => `<div class="rate"><b>${esc(q.items[k][0])}</b><div class="hs" role="group" aria-label="Rate: ${esc(q.items[k][0])}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="hb ${a[k] != null && a[k] >= n ? 'on' : ''}" data-a="rate" data-k="${k}" data-v="${n}" aria-label="${n} heart${n > 1 ? 's' : ''}" aria-pressed="${a[k] === n}">${HEARTSVG}</button>`).join('')}</div></div>`).join('')}</div>`;
+    case 'rank': return `<div class="rank">${ord.map(k => { const n = a.indexOf(k); return `<button type="button" class="opt" data-a="rank" data-v="${k}" ${pr(n >= 0)}><span class="num">${n >= 0 ? n + 1 : ''}</span><span class="t"><b>${esc(q.items[k][0])}</b></span></button>`; }).join('')}</div>
+        ${a.length ? '<div><button type="button" class="chip" data-a="rankreset">Clear order</button></div>' : ''}`;
+    case 'pick': return `<div class="opts">${ord.map(k => `<button type="button" class="opt" data-a="pick" data-v="${k}" ${pr(a.includes(k))}><span class="k">${a.includes(k) ? '✓' : ''}</span><span class="t"><b>${esc(q.items[k][0])}</b></span></button>`).join('')}</div>
+        <p class="hint">${a.length} of 3 packed${a.length === 3 ? '. Tap one to swap it out.' : ''}</p>`;
+    case 'chat': {
+      const block = (rd, r) => `<div class="chat"><div class="bub"><small>${esc(rd.who)}</small>${esc(rd.msg)}</div>${a[r] != null ? `<div class="bub me">${esc(rd.opts[a[r]][0])}</div>` : ''}</div>
+        <p class="${r ? 'flip' : 'sub'}">${esc(rd.ask)}</p>
+        <div class="opts one">${seeded(5, r + 11).map((k, n) => `<button type="button" class="opt" data-a="chat" data-r="${r}" data-v="${k}" ${pr(a[r] === k)}><span class="k">${LET[n]}</span><span class="t"><b>${esc(rd.opts[k][0])}</b></span></button>`).join('')}</div>`;
+      return block(q.rounds[0], 0) + (a[0] != null ? block(q.rounds[1], 1) : '');
+    }
+    case 'blank': {
+      const part = (sk, key) => { const [stem, opts] = q.s[sk], cur = a[key];
+        return `<div class="sentence">${esc(stem)} ${cur != null ? `<span class="fill">${esc(opts[cur][0])}</span>` : '<span class="gap">_______</span>'}.</div>
+        <div class="chips">${seeded(5, sk + 21).map(k => `<button type="button" class="chip" data-a="blank" data-r="${key}" data-v="${k}" ${pr(cur === k)}>${esc(opts[k][0])}</button>`).join('')}</div>`; };
+      return part(0, 'a') + (a.a != null ? `<div class="then">${part(1, 'b')}</div>` : '');
+    }
+    case 'one': return `<div class="opts one">${ord.map((k, n) => `<button type="button" class="opt" data-a="set" data-v="${k}" ${pr(a === k)}><span class="k">${LET[n]}</span><span class="t"><b>…${esc(q.opts[k][0])}</b></span></button>`).join('')}</div>`;
+    case 'alloc': {
+      const left = 10 - a.reduce((x, y) => x + y, 0);
+      return `<div class="left">Points left: <b>${left}</b></div><div class="alloc">${q.rows.map((row, k) => `<div class="al"><span class="nm">${esc(row[0])}</span>
+        <button type="button" class="pm" data-a="alloc" data-k="${k}" data-v="-1" aria-label="Remove a point from ${esc(row[0])}" ${a[k] ? '' : 'disabled'}>−</button>
+        <div class="pdots">${Array.from({ length: 10 }, (_, n) => `<i class="${n < a[k] ? 'on' : ''}"></i>`).join('')}</div>
+        <button type="button" class="pm" data-a="alloc" data-k="${k}" data-v="1" aria-label="Add a point to ${esc(row[0])}" ${left ? '' : 'disabled'}>+</button><em>${a[k]}</em></div>`).join('')}</div>`;
+    }
+  }
+}
+function readout(row, v) { return v === 2 ? 'Both, equally' : (v === 0 || v === 4 ? 'All the way: ' : 'Leaning: ') + (v < 2 ? row[1][0] : row[2][0]); }
+
+function q2Body(i) {
+  const q = Q2[i], lang = st.picked, pr = on => `aria-pressed="${on}"`, prev = (k, v) => `data-a="q2" data-k="${k}" data-v="${esc(v)}"`;
+  if (q.k === 'pal') return `<div class="opts">${Object.entries(PALS).map(([k, p]) => { const P = palOf(k, lang);
+    return `<button type="button" class="opt" ${prev('pal', k)} ${pr(st.pal === k)}><span class="sw"><i style="background:${P.c}"></i><i style="background:${P.l}"></i><i style="background:${P.p}"></i></span><span class="t"><b>${p.n}</b>${p.d ? `<span>${p.d}</span>` : ''}</span></button>`; }).join('')}</div>`;
+  if (q.k === 'frame') return `<div class="opts">${Object.entries(FRAMES).map(([k, n]) => `<button type="button" class="opt" ${prev('frame', k)} ${pr(st.frame === k)}><span class="t"><b>${n}</b></span></button>`).join('')}</div>`;
+  if (q.k === 'bg') return `<div class="opts">${Object.entries(BGS).map(([k, n]) => `<button type="button" class="opt" ${prev('bg', k)} ${pr(st.bg === k)}><span class="t"><b>${n}</b></span></button>`).join('')}</div>`;
+  if (q.k === 'phrase') return `<div class="chips">${LANG[lang].phrases.map(p => `<button type="button" class="chip" ${prev('phrase', p)} ${pr(st.phrase === p)}>${esc(p)}</button>`).join('')}
+      <button type="button" class="chip" ${prev('phrase', 'custom')} ${pr(st.phrase === 'custom')}>Write my own</button></div>
+      ${st.phrase === 'custom' ? `<div class="field"><label for="custom">Your words</label><input id="custom" maxlength="18" autocomplete="off" value="${esc(st.custom)}" placeholder="e.g. ALWAYS IN YOUR CORNER"></div>` : ''}`;
+  if (q.k === 'mix') return `<div class="opts">${[['yes', 'Yes, show my mix'], ['no', 'Keep it simple']].map(([k, n]) => `<button type="button" class="opt" ${prev('mix', k)} ${pr(st.mix === k)}><span class="t"><b>${n}</b></span></button>`).join('')}</div>`;
+  if (q.k === 'name') return `<div class="field"><label for="name">Name for the ribbon</label><input id="name" maxlength="14" autocomplete="off" value="${esc(st.name)}" placeholder="First name or nickname"></div><p class="hint">Up to 14 letters.</p>`;
+}
+
+function mixBars(lang) {
+  const { c, total, order } = counts();
+  return `<div class="mix">${order.map(l => { const pct = Math.round(c[l] / total * 100);
+    return `<div class="bar ${l === lang ? 'top' : ''}"><span>${LANG[l].n}</span><span class="tr"><span class="fl" style="display:block;width:${pct}%;background:${LANG[l].col}"></span></span><em>${pct}%</em></div>`; }).join('')}</div>`;
+}
+
+function render() {
+  const f = FLOW[pos];
+  hover = null;
+  panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter');
+  pips();
+  outimg.hidden = true; cv.hidden = false; stage.classList.remove('tall');
+  legend.innerHTML = pos < REVEAL ? LANGS.map(l => `<span class="lg"><i style="background:${LANG[l].col}"></i>${LANG[l].n}</span>`).join('') : '';
+  if (f === 'intro') {
+    panel.innerHTML = `<div class="kicker">ESU Graphics Center</div>
+      <h1>What’s your Heart Language?</h1>
+      <p class="sub">Answer 10 quick questions and watch your jar fill with hearts. Each color is a different way people give and feel care. When the jar is full, we seal it and see which color wins.</p>
+      <p>“Love” here means anyone you care about: friends, family, roommates, teammates, partners.</p>
+      <p class="sub">After that, you design a badge and leave with your Heart Language profile. Print it as a button, sticker, keychain, or iron-on for a shirt.</p>
+      ${navHTML('Start filling')}`;
+    cap.textContent = 'Your jar fills up as you answer.';
+  } else if (f === 'reveal') {
+    const lang = st.picked, L = LANG[lang], { order } = counts(), alt = order[0] === lang ? order[1] : order[0];
+    if (pourStart != null) {
+      panel.innerHTML = `<div class="kicker">Sealing your jar</div><h1>Here it comes…</h1><p class="sub">Your jar is full. Let’s see which color shines brightest.</p>
+        <div class="nav"><button type="button" class="btn" data-a="skip">Skip</button></div>`;
+      cap.textContent = 'Watch the jar.';
+    } else {
+      panel.innerHTML = `<div class="kicker">Your Heart Language</div>
+        <h1 style="color:${L.col === '#F2A20C' ? '#C27F00' : L.col}">${L.n}</h1>
+        <p class="sub">${L.blurb}</p>
+        <h2>Your heart mix</h2>
+        ${mixBars(lang)}
+        <div class="note"><b>Most people care about all five.</b> Your mix says more about you than one label. Use it to start a conversation, not to box anyone in.</div>
+        <div><button type="button" class="chip" data-a="swap">Feels more like ${esc(LANG[alt].n)}? Switch to it</button></div>
+        ${navHTML('Design my badge')}`;
+      cap.textContent = 'This is your starting badge. You’ll design it next.';
+    }
+  } else if (f === 'finish') {
+    panel.innerHTML = finishHTML();
+    makeOut();
+  } else if (f.p === 1) {
+    const q = Q1[f.i];
+    panel.innerHTML = `<div class="kicker">${q.k} · ${f.i + 1} of ${Q1.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q1Body(f.i)}${navHTML(f.i === Q1.length - 1 ? 'Seal my jar' : 'Next')}`;
+    syncHearts(performance.now());
+    capJar();
+    wireQ1(f.i);
+  } else {
+    const q = Q2[f.i];
+    panel.innerHTML = `<div class="kicker">Design · ${f.i + 1} of ${Q2.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q2Body(f.i)}${navHTML(f.i === Q2.length - 1 ? 'Finish my badge' : 'Next')}`;
+    cap.textContent = 'Point at an option to preview it on your badge.';
+    wireQ2();
+  }
+}
+function capJar() { const n = allTokens().length; cap.textContent = n ? `${n} heart${n > 1 ? 's' : ''} in your jar` : 'Your jar is empty. Answer to drop in hearts.'; }
+
+/* ---------- interactions ---------- */
+let restartArmed = null;
+document.getElementById('restart').onclick = e => {
+  const b = e.currentTarget;
+  if (restartArmed) { clearTimeout(restartArmed); restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; st = fresh(); hearts = []; pos = 0; pourStart = null; render(); return; }
+  b.classList.add('armed'); b.textContent = 'Tap again to start over';
+  restartArmed = setTimeout(() => { restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; }, 3000);
+};
+function go(d) {
+  const f = FLOW[pos];
+  if (d > 0 && f !== 'intro' && f !== 'finish' && f.p === 1 && f.i === Q1.length - 1) { st.picked = counts().order[0]; pourStart = reduce ? null : performance.now(); }
+  else pourStart = null;
+  pos = Math.max(0, Math.min(FLOW.length - 1, pos + d));
+  ui = { r: 0 };
+  const nf = FLOW[pos];
+  if (typeof nf === 'object' && nf.p === 1 && Q1[nf.i].t === 'wyr') { const fn = st.a1[nf.i].findIndex(x => x == null); ui.r = fn < 0 ? Q1[nf.i].rounds.length - 1 : fn; }
+  render();
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+let advT;
+panel.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const act = b.dataset.a, v = b.dataset.v, f = FLOW[pos];
+  if (act === 'next') { if (canNext()) go(f === 'finish' ? 0 : 1); return; }
+  if (act === 'back') { go(-1); return; }
+  if (act === 'skip') { pourStart = null; render(); return; }
+  if (act === 'swap') { const { order } = counts(); st.picked = order[0] === st.picked ? order[1] : order[0]; render(); return; }
+  if (act === 'again') { st = fresh(); hearts = []; pos = 0; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'fmt') { st.format = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'shirt') { st.shirt = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'q2') { const k = b.dataset.k; st[k] = v; hover = null; renderQ2Keep(k + v); return; }
+  if (typeof f !== 'object' || f.p !== 1) return;
+  const q = Q1[f.i], a = st.a1[f.i];
+  const re = (focusSel) => { const y = window.scrollY; rerenderQ1(f.i, focusSel); window.scrollTo(0, y); };
+  if (act === 'round') { ui.r = +v; re(`[data-a="round"][data-v="${v}"]`); return; }
+  if (act === 'wyr') {
+    a[ui.r] = +v; re(`[data-a="wyr"][data-v="${v}"]`);
+    clearTimeout(advT);
+    const nextR = a.findIndex(x => x == null);
+    if (nextR >= 0) advT = setTimeout(() => { ui.r = nextR; re('[data-a="wyr"][data-v="0"]'); }, 380);
+    return;
+  }
+  if (act === 'set') { st.a1[f.i] = +v; re(`[data-a="set"][data-v="${v}"]`); return; }
+  if (act === 'rate') { a[+b.dataset.k] = +v; re(`[data-a="rate"][data-k="${b.dataset.k}"][data-v="${v}"]`); return; }
+  if (act === 'rank') { const k = +v, n = a.indexOf(k); if (n >= 0) a.splice(n); else a.push(k); re(`[data-a="rank"][data-v="${v}"]`); return; }
+  if (act === 'rankreset') { a.length = 0; re('[data-a="rank"]'); return; }
+  if (act === 'pick') { const k = +v, n = a.indexOf(k); if (n >= 0) a.splice(n, 1); else if (a.length < 3) a.push(k); re(`[data-a="pick"][data-v="${v}"]`); return; }
+  if (act === 'chat') { a[+b.dataset.r] = +v; re(`[data-a="chat"][data-r="${b.dataset.r}"][data-v="${v}"]`); return; }
+  if (act === 'blank') { a[b.dataset.r] = +v; re(`[data-a="blank"][data-r="${b.dataset.r}"][data-v="${v}"]`); return; }
+  if (act === 'alloc') { const k = +b.dataset.k, left = 10 - a.reduce((x, y) => x + y, 0); if (+v > 0 && left > 0) a[k]++; if (+v < 0 && a[k] > 0) a[k]--; re(`[data-a="alloc"][data-k="${k}"][data-v="${v}"]`); return; }
+});
+function rerenderQ1(i, focusSel) {
+  const q = Q1[i];
+  panel.innerHTML = `<div class="kicker">${q.k} · ${i + 1} of ${Q1.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q1Body(i)}${navHTML(i === Q1.length - 1 ? 'Seal my jar' : 'Next')}`;
+  syncHearts(performance.now()); capJar(); wireQ1(i);
+  const el = focusSel && panel.querySelector(focusSel); if (el) el.focus({ preventScroll: true });
+}
+function wireQ1(i) {
+  const q = Q1[i];
+  if (q.t !== 'slider') return;
+  panel.querySelectorAll('input[type=range]').forEach(inp => inp.addEventListener('input', () => {
+    const r = +inp.dataset.r, a = st.a1[i]; a.v[r] = +inp.value; a.t[r] = true;
+    document.getElementById('rd-' + r).textContent = readout(q.rows[r], a.v[r]);
+    syncHearts(performance.now()); capJar(); refreshNext();
+  }));
+}
+function renderQ2Keep(key) {
+  const f = FLOW[pos], q = Q2[f.i];
+  panel.innerHTML = `<div class="kicker">Design · ${f.i + 1} of ${Q2.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q2Body(f.i)}${navHTML(f.i === Q2.length - 1 ? 'Finish my badge' : 'Next')}`;
+  wireQ2();
+  const el = [...panel.querySelectorAll('[data-a="q2"]')].find(b => b.dataset.k + b.dataset.v === key);
+  if (st.phrase === 'custom' && key === 'phrasecustom') document.getElementById('custom')?.focus(); else el?.focus({ preventScroll: true });
+}
+function wireQ2() {
+  panel.querySelectorAll('[data-a="q2"]').forEach(b => {
+    b.addEventListener('pointerenter', () => { hover = { k: b.dataset.k, v: b.dataset.v }; });
+    b.addEventListener('pointerleave', () => { hover = null; });
+  });
+  const nm = document.getElementById('name'); if (nm) { nm.addEventListener('input', () => { st.name = nm.value; refreshNext(); }); nm.addEventListener('keydown', e => { if (e.key === 'Enter' && canNext()) go(1); }); }
+  const cu = document.getElementById('custom'); if (cu) cu.addEventListener('input', () => { st.custom = cu.value; refreshNext(); });
+}
+
+/* ---------- finish ---------- */
+const FMTS = [['button', 'Button'], ['sticker', 'Sticker'], ['keychain', 'Keychain'], ['shirt', 'Shirt (Cricut)'], ['card', 'Profile card']];
+function finishHTML() {
+  const L = LANG[st.picked], nm = st.name.trim();
+  const tips = {
+    button: '<p>The colored ring wraps around the edge of the button.</p>',
+    sticker: '<p>Print on sticker paper and cut along the dotted line.</p>',
+    keychain: '<p>Print, laminate, and cut along the dotted line. Punch the small circle at the top for the ring.</p>',
+    card: '<p>A 4 × 6 profile card with your badge, your heart mix, and how to love you. Print it on cardstock.</p>',
+    shirt: st.shirt === 'vinyl'
+      ? `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space. Choose <b>Simple</b> and keep it as one layer.</li><li>Size it about 8–10 in wide for the front, or 3.5 in for a chest logo.</li><li>Load heat transfer vinyl shiny side down. Turn on <b>Mirror</b> on the mat screen before you cut.</li><li>Weed out the extra vinyl and press it using your vinyl’s heat guide.</li></ol>`
+      : `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space as a <b>Print Then Cut</b> image.</li><li>Keep it within about 6.75 × 9.25 in (the Print Then Cut limit).</li><li>Print on printable heat transfer paper. Light-shirt paper usually needs a mirrored print, so turn on <b>Mirror</b> below. Dark-shirt paper does not.</li><li>Cut, peel, and press using the paper’s heat guide.</li></ol>`
+  };
+  cap.textContent = 'Right-click the picture and choose “Save image as” to keep it.';
+  return `<div class="kicker">Your badge is ready</div>
+    <h1>${esc(nm)}’s Heart Language: ${L.n}</h1>
+    <p class="sub">${L.blurb}</p>
+    ${mixBars(st.picked)}
+    <div class="cols">
+      <div class="card"><span>How to love me</span><ul>${L.love.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
+      <div class="card"><span>How I show up for others</span><ul>${L.show.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
+    </div>
+    <div class="note"><b>Watch for:</b> ${L.watch}</div>
+    <h2>Make it</h2>
+    <div class="seg" role="group" aria-label="What are you making?">${FMTS.map(([k, l]) => `<button type="button" class="chip" data-a="fmt" data-v="${k}" aria-pressed="${st.format === k}">${l}</button>`).join('')}</div>
+    ${st.format === 'shirt' ? `<div class="seg" role="group" aria-label="Shirt method">${[['color', 'Full color (printable iron-on)'], ['vinyl', 'One color (vinyl cut)']].map(([k, l]) => `<button type="button" class="chip" data-a="shirt" data-v="${k}" aria-pressed="${st.shirt === k}">${l}</button>`).join('')}</div>
+      ${st.shirt === 'color' ? `<label class="toggle"><input type="checkbox" id="mirror" ${st.mirror ? 'checked' : ''}> Mirror the picture</label>` : '<p class="hint">Leave this picture unmirrored. Design Space mirrors it for you when you turn on Mirror.</p>'}`
+      : `<label class="toggle"><input type="checkbox" id="mono" ${st.mono ? 'checked' : ''}> Black and white (saves color ink)</label>`}
+    ${tips[st.format]}
+    <div class="note"><b>To save:</b> right-click your picture and choose <b>Save image as</b>. Then print or upload the saved file.</div>
+    <p class="credit">Inspired by Gary Chapman’s five love languages. Questions written for the ESU Graphics Center.</p>
+    <div class="nav"><button type="button" class="btn" data-a="back">Back</button><button type="button" class="btn go" data-a="again">Start a new jar</button></div>`;
+}
+function makeOut() {
+  const m = document.getElementById('mono'); if (m) m.onchange = () => { st.mono = m.checked; makeOut(); };
+  const mi = document.getElementById('mirror'); if (mi) mi.onchange = () => { st.mirror = mi.checked; makeOut(); };
+  const run = () => {
+    const out = compose(st.format);
+    outimg.src = out.toDataURL('image/png');
+    outimg.alt = `${st.name.trim()}’s Heart Language ${st.format === 'card' ? 'profile card' : st.format}, ready to print`;
+    stage.classList.toggle('tall', st.format === 'card');
+    outimg.hidden = false; cv.hidden = true;
+    outimg.style.background = st.format === 'shirt' ? 'repeating-conic-gradient(var(--chip) 0 25%, var(--surface) 0 50%) 0 0/24px 24px' : 'transparent';
+  };
+  document.fonts && document.fonts.ready ? document.fonts.ready.then(run) : run();
+}
+
+render();
+requestAnimationFrame(loop);
+document.fonts && document.fonts.ready.then(() => paint(performance.now()));
+</script>
+
+</body></html>

@@ -1,0 +1,1004 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<a href="../" class="gc-home" aria-label="Back to all badges">&larr; All badges</a>
+<style>.gc-home{position:fixed;left:16px;bottom:16px;z-index:50;font:700 15px system-ui,sans-serif;color:#141414;background:#FFC72C;border:3px solid #141414;border-radius:999px;padding:9px 16px;box-shadow:3px 3px 0 #141414;text-decoration:none}.gc-home:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #141414}@media print{.gc-home{display:none}}</style>
+
+<title>Trail Badge Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;700;800;900&family=Atkinson+Hyperlegible:wght@400;400i;700&display=swap">
+<style>
+/* Layout: trail-map workbench. Question panel left, live badge on a sticky easel right; stacks badge-first on phones. */
+:root {
+  --paper: #EDF1EC;
+  --card: #F8FAF6;
+  --ink: #17302B;
+  --muted: #566A63;
+  --pine: #2E5D4F;
+  --blaze: #E3A42F;
+  --mist: #D6E0DA;
+  --line: #C3D0C9;
+  --guide: #EAF0F7;
+  --guide-line: #5C7FA3;
+  --contour: rgba(46, 93, 79, 0.07);
+  --display: "Overpass", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111A18; --card: #18231F; --ink: #E4ECE7; --muted: #9DB1A9;
+    --pine: #86C0A9; --blaze: #F0B64C; --mist: #22322D; --line: #2F433D;
+    --guide: #18222D; --guide-line: #8FB3D6;
+    --contour: rgba(134, 192, 169, 0.06); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111A18; --card: #18231F; --ink: #E4ECE7; --muted: #9DB1A9;
+  --pine: #86C0A9; --blaze: #F0B64C; --mist: #22322D; --line: #2F433D;
+  --guide: #18222D; --guide-line: #8FB3D6;
+  --contour: rgba(134, 192, 169, 0.06); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background:
+    repeating-radial-gradient(circle at 85% 10%, transparent 0 38px, var(--contour) 38px 40px),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-block: 24px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 16px; }
+.brand { font-family: var(--display); font-weight: 900; font-size: 1.35rem; letter-spacing: 0.01em; text-transform: uppercase; }
+.brand span { color: var(--pine); }
+.where { color: var(--muted); font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; font-family: var(--display); font-weight: 700; }
+.progress { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-bottom: 6px; }
+.progress i { height: 8px; border-radius: 2px; background: var(--mist); }
+.progress i.done { background: var(--pine); }
+.progress i.now { background: var(--blaze); }
+.legs { display: flex; justify-content: space-between; font-family: var(--display); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 22px; flex-wrap: wrap; gap: 4px 12px; }
+.app { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 32px; align-items: start; }
+.panel { min-width: 0; }
+.easel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.easel canvas { width: 100%; max-width: 360px; height: auto; aspect-ratio: 1; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.14)); }
+.easel .cap { font-family: var(--display); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.kicker { font-family: var(--display); font-weight: 800; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pine); }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(1.7rem, 3.4vw, 2.4rem); line-height: 1.08; margin: 6px 0 10px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 1.15rem; margin: 26px 0 8px; text-wrap: balance; }
+.prompt { max-width: 62ch; color: var(--muted); margin: 0 0 18px; font-size: 1.05rem; }
+.opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.opts.three { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.opt {
+  font: inherit; color: inherit; text-align: left; cursor: pointer; position: relative;
+  background: var(--card); border: 2px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  transition: border-color .15s;
+}
+.opt:hover { border-color: var(--pine); }
+.opt[aria-pressed="true"] { border-color: var(--pine); background: var(--mist); }
+.opt.grow[aria-pressed="true"] { border-color: var(--blaze); border-style: dashed; }
+.opt canvas { width: 100%; height: auto; aspect-ratio: 1; border-radius: 6px; }
+.opt b { font-family: var(--display); font-weight: 800; font-size: 1rem; line-height: 1.2; }
+.opt small { color: var(--muted); font-size: 0.86rem; line-height: 1.35; }
+.opt .num {
+  position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--pine); color: var(--paper); font-family: var(--display); font-weight: 900;
+  display: grid; place-items: center; font-size: 0.95rem;
+}
+:focus-visible { outline: 3px solid var(--blaze); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.chip {
+  font-family: var(--display); font-weight: 800; font-size: 0.98rem; letter-spacing: 0.03em;
+  padding: 9px 15px; border-radius: 999px; cursor: pointer;
+  border: 2px solid var(--line); background: var(--card); color: var(--ink);
+}
+.chip[aria-pressed="true"] { border-color: var(--pine); background: var(--pine); color: var(--paper); }
+.chip.ai { border-style: dashed; border-color: var(--guide-line); }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 0.92rem; max-width: 560px; margin-top: 8px; }
+.field input, .field textarea {
+  font: inherit; font-weight: 400; font-size: 1.02rem; padding: 10px 12px; border-radius: 8px;
+  border: 2px solid var(--line); background: var(--card); color: var(--ink); width: 100%;
+}
+.field textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
+.hint { color: var(--muted); font-size: 0.86rem; font-weight: 400; }
+.pledge { display: flex; gap: 12px; align-items: flex-start; margin-top: 18px; padding: 14px 16px; border: 2px dashed var(--pine); border-radius: 10px; max-width: 62ch; cursor: pointer; }
+.pledge input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--pine); flex: none; }
+.pledge strong { font-family: var(--display); font-weight: 800; }
+.tip { margin-top: 24px; padding: 12px 16px; border-left: 6px solid var(--blaze); background: var(--card); border-radius: 0 8px 8px 0; max-width: 64ch; }
+.tip .lbl { font-family: var(--display); font-weight: 800; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; }
+.nav { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+.btn {
+  font-family: var(--display); font-weight: 800; font-size: 1rem; letter-spacing: 0.03em;
+  padding: 12px 22px; border-radius: 8px; cursor: pointer; border: 2px solid var(--pine);
+  background: transparent; color: var(--ink);
+}
+.btn.go { background: var(--pine); color: var(--paper); }
+.btn.guide { border-color: var(--guide-line); background: var(--guide); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.slider { display: grid; gap: 6px; margin-bottom: 22px; max-width: 580px; }
+.slider .q { font-weight: 700; }
+.slider .ends { display: flex; justify-content: space-between; gap: 16px; font-size: 0.88rem; color: var(--muted); }
+.slider input { width: 100%; accent-color: var(--pine); height: 28px; }
+.mirror { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.mirror > div { min-width: 0; }
+.gap { margin-top: 6px; padding: 12px 16px; border-radius: 10px; background: var(--card); border: 2px solid var(--line); max-width: 62ch; }
+.gap b { font-family: var(--display); font-weight: 800; }
+.guidebox { margin-top: 6px; padding: 16px 18px; border-radius: 12px; background: var(--guide); border: 2px solid var(--guide-line); max-width: 64ch; }
+.guidebox .who { font-family: var(--display); font-weight: 800; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--guide-line); display: block; margin-bottom: 4px; }
+.guidebox p { margin: 6px 0; }
+.guidebox .q { font-family: var(--display); font-weight: 800; font-size: 1.15rem; line-height: 1.3; }
+.guidebox .err { color: var(--muted); }
+.ainote { font-size: 0.84rem; color: var(--muted); margin: 8px 0 0; max-width: 62ch; }
+.upload { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 8px 0 4px; }
+.upload img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 2px solid var(--line); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 2px solid var(--line); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
+.seg button { font-family: var(--display); font-weight: 800; font-size: 0.95rem; padding: 10px 16px; cursor: pointer; background: var(--card); color: var(--ink); border: 0; border-right: 2px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--pine); color: var(--paper); }
+.toggle { display: flex; align-items: center; gap: 10px; font-weight: 700; margin-bottom: 18px; }
+.toggle input { width: 20px; height: 20px; accent-color: var(--pine); }
+.notes { display: grid; gap: 12px; margin: 8px 0 22px; }
+.notes section { background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.notes .lbl { display: block; font-family: var(--display); font-weight: 800; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.notes .head { font-family: var(--display); font-weight: 900; font-size: 1.4rem; line-height: 1.15; text-wrap: balance; }
+.notes p { margin: 4px 0 0; }
+.key { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 18px; margin: 6px 0 22px; padding: 0; list-style: none; }
+.key li { font-size: 0.92rem; }
+.key b { font-family: var(--display); font-weight: 800; }
+.journal { margin: 6px 0 22px; padding-left: 18px; border-left: 3px solid var(--line); }
+.journal p { margin: 0 0 10px; font-style: italic; max-width: 62ch; }
+.journal span { display: block; font-style: normal; font-family: var(--display); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.out { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+.out img { width: 220px; max-width: 100%; height: auto; border-radius: 8px; background: repeating-conic-gradient(var(--mist) 0 25%, var(--card) 0 50%) 0 0 / 20px 20px; }
+.out p { flex: 1 1 220px; min-width: 0; margin: 0; color: var(--muted); font-size: 0.92rem; }
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .easel { position: static; order: -1; }
+  .easel canvas { max-width: 220px; }
+  .opts, .opts.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Trail <span>Badge</span> Builder</div>
+    <div class="where">Graphics Center · Leadership Expedition · about 30 minutes</div>
+  </header>
+  <div class="progress" id="progress" aria-label="Progress"></div>
+  <div class="legs"><span>Basecamp</span><span>The climb</span><span>The mirror</span><span>Summit</span></div>
+  <div class="app">
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <aside class="easel">
+      <canvas id="badge" width="720" height="720" aria-label="Your badge, building as you answer"></canvas>
+      <div class="cap" id="cap">Your badge builds as you answer</div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ================= data ================= */
+const S = 600;
+const PAL = {
+  easy: { sky:'#CFE8E2', skyLow:'#EEF7F2', far:'#8DBFAE', near:'#3F7B65', accent:'#F0B33C', ink:'#1D3A33', light:'#F8F6EE', water:'#6FB0C0', rock:'#6E7F78' },
+  hard: { sky:'#C6CEDA', skyLow:'#E9EDF2', far:'#8A96A8', near:'#3F4A5C', accent:'#D9573B', ink:'#1B2230', light:'#F4F4F2', water:'#5E7D98', rock:'#5A606B' },
+  fun:  { sky:'#F9CDAA', skyLow:'#FDEBDA', far:'#E3877A', near:'#6E3B6A', accent:'#FFD45E', ink:'#2B1A33', light:'#FFF8EE', water:'#8C7BC4', rock:'#8A5A7E' },
+  dawn: { sky:'#D7D3F0', skyLow:'#F3F0FB', far:'#9C93C9', near:'#3E3A6B', accent:'#F2A65A', ink:'#1F1C3A', light:'#FAF8FF', water:'#7FA3D6', rock:'#6D6890' },
+  mono: { sky:'#FFFFFF', skyLow:'#FFFFFF', far:'#C9C9C9', near:'#6A6A6A', accent:'#8A8A8A', ink:'#111111', light:'#FFFFFF', water:'#A8A8A8', rock:'#4A4A4A' }
+};
+
+const GEAR = [
+  { v:'map', label:'Trail map', skill:'Planning ahead' },
+  { v:'rope', label:'Climbing rope', skill:'Connecting people' },
+  { v:'lantern', label:'Lantern', skill:'Explaining clearly' },
+  { v:'compass', label:'Compass', skill:'Keeping the vision' },
+  { v:'firstaid', label:'First-aid kit', skill:'Noticing when people struggle' },
+  { v:'trailmix', label:'Trail mix', skill:'Keeping energy up' },
+  { v:'whistle', label:'Whistle', skill:'Speaking up' },
+  { v:'notebook', label:'Field notebook', skill:'Learning from mistakes' },
+  { v:'multitool', label:'Multi-tool', skill:'Solving problems on the spot' }
+];
+const TERRAIN = [
+  { v:'mountains', label:'Leading a team', sub:'Mountain range: big goals, steep climbs' },
+  { v:'desert', label:'A new role', sub:'Canyon country: unfamiliar ground' },
+  { v:'water', label:'A heavy semester', sub:'Rapids: a lot moving at once' },
+  { v:'forest', label:'A group project', sub:'Forest: finding the way together' }
+];
+const SLIDERS = [
+  { q:'When a project starts, I would rather…', a:'Map it out first', b:'Figure it out as we go' },
+  { q:'On the trail, I usually walk…', a:'At the front, setting pace', b:'At the back, watching the group' },
+  { q:'When the group disagrees, I…', a:'Make a call and move', b:'Wait until everyone is in' },
+  { q:'After a long climb, I recharge…', a:'Alone at the summit', b:'Around the campfire' }
+];
+const SCENES = [
+  { v:'summit', label:'The lone summit', see:'peak', pal:'hard' },
+  { v:'campfire', label:'The campfire circle', see:'flame', pal:'fun' },
+  { v:'river', label:'The river bend', see:'wave', pal:'easy' },
+  { v:'crossroads', label:'The crossroads', see:'arrow', pal:'dawn' }
+];
+const STORM = [
+  { v:'rope', label:'Walk with whoever is struggling', skill:'Inclusion' },
+  { v:'dots', label:'Split the gear so no one carries too much', skill:'Delegation' },
+  { v:'double', label:'Climb up and re-check the map', skill:'Perspective' },
+  { v:'trail', label:'Rally the group with energy', skill:'Motivation' }
+];
+const WORDS = ['Steady','Bold','Funny','Organized','Patient','Direct','Creative','Calm','Driven','Supportive','Curious','Honest'];
+const SYMBOLS = [
+  { v:'compass', label:'Compass', sub:'I set direction' },
+  { v:'rope', label:'Rope', sub:'I connect people' },
+  { v:'lantern', label:'Lantern', sub:'I bring clarity' },
+  { v:'flag', label:'Flag', sub:'I go first' }
+];
+const MOTTOS = ["THERE'S ALWAYS ANOTHER PEAK", 'GO DOWN TO GO UP', 'LEAVE NO ONE BEHIND', 'CLIMB HIGH TO SEE CLEARLY', 'TAKE THE FUN PATH'];
+
+const STEPS = [
+  { leg:'Basecamp', kicker:'Step 1 of 10 · Trailhead', title:'Before we start: set your intention',
+    prompt:'This expedition is about how you lead: your habits, strengths and growth edges. It is not about your private life.',
+    tip:'Read the pledge out loud together. Point out that the AI steps run on their own Claude account, and that only their answers about leadership get shared, never names or personal stories.' },
+  { leg:'Basecamp', kicker:'Step 2 of 10 · Pack your bag', title:'What do you always carry, and what are you still learning to carry?',
+    prompt:'Pick the three pieces of gear you never leave behind. Then pick one you are still learning to carry. Be honest: nobody packs everything.',
+    tip:'Ask: which one was hardest to leave out? The growth item usually starts the best conversation.' },
+  { leg:'Basecamp', kicker:'Step 3 of 10 · The terrain', title:'What ground are you crossing right now?',
+    prompt:'Pick the challenge closest to what is in front of you this semester. Then put into words what makes it hard.',
+    tip:'If they get stuck writing, ask: what part of this would you rather someone else handle? That is usually the hard part.' },
+  { leg:'The climb', kicker:'Step 4 of 10 · How you move', title:'Where do you actually land?',
+    prompt:'There is no right side. Drag each slider to where you really are, not where you think a leader should be.',
+    tip:'Ask: which slider would your closest friend move? Which way, and why?' },
+  { leg:'The climb', kicker:'Step 5 of 10 · Which one feels like you?', title:'Pick the scene that feels most like you right now',
+    prompt:'Go with your gut. Then look closer: what did you notice first in the one you picked?',
+    tip:'Before they type, ask them to say out loud what they noticed. People see completely different things in the same picture.' },
+  { leg:'The climb', kicker:'Step 6 of 10 · The storm', title:'A storm rolls in and the group is exhausted',
+    prompt:'Put these in the order you would actually do them, not the order you think is best. Tap them 1 to 4.',
+    tip:'Ask: what does your first move say about what you protect when things get hard?' },
+  { leg:'The mirror', kicker:'Step 7 of 10 · The mirror', title:'How do you see yourself, and how does your team see you?',
+    prompt:'Pick three words for each. If you are not sure how your team sees you, guess. The gap between the two is the interesting part.',
+    tip:'If there is no overlap, do not fix it. Ask: what might your team be seeing that you are not?' },
+  { leg:'The mirror', kicker:'Step 8 of 10 · The Trail Guide', title:'The Trail Guide has a question for you',
+    prompt:'Claude reads your answers so far and asks you one question no one else would get. Answer it in your own words.',
+    tip:'This is the AI literacy moment. Ask: did the question feel accurate? Where did it miss? The student decides what is true, not the AI.' },
+  { leg:'Summit', kicker:'Step 9 of 10 · Sketch station', title:'Sketch your symbol, then make it a badge',
+    prompt:'Grab paper and take two minutes to sketch a simple symbol for how you lead. Stick figures count. Then choose the badge symbol and your trail lesson.',
+    tip:'Make sure only the sketch is in the photo: no faces, IDs or anything with a name on it. Ask: what did the Trail Guide notice that you did not intend?' },
+  { leg:'Summit', kicker:'Step 10 of 10 · Summit', title:'Your field notes and your badge',
+    prompt:'Here is what your expedition revealed. Read it, decide what fits, then make your badge.',
+    tip:'Ask them to read one line of their field notes out loud and say whether it is true. Then open Adobe Express on their own ESU account and print together.' }
+];
+
+/* ================= state ================= */
+const fresh = () => ({
+  step: 0, pledge: false, word: '', pack: [], growth: null, terrain: null, hard: '',
+  sliders: [50, 50, 50, 50], moved: [false, false, false, false], scene: null, notice: '',
+  storm: [], selfWords: [], teamWords: [], guide: null, guideAnswer: '',
+  sketchFeedback: null, aiMottos: [], style: null, motto: '', notes: null,
+  format: 'button', mono: false
+});
+const state = fresh();
+let sketchFile = null, sketchURL = null;
+let SAMPLE;            // undefined = still checking, null = unavailable, fn = available
+let IMAGES_OK = false;
+let busy = null;       // AbortController for the call in progress
+
+/* ================= drawing ================= */
+function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
+function poly(c, pts) { c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); }
+function star(c, x, y, r) {
+  c.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
+    const px = x + rr * Math.cos(a), py = y + rr * Math.sin(a);
+    i ? c.lineTo(px, py) : c.moveTo(px, py);
+  }
+  c.closePath();
+}
+function drawSky(c, p) {
+  const g = c.createLinearGradient(0, 80, 0, 360);
+  g.addColorStop(0, p.sky); g.addColorStop(1, p.skyLow);
+  c.fillStyle = g; c.fillRect(0, 0, S, S);
+}
+function drawTerrain(c, p, t) {
+  if (!t) { c.fillStyle = p.far; c.fillRect(0, 430, S, 170); return; }
+  if (t === 'mountains') {
+    c.fillStyle = p.far; poly(c, [0,380, 90,290, 160,340, 250,250, 330,330, 420,265, 520,340, 600,300, 600,600, 0,600]); c.fill();
+    c.fillStyle = p.light; c.globalAlpha = 0.85;
+    poly(c, [250,250, 270,270, 255,275, 240,262]); c.fill();
+    poly(c, [420,265, 440,284, 425,288, 408,278]); c.fill();
+    c.globalAlpha = 1;
+    c.fillStyle = p.near; poly(c, [0,455, 120,375, 200,425, 300,345, 400,430, 500,385, 600,445, 600,600, 0,600]); c.fill();
+  } else if (t === 'desert') {
+    c.fillStyle = p.far; poly(c, [0,405, 50,405, 75,325, 195,325, 220,405, 320,405, 345,350, 455,350, 480,405, 600,405, 600,600, 0,600]); c.fill();
+    c.fillStyle = p.near; poly(c, [0,465, 380,465, 400,420, 520,420, 545,465, 600,465, 600,600, 0,600]); c.fill();
+    c.strokeStyle = p.ink; c.globalAlpha = 0.25; c.lineWidth = 3;
+    [345, 365, 385].forEach(y => { c.beginPath(); c.moveTo(80 + (y - 325) * 0.3, y); c.lineTo(190 - (y - 325) * 0.3, y); c.stroke(); });
+    c.globalAlpha = 1;
+  } else if (t === 'water') {
+    c.fillStyle = p.far; c.beginPath(); c.moveTo(0, 400); c.quadraticCurveTo(150, 320, 300, 390); c.quadraticCurveTo(450, 335, 600, 395); c.lineTo(600, 600); c.lineTo(0, 600); c.closePath(); c.fill();
+    c.fillStyle = p.water; c.fillRect(0, 425, S, 175);
+    c.strokeStyle = p.light; c.globalAlpha = 0.6; c.lineWidth = 4;
+    [455, 495, 535, 575].forEach((y, k) => {
+      c.beginPath();
+      for (let x = 0; x <= 600; x += 10) { const yy = y + Math.sin((x + k * 40) / 28) * 6; x ? c.lineTo(x, yy) : c.moveTo(x, yy); }
+      c.stroke();
+    });
+    c.globalAlpha = 1;
+  } else if (t === 'forest') {
+    c.fillStyle = p.far; c.fillRect(0, 400, S, 200);
+    for (let x = -10; x < 620; x += 46) { poly(c, [x, 405, x + 24, 325 + (Math.abs(x) % 3) * 10, x + 48, 405]); c.fill(); }
+    c.fillStyle = p.near; c.fillRect(0, 470, S, 130);
+    for (let x = -30; x < 640; x += 70) { poly(c, [x, 480, x + 36, 365 + (Math.abs(x) % 4) * 8, x + 72, 480]); c.fill(); }
+  }
+}
+function drawPath(c, p, st) {
+  const v = st.path;
+  if (!v) return;
+  if (v === 'hike') {
+    c.save(); c.strokeStyle = p.accent; c.lineWidth = 9; c.lineCap = 'round'; c.setLineDash([16, 13]);
+    c.beginPath(); c.moveTo(300, 610); c.lineTo(370, 530); c.lineTo(245, 478); c.lineTo(340, 430); c.lineTo(300, 395); c.stroke();
+    c.restore();
+  } else if (v === 'boulder') {
+    c.fillStyle = p.rock; c.strokeStyle = p.ink; c.lineWidth = 4;
+    [[220, 492, 62, 42], [310, 478, 72, 58], [398, 500, 56, 40]].forEach(([x, y, rx, ry]) => { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); c.stroke(); });
+    c.fillStyle = p.accent;
+    [[290, 450], [322, 470], [300, 495], [335, 505], [212, 485], [395, 492]].forEach(([x, y]) => { circ(c, x, y, 7); c.fill(); });
+  } else if (v === 'canoe') {
+    if (st.terrain !== 'water') { c.fillStyle = p.water; c.beginPath(); c.ellipse(300, 505, 185, 46, 0, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = p.accent; c.strokeStyle = p.ink; c.lineWidth = 5;
+    c.beginPath(); c.moveTo(215, 488); c.quadraticCurveTo(300, 500, 385, 488); c.quadraticCurveTo(360, 528, 300, 528); c.quadraticCurveTo(240, 528, 215, 488); c.closePath(); c.fill(); c.stroke();
+    c.lineWidth = 6; c.beginPath(); c.moveTo(330, 445); c.lineTo(285, 545); c.stroke();
+    c.fillStyle = p.ink; c.beginPath(); c.ellipse(282, 552, 9, 18, 0.42, 0, Math.PI * 2); c.fill();
+  }
+}
+function backdropPath(c, v) {
+  c.beginPath();
+  if (v === 'peak') { c.moveTo(300, 132); c.lineTo(412, 342); c.lineTo(188, 342); c.closePath(); }
+  else if (v === 'flame') { c.moveTo(300, 126); c.bezierCurveTo(360, 200, 402, 262, 372, 312); c.quadraticCurveTo(300, 372, 228, 312); c.bezierCurveTo(198, 262, 240, 200, 300, 126); c.closePath(); }
+  else if (v === 'arrow') { c.moveTo(300, 128); c.lineTo(404, 240); c.lineTo(352, 240); c.lineTo(352, 345); c.lineTo(248, 345); c.lineTo(248, 240); c.lineTo(196, 240); c.closePath(); }
+  else if (v === 'wave') { c.moveTo(178, 342); c.bezierCurveTo(186, 200, 330, 118, 414, 188); c.bezierCurveTo(352, 180, 318, 232, 360, 272); c.bezierCurveTo(400, 302, 420, 330, 420, 342); c.closePath(); }
+}
+function drawBackdrop(c, p, st) {
+  if (!st.see) return;
+  c.save(); backdropPath(c, st.see);
+  c.globalAlpha = 0.42; c.fillStyle = st.mono ? '#9A9A9A' : p.accent; c.fill();
+  c.globalAlpha = 0.5; c.strokeStyle = p.ink; c.lineWidth = 4; c.stroke();
+  c.restore();
+}
+function drawSymbol(c, p, v) {
+  if (!v) return;
+  c.lineJoin = 'round'; c.lineCap = 'round';
+  if (v === 'compass') {
+    circ(c, 300, 245, 56); c.fillStyle = p.light; c.fill(); c.strokeStyle = p.ink; c.lineWidth = 7; c.stroke();
+    c.lineWidth = 4;
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; c.beginPath(); c.moveTo(300 + 42 * Math.cos(a), 245 + 42 * Math.sin(a)); c.lineTo(300 + 50 * Math.cos(a), 245 + 50 * Math.sin(a)); c.stroke(); }
+    c.fillStyle = p.accent; poly(c, [300,200, 313,245, 287,245]); c.fill(); c.lineWidth = 2; c.stroke();
+    c.fillStyle = p.ink; poly(c, [300,290, 313,245, 287,245]); c.fill();
+    circ(c, 300, 245, 6); c.fillStyle = p.light; c.fill();
+  } else if (v === 'rope') {
+    c.strokeStyle = p.ink; c.lineWidth = 13;
+    circ(c, 300, 215, 30); c.stroke(); circ(c, 300, 277, 30); c.stroke();
+    c.beginPath(); c.moveTo(278, 298); c.lineTo(250, 330); c.moveTo(322, 194); c.lineTo(350, 162); c.stroke();
+    c.strokeStyle = p.accent; c.lineWidth = 5; c.setLineDash([7, 8]);
+    circ(c, 300, 215, 30); c.stroke(); circ(c, 300, 277, 30); c.stroke();
+    c.beginPath(); c.moveTo(278, 298); c.lineTo(250, 330); c.moveTo(322, 194); c.lineTo(350, 162); c.stroke();
+    c.setLineDash([]);
+  } else if (v === 'lantern') {
+    c.strokeStyle = p.ink; c.lineWidth = 6;
+    c.beginPath(); c.arc(300, 192, 22, Math.PI, 0); c.stroke();
+    c.fillStyle = p.ink; c.fillRect(266, 188, 68, 15);
+    c.fillStyle = p.accent; c.beginPath(); c.roundRect(273, 203, 54, 74, 8); c.fill(); c.stroke();
+    c.fillStyle = p.light; c.beginPath(); c.moveTo(300, 222); c.bezierCurveTo(318, 242, 314, 262, 300, 264); c.bezierCurveTo(286, 262, 282, 242, 300, 222); c.fill();
+    c.fillStyle = p.ink; c.fillRect(262, 277, 76, 15);
+  } else if (v === 'flag') {
+    c.strokeStyle = p.ink; c.lineWidth = 8;
+    c.beginPath(); c.moveTo(266, 322); c.lineTo(266, 172); c.stroke();
+    c.fillStyle = p.accent; c.lineWidth = 5;
+    c.beginPath(); c.moveTo(270, 178); c.bezierCurveTo(300, 165, 325, 195, 362, 182); c.lineTo(362, 240); c.bezierCurveTo(325, 253, 300, 223, 270, 236); c.closePath(); c.fill(); c.stroke();
+    circ(c, 266, 168, 7); c.fillStyle = p.ink; c.fill();
+  }
+}
+function drawSkyExtras(c, p, ex) {
+  if (ex.includes('sun')) {
+    c.fillStyle = p.accent; circ(c, 432, 158, 28); c.fill();
+    c.strokeStyle = p.accent; c.lineWidth = 5; c.lineCap = 'round';
+    for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5; c.beginPath(); c.moveTo(432 + 38 * Math.cos(a), 158 + 38 * Math.sin(a)); c.lineTo(432 + 50 * Math.cos(a), 158 + 50 * Math.sin(a)); c.stroke(); }
+  }
+  if (ex.includes('stars')) {
+    c.fillStyle = p.accent; c.strokeStyle = p.ink; c.lineWidth = 2;
+    [[150, 200, 11], [196, 140, 8], [232, 196, 6]].forEach(([x, y, r]) => { star(c, x, y, r); c.fill(); c.stroke(); });
+  }
+  if (ex.includes('birds')) {
+    c.strokeStyle = p.ink; c.lineWidth = 4; c.lineCap = 'round';
+    [[388, 122, 13], [420, 140, 10], [446, 118, 9]].forEach(([x, y, s]) => {
+      c.beginPath(); c.moveTo(x - s, y - s * 0.5); c.quadraticCurveTo(x - s * 0.4, y - s * 0.6, x, y); c.quadraticCurveTo(x + s * 0.4, y - s * 0.6, x + s, y - s * 0.5); c.stroke();
+    });
+  }
+}
+function drawGroundExtras(c, p, ex) {
+  if (ex.includes('blazes')) {
+    c.fillStyle = p.accent; c.strokeStyle = p.ink; c.lineWidth = 3;
+    [[132, 395], [450, 405], [186, 448]].forEach(([x, y]) => { c.beginPath(); c.roundRect(x, y, 15, 26, 2); c.fill(); c.stroke(); });
+  }
+}
+function drawBorder(c, p, v) {
+  if (v === 'rope') {
+    c.strokeStyle = p.ink; c.lineWidth = 16; circ(c, 300, 300, 284); c.stroke();
+    c.strokeStyle = p.accent; c.lineWidth = 4; c.lineCap = 'round';
+    for (let i = 0; i < 80; i++) { const a = i * Math.PI * 2 / 80; c.beginPath(); c.moveTo(300 + 277 * Math.cos(a), 300 + 277 * Math.sin(a)); c.lineTo(300 + 291 * Math.cos(a + 0.05), 300 + 291 * Math.sin(a + 0.05)); c.stroke(); }
+  } else if (v === 'trail') {
+    c.strokeStyle = p.ink; c.lineWidth = 14; circ(c, 300, 300, 284); c.stroke();
+    c.save(); c.strokeStyle = p.accent; c.lineWidth = 7; c.setLineDash([18, 14]); circ(c, 300, 300, 284); c.stroke(); c.restore();
+  } else if (v === 'double') {
+    c.strokeStyle = p.ink; c.lineWidth = 6; circ(c, 300, 300, 278); c.stroke(); circ(c, 300, 300, 291); c.stroke();
+    c.strokeStyle = p.accent; c.lineWidth = 3; circ(c, 300, 300, 284.5); c.stroke();
+  } else if (v === 'dots') {
+    c.strokeStyle = p.ink; c.lineWidth = 2; circ(c, 300, 300, 293); c.stroke();
+    for (let i = 0; i < 52; i++) { const a = i * Math.PI * 2 / 52; circ(c, 300 + 284 * Math.cos(a), 300 + 284 * Math.sin(a), 6); c.fillStyle = p.accent; c.fill(); c.lineWidth = 2.5; c.stroke(); }
+  } else {
+    c.save(); c.strokeStyle = p.ink; c.globalAlpha = 0.35; c.lineWidth = 2; c.setLineDash([4, 8]); circ(c, 300, 300, 286); c.stroke(); c.restore();
+  }
+}
+function arcText(c, text, r, size, bottom, color, spacing, weight, maxAng) {
+  let sz = size, widths, total;
+  const chars = [...text];
+  const measure = () => {
+    c.font = `${weight} ${sz}px Overpass, "Arial Narrow", Arial, sans-serif`;
+    widths = chars.map(ch => c.measureText(ch).width + spacing);
+    total = widths.reduce((a, b) => a + b, 0) - spacing;
+  };
+  measure();
+  while (total / r > maxAng && sz > 12) { sz -= 1; measure(); }
+  const ang = total / r;
+  c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle';
+  let a = bottom ? Math.PI / 2 + ang / 2 : -Math.PI / 2 - ang / 2;
+  chars.forEach((ch, i) => {
+    const glyph = widths[i] - (i === chars.length - 1 ? 0 : spacing);
+    const half = glyph / 2 / r;
+    a += bottom ? -half : half;
+    c.save(); c.translate(300 + r * Math.cos(a), 300 + r * Math.sin(a)); c.rotate(bottom ? a - Math.PI / 2 : a + Math.PI / 2); c.fillText(ch, 0, 0); c.restore();
+    a += bottom ? -(widths[i] / r - half) : (widths[i] / r - half);
+  });
+}
+
+/* Translate answers into badge layers */
+function badgeState() {
+  const sc = SCENES.find(s => s.v === state.scene);
+  const s0 = state.sliders[0];
+  const path = state.moved[0] ? (s0 < 40 ? 'hike' : s0 > 60 ? 'canoe' : 'boulder') : null;
+  const ex = [];
+  if (state.growth) ex.push('stars');
+  if (state.selfWords.length === 3 && state.teamWords.length === 3) ex.push(overlap().length ? 'sun' : 'birds');
+  if (state.moved[2] && state.sliders[2] > 60) ex.push('blazes');
+  return {
+    word: state.word, terrain: state.terrain, path, see: sc ? sc.see : null,
+    pal: sc ? sc.pal : 'easy', style: state.style, team: state.storm[0] || null,
+    motto: state.motto, extras: ex, format: state.format, mono: state.mono
+  };
+}
+function render(canvas, st, opts = {}) {
+  const c = canvas.getContext('2d');
+  const w = canvas.width;
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.clearRect(0, 0, w, w);
+  c.save();
+  c.scale(w / S, w / S);
+  if (opts.mirror) { c.translate(S, 0); c.scale(-1, 1); }
+  const p = st.mono ? PAL.mono : PAL[st.pal || 'easy'];
+  const ex = st.extras || [];
+  circ(c, 300, 300, 296); c.fillStyle = p.light; c.fill();
+  c.save(); circ(c, 300, 300, 216); c.clip();
+  drawSky(c, p); drawSkyExtras(c, p, ex); drawBackdrop(c, p, st);
+  drawTerrain(c, p, st.terrain); drawSymbol(c, p, st.style); drawPath(c, p, st); drawGroundExtras(c, p, ex);
+  c.restore();
+  c.beginPath(); c.arc(300, 300, 271, 0, Math.PI * 2); c.arc(300, 300, 216, 0, Math.PI * 2, true); c.fillStyle = p.ink; c.fill('evenodd');
+  c.strokeStyle = p.light; c.lineWidth = 3; circ(c, 300, 300, 218); c.stroke();
+  drawBorder(c, p, st.team);
+  c.fillStyle = p.accent; star(c, 57, 300, 10); c.fill(); star(c, 543, 300, 10); c.fill();
+  c.globalAlpha = st.word ? 1 : 0.45;
+  arcText(c, st.word || '· · ·', 243, 44, false, p.light, 5, 900, 2.3);
+  c.globalAlpha = 1;
+  if (st.motto) arcText(c, st.motto, 243, 25, true, p.light, 2, 800, 2.5);
+  if (st.format === 'keychain' && opts.final) { circ(c, 300, 22, 13); c.fillStyle = '#FFFFFF'; c.fill(); c.strokeStyle = p.ink; c.lineWidth = 4; c.stroke(); }
+  c.restore();
+}
+
+/* Scene pictures for step 5 */
+function drawScene(canvas, v) {
+  const c = canvas.getContext('2d'); const w = canvas.width;
+  c.setTransform(w / 240, 0, 0, w / 240, 0, 0);
+  const g = c.createLinearGradient(0, 0, 0, 240);
+  if (v === 'summit') {
+    g.addColorStop(0, '#9FB2C9'); g.addColorStop(1, '#E4EAF1'); c.fillStyle = g; c.fillRect(0, 0, 240, 240);
+    c.fillStyle = '#8A96A8'; poly(c, [0,200, 50,150, 90,175, 120,60, 160,140, 200,120, 240,170, 240,240, 0,240]); c.fill();
+    c.fillStyle = '#F4F4F2'; poly(c, [120,60, 134,92, 120,86, 106,92]); c.fill();
+    c.strokeStyle = '#1B2230'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(120, 60); c.lineTo(120, 38); c.stroke();
+    c.fillStyle = '#D9573B'; poly(c, [121,38, 138,43, 121,48]); c.fill();
+    c.fillStyle = '#3F4A5C'; poly(c, [0,240, 0,215, 70,190, 140,212, 240,200, 240,240]); c.fill();
+  } else if (v === 'campfire') {
+    g.addColorStop(0, '#2B1A33'); g.addColorStop(1, '#6E3B6A'); c.fillStyle = g; c.fillRect(0, 0, 240, 240);
+    c.fillStyle = '#FFF8EE'; [[30, 30], [80, 50], [190, 25], [210, 70], [140, 20]].forEach(([x, y]) => { circ(c, x, y, 2); c.fill(); });
+    c.fillStyle = '#3B2440'; c.fillRect(0, 170, 240, 70);
+    const rg = c.createRadialGradient(120, 170, 4, 120, 170, 90); rg.addColorStop(0, 'rgba(255,212,94,0.55)'); rg.addColorStop(1, 'rgba(255,212,94,0)');
+    c.fillStyle = rg; c.fillRect(0, 60, 240, 180);
+    c.fillStyle = '#FFD45E'; c.beginPath(); c.moveTo(120, 132); c.bezierCurveTo(140, 152, 138, 172, 120, 176); c.bezierCurveTo(102, 172, 100, 152, 120, 132); c.fill();
+    c.fillStyle = '#E3877A'; c.beginPath(); c.moveTo(120, 150); c.bezierCurveTo(130, 162, 130, 172, 120, 175); c.bezierCurveTo(110, 172, 110, 162, 120, 150); c.fill();
+    c.fillStyle = '#1A0F1F';
+    [[60, 170], [88, 190], [152, 190], [180, 170], [120, 200]].forEach(([x, y]) => { circ(c, x, y - 22, 9); c.fill(); c.beginPath(); c.ellipse(x, y, 13, 16, 0, 0, Math.PI * 2); c.fill(); });
+  } else if (v === 'river') {
+    g.addColorStop(0, '#BFE3DC'); g.addColorStop(1, '#EEF7F2'); c.fillStyle = g; c.fillRect(0, 0, 240, 240);
+    c.fillStyle = '#8DBFAE'; poly(c, [0,110, 60,80, 130,105, 190,75, 240,95, 240,240, 0,240]); c.fill();
+    c.fillStyle = '#3F7B65'; c.fillRect(0, 140, 240, 100);
+    c.fillStyle = '#6FB0C0'; c.beginPath(); c.moveTo(100, 140); c.bezierCurveTo(150, 165, 40, 190, 90, 240); c.lineTo(170, 240); c.bezierCurveTo(110, 200, 210, 170, 140, 140); c.closePath(); c.fill();
+    c.strokeStyle = '#EEF7F2'; c.lineWidth = 2; c.globalAlpha = 0.7;
+    [[118, 160], [100, 190], [128, 220]].forEach(([x, y]) => { c.beginPath(); c.moveTo(x - 10, y); c.quadraticCurveTo(x, y - 5, x + 10, y); c.stroke(); });
+    c.globalAlpha = 1;
+  } else if (v === 'crossroads') {
+    g.addColorStop(0, '#C9C2EE'); g.addColorStop(1, '#F3F0FB'); c.fillStyle = g; c.fillRect(0, 0, 240, 240);
+    c.fillStyle = '#F2A65A'; circ(c, 120, 120, 26); c.fill();
+    c.fillStyle = '#9C93C9'; poly(c, [0,140, 70,110, 130,135, 190,105, 240,130, 240,240, 0,240]); c.fill();
+    c.fillStyle = '#3E3A6B'; c.fillRect(0, 165, 240, 75);
+    c.fillStyle = '#D9CFB8'; poly(c, [112,240, 128,240, 124,190, 116,190]); c.fill();
+    poly(c, [116,192, 124,192, 60,165, 50,168]); c.fill();
+    poly(c, [116,192, 124,192, 190,168, 180,165]); c.fill();
+    c.fillStyle = '#5A4632'; c.fillRect(117, 118, 6, 76);
+    c.fillStyle = '#F3F0FB'; c.strokeStyle = '#1F1C3A'; c.lineWidth = 2;
+    poly(c, [90,128, 117,128, 117,142, 90,142, 82,135]); c.fill(); c.stroke();
+    poly(c, [123,146, 150,146, 158,153, 150,160, 123,160]); c.fill(); c.stroke();
+  }
+}
+
+/* ================= helpers ================= */
+const panel = document.getElementById('panel');
+const badge = document.getElementById('badge');
+const cap = document.getElementById('cap');
+const prog = document.getElementById('progress');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const gearBy = v => GEAR.find(g => g.v === v);
+const overlap = () => state.selfWords.filter(w => state.teamWords.includes(w));
+const words = s => (s || '').trim().split(/\s+/).filter(Boolean).length;
+const sliderRead = (i) => {
+  const v = state.sliders[i], s = SLIDERS[i];
+  if (!state.moved[i]) return 'not answered';
+  if (v < 35) return s.a; if (v > 65) return s.b; return `in the middle (between "${s.a}" and "${s.b}")`;
+};
+
+function canNext() {
+  switch (state.step) {
+    case 0: return state.pledge && state.word.trim().length > 0;
+    case 1: return state.pack.length === 3 && !!state.growth;
+    case 2: return !!state.terrain;
+    case 3: return state.moved.every(Boolean);
+    case 4: return !!state.scene;
+    case 5: return state.storm.length === 4;
+    case 6: return state.selfWords.length === 3 && state.teamWords.length === 3;
+    case 7: return !!state.guide && words(state.guideAnswer) >= 3;
+    case 8: return !!state.style && !!state.motto;
+    default: return true;
+  }
+}
+
+function profile() {
+  const sc = SCENES.find(s => s.v === state.scene);
+  const terr = TERRAIN.find(t => t.v === state.terrain);
+  return [
+    `Badge word they chose: ${state.word || '-'}`,
+    `Gear they always carry: ${state.pack.map(v => `${gearBy(v).label} (${gearBy(v).skill})`).join('; ') || '-'}`,
+    `Gear they are still learning to carry: ${state.growth ? `${gearBy(state.growth).label} (${gearBy(state.growth).skill})` : '-'}`,
+    `Current challenge: ${terr ? terr.label : '-'}`,
+    `What makes it hard, in their words: ${state.hard.trim() || '(left blank)'}`,
+    ...SLIDERS.map((s, i) => `${s.q} ${sliderRead(i)}`),
+    `Scene that feels like them right now: ${sc ? sc.label : '-'}`,
+    `What they noticed first in it: ${state.notice.trim() || '(left blank)'}`,
+    `Storm response order (1st to 4th): ${state.storm.map(v => STORM.find(s => s.v === v).label).join(' > ') || '-'}`,
+    `Words they use for themselves: ${state.selfWords.join(', ') || '-'}`,
+    `Words they think their team would use: ${state.teamWords.join(', ') || '-'}`,
+    state.guide ? `Trail Guide asked: ${state.guide.question}` : '',
+    state.guideAnswer.trim() ? `Their answer: ${state.guideAnswer.trim()}` : ''
+  ].filter(Boolean).join('\n');
+}
+
+const RULES = 'You are the Trail Guide in a reflective leadership activity for college students at a campus Graphics Center. The activity uses hiking and climbing metaphors. Be warm, direct and specific. Base everything only on the answers given; do not invent facts about the student. Keep the focus on leadership habits, strengths and skills. Never ask about or speculate on private matters (family, health, identity, relationships, finances). Plain language a first-year student understands.';
+
+async function askJSON(prompt, opts = {}) {
+  if (!SAMPLE) throw { code: 'unavailable' };
+  busy?.abort();
+  busy = new AbortController();
+  return SAMPLE.json(prompt, { signal: busy.signal, ...opts });
+}
+function errCopy(e) {
+  const c = e && e.code;
+  if (c === 'not_granted' || c === 'sampling_disabled' || c === 'unavailable' || c === 'not_declared' || c === 'capability_disabled') return 'The Trail Guide is not available here, so the offline guide is filling in.';
+  if (c === 'rate_limited') return 'The Trail Guide needs a short break (usage limit). Try again in a few minutes, or keep going with the offline guide.';
+  if (c === 'image_rejected') return 'That photo could not be read. Try a clear JPG or PNG of just the sketch.';
+  if (c === 'cancelled') return '';
+  return 'The Trail Guide lost the signal. Try again, or keep going with the offline guide.';
+}
+
+/* Offline fallbacks so the activity always works */
+function offlineGuide() {
+  const ov = overlap();
+  const g = state.growth ? gearBy(state.growth) : null;
+  let observation;
+  if (!ov.length && state.selfWords.length) observation = `You see yourself as ${state.selfWords.join(', ').toLowerCase()}, but you guessed your team sees ${state.teamWords.join(', ').toLowerCase()}. None of those overlap.`;
+  else if (g && state.storm[0] === 'rope' && state.growth === 'whistle') observation = 'In a storm your first move is to stay with whoever is struggling, and speaking up is the gear you are still learning to carry.';
+  else if (g) observation = `You always pack ${state.pack.map(v => gearBy(v).skill.toLowerCase()).join(', ')}, and you are still learning ${g.skill.toLowerCase()}.`;
+  else observation = 'Your answers show a clear way of moving through hard ground.';
+  const question = !ov.length ? 'What might your team be seeing in you that you have not noticed yet?'
+    : g ? `When was the last time you needed ${g.skill.toLowerCase()} and reached for something else instead?`
+    : 'What is one moment this semester when you led the way you want to lead?';
+  return { observation, question, offline: true };
+}
+function offlineNotes() {
+  const top = state.pack.map(v => gearBy(v)).filter(Boolean);
+  const g = state.growth ? gearBy(state.growth) : null;
+  const st = STORM.find(s => s.v === state.storm[0]);
+  const sc = SCENES.find(s => s.v === state.scene);
+  return {
+    headline: `${state.word || 'A'} leader on ${sc ? sc.label.replace('The ', 'the ') : 'the trail'}`,
+    strength: top.length ? `You lead with ${top.map(t => t.skill.toLowerCase()).join(', ')}. ${st ? `When things get hard, your first move is ${st.skill.toLowerCase()}.` : ''}` : 'You showed up and did the reflection, which is where leadership starts.',
+    growth: g ? `You named ${g.skill.toLowerCase()} as gear you are still learning to carry. Naming it is the first step to packing it.` : 'Pick one skill you want to practice this month.',
+    watch: overlap().length ? 'People see some of what you see in yourself. Ask them what else they notice.' : 'Your self-view and your guess about your team do not overlap yet. That gap is worth asking about.',
+    try: g ? `This week, use ${g.skill.toLowerCase()} once on purpose in a meeting or shift, then notice how it went.` : 'This week, ask one teammate what they rely on you for.',
+    badge: 'Every layer of your badge came from one of your answers. The key below shows which.',
+    offline: true
+  };
+}
+
+/* ================= rendering steps ================= */
+function drawProgress() {
+  prog.innerHTML = STEPS.map((_, i) => `<i class="${i < state.step ? 'done' : i === state.step ? 'now' : ''}"></i>`).join('');
+  prog.setAttribute('aria-label', `Step ${state.step + 1} of 10`);
+}
+function refreshBadge() {
+  render(badge, badgeState(), { final: state.step === 9 });
+  cap.textContent = state.step === 9 ? 'Finished badge' : 'Your badge builds as you answer';
+}
+const chipBtn = (group, v, on, cls = '') => `<button type="button" class="chip ${cls}" data-group="${group}" data-v="${esc(v)}" aria-pressed="${on}">${esc(v)}</button>`;
+
+function body0() {
+  return `
+    <h2>Pick one word for the top of your badge</h2>
+    <div class="chips">${['LEAD', 'GUIDE', 'CLIMB', 'RISE', 'BUILD', 'SERVE'].map(w => chipBtn('word', w, state.word === w)).join('')}</div>
+    <label class="field" for="own-word">Or write your own (up to 10 letters, not your name)
+      <input id="own-word" maxlength="10" autocomplete="off" value="${['LEAD','GUIDE','CLIMB','RISE','BUILD','SERVE'].includes(state.word) ? '' : esc(state.word)}" placeholder="e.g. UPLIFT">
+    </label>
+    <label class="pledge" for="pledge"><input type="checkbox" id="pledge" ${state.pledge ? 'checked' : ''}>
+      <span><strong>Trail pledge.</strong> I will answer about how I lead, not about my private life. I will not type names, ID numbers or personal stories, and any photo I upload shows only my sketch. In steps 8 to 10, my answers go to Claude on my own account so it can reflect them back.</span>
+    </label>`;
+}
+function body1() {
+  return `
+    <h2>Always in my pack <span class="hint">(${state.pack.length}/3)</span></h2>
+    <div class="opts three">${GEAR.map(g => `<button type="button" class="opt" data-pack="${g.v}" aria-pressed="${state.pack.includes(g.v)}" ${state.growth === g.v ? 'disabled' : ''}><b>${g.label}</b><small>${g.skill}</small></button>`).join('')}</div>
+    <h2>Still learning to carry <span class="hint">(pick 1)</span></h2>
+    <div class="opts three">${GEAR.filter(g => !state.pack.includes(g.v)).map(g => `<button type="button" class="opt grow" data-growth="${g.v}" aria-pressed="${state.growth === g.v}"><b>${g.label}</b><small>${g.skill}</small></button>`).join('')}</div>`;
+}
+function body2() {
+  return `
+    <div class="opts">${TERRAIN.map(t => `<button type="button" class="opt" data-terrain="${t.v}" aria-pressed="${state.terrain === t.v}"><canvas width="240" height="240" data-tthumb="${t.v}"></canvas><b>${t.label}</b><small>${t.sub}</small></button>`).join('')}</div>
+    <label class="field" for="hard">In one or two sentences: what makes this terrain hard for you?
+      <textarea id="hard" maxlength="400" placeholder="e.g. I say yes to everything and then run out of energy halfway up.">${esc(state.hard)}</textarea>
+      <span class="hint">Keep it about the challenge, not about specific people.</span>
+    </label>`;
+}
+function body3() {
+  return SLIDERS.map((s, i) => `
+    <div class="slider">
+      <label class="q" for="sl-${i}">${s.q}</label>
+      <input type="range" id="sl-${i}" min="0" max="100" value="${state.sliders[i]}" data-slider="${i}" aria-valuetext="${esc(sliderRead(i))}">
+      <div class="ends"><span>${s.a}</span><span>${s.b}</span></div>
+    </div>`).join('') + `<p class="hint">Move every slider at least once, even if you land in the middle.</p>`;
+}
+function body4() {
+  return `
+    <div class="opts">${SCENES.map(s => `<button type="button" class="opt" data-scene="${s.v}" aria-pressed="${state.scene === s.v}"><canvas width="240" height="240" data-scene-img="${s.v}"></canvas><b>${s.label}</b></button>`).join('')}</div>
+    <label class="field" for="notice">What did you notice first in the one you picked? Why do you think it pulled you in?
+      <textarea id="notice" maxlength="400" placeholder="e.g. The one person sitting a little outside the circle.">${esc(state.notice)}</textarea>
+    </label>`;
+}
+function body5() {
+  return `
+    <div class="opts three">${STORM.map(s => {
+      const i = state.storm.indexOf(s.v);
+      return `<button type="button" class="opt" data-storm="${s.v}" aria-pressed="${i >= 0}">${i >= 0 ? `<span class="num">${i + 1}</span>` : ''}<b style="padding-right:30px">${s.label}</b><small>${s.skill}</small></button>`;
+    }).join('')}</div>
+    <div class="nav" style="margin-top:12px"><button type="button" class="btn" id="storm-clear" ${state.storm.length ? '' : 'disabled'}>Clear order</button></div>`;
+}
+function body6() {
+  const ov = overlap();
+  const done = state.selfWords.length === 3 && state.teamWords.length === 3;
+  return `
+    <div class="mirror">
+      <div><h2>I see myself as <span class="hint">(${state.selfWords.length}/3)</span></h2>
+        <div class="chips">${WORDS.map(w => chipBtn('self', w, state.selfWords.includes(w))).join('')}</div></div>
+      <div><h2>My team would say I am <span class="hint">(${state.teamWords.length}/3)</span></h2>
+        <div class="chips">${WORDS.map(w => chipBtn('team', w, state.teamWords.includes(w))).join('')}</div></div>
+    </div>
+    ${done ? `<div class="gap">${ov.length ? `<b>Where you match:</b> ${ov.join(', ')}. ${ov.length === 3 ? 'You and your team are on the same map.' : 'The words that do not match are where people may experience you differently than you think.'}` : `<b>No overlap.</b> You see yourself one way and expect your team sees you another. That is not good or bad, but it is worth exploring.`}</div>` : ''}`;
+}
+function body7() {
+  const g = state.guide;
+  let box;
+  if (!g) {
+    box = `<div class="guidebox"><span class="who">Trail Guide</span><p>Ready when you are. Claude will read your answers from steps 2 to 7, not your badge word, and ask you one question.</p></div>
+      <div class="nav" style="margin-top:12px">
+        <button type="button" class="btn guide" id="ask-guide" ${SAMPLE === undefined ? 'disabled' : ''}>${SAMPLE === null ? 'Use the offline guide' : SAMPLE === undefined ? 'Connecting…' : 'Ask the Trail Guide'}</button>
+      </div>`;
+  } else {
+    box = `<div class="guidebox"><span class="who">Trail Guide${g.offline ? ' (offline)' : ' · Claude'}</span>
+        <p>${esc(g.observation)}</p><p class="q">${esc(g.question)}</p></div>
+      <label class="field" for="guide-ans">Your answer
+        <textarea id="guide-ans" maxlength="600" placeholder="Take a minute. There is no wrong answer.">${esc(state.guideAnswer)}</textarea>
+      </label>
+      <p class="ainote">Did the question land? AI reads patterns, not people. You decide what is true about you.</p>`;
+  }
+  return `<div id="guide-area">${box}</div><p class="ainote" id="guide-err"></p>`;
+}
+function body8() {
+  const fb = state.sketchFeedback;
+  const mottoChips = [...state.aiMottos.map(m => chipBtn('motto', m, state.motto === m, 'ai')), ...MOTTOS.map(m => chipBtn('motto', m, state.motto === m))].join('');
+  const allM = [...state.aiMottos, ...MOTTOS];
+  return `
+    <h2>1. Show the Trail Guide your sketch</h2>
+    ${IMAGES_OK ? `<div class="upload">
+        <label class="btn" for="sketch" style="display:inline-block">Choose a photo of your sketch</label>
+        <input type="file" id="sketch" accept="image/*" hidden>
+        ${sketchURL ? `<img src="${sketchURL}" alt="Your sketch">` : ''}
+      </div>` : `<p class="hint">Photo upload is not available in this view. You can still get motto ideas from your answers.</p>`}
+    <div class="nav" style="margin-top:10px"><button type="button" class="btn guide" id="ask-sketch" ${SAMPLE ? '' : 'disabled'}>${sketchFile ? 'Get feedback and motto ideas' : 'Get motto ideas from my answers'}</button></div>
+    <div id="sketch-area">${fb ? `<div class="guidebox"><span class="who">Trail Guide · Claude</span>${fb.see ? `<p><b>What I see:</b> ${esc(fb.see)}</p>` : ''}${fb.feedback ? `<p><b>To make it read as a badge:</b> ${esc(fb.feedback)}</p>` : ''}${fb.symbol ? `<p><b>Closest badge symbol:</b> ${esc(fb.symbol)}. You decide.</p>` : ''}</div>` : ''}</div>
+    <p class="ainote" id="sketch-err"></p>
+    <h2>2. Pick your badge symbol</h2>
+    <div class="opts">${SYMBOLS.map(s => `<button type="button" class="opt" data-style="${s.v}" aria-pressed="${state.style === s.v}"><canvas width="240" height="240" data-sym="${s.v}"></canvas><b>${s.label}</b><small>${s.sub}</small></button>`).join('')}</div>
+    <h2>3. Pick your trail lesson</h2>
+    <div class="chips">${mottoChips}</div>
+    ${state.aiMottos.length ? '<p class="hint">Dashed ones were suggested by the Trail Guide from your answers.</p>' : ''}
+    <label class="field" for="own-motto">Or write your own (up to 26 characters)
+      <input id="own-motto" maxlength="26" autocomplete="off" value="${allM.includes(state.motto) ? '' : esc(state.motto)}" placeholder="e.g. Rest is part of the climb">
+    </label>`;
+}
+function body9() {
+  const n = state.notes;
+  const st = STORM.find(s => s.v === state.storm[0]);
+  const sc = SCENES.find(s => s.v === state.scene);
+  const key = [
+    ['Top word', 'the intention you set at the trailhead'],
+    ['Landscape', TERRAIN.find(t => t.v === state.terrain)?.label],
+    ['Route', state.sliders[0] < 40 ? 'hiking trail: you map it out first' : state.sliders[0] > 60 ? 'canoe: you figure it out as you go' : 'boulders: you mix planning and adapting'],
+    ['Colors and shape', sc ? `${sc.label.toLowerCase()}, the scene that felt like you` : ''],
+    ['Center symbol', SYMBOLS.find(s => s.v === state.style)?.sub],
+    ['Border', st ? `${st.skill.toLowerCase()}: your first move in a storm` : ''],
+    ['Stars', state.growth ? `${gearBy(state.growth).skill.toLowerCase()}: the skill you are reaching for` : ''],
+    [overlap().length ? 'Sun' : 'Birds', overlap().length ? 'your team sees some of what you see' : 'room to explore how others see you'],
+    ...(state.moved[2] && state.sliders[2] > 60 ? [['Trail blazes', 'you wait until everyone is in']] : [])
+  ].filter(k => k[1]);
+  const journal = [
+    ['What makes the terrain hard', state.hard],
+    ['What I noticed first', state.notice],
+    [state.guide ? state.guide.question : 'Trail Guide', state.guideAnswer]
+  ].filter(j => (j[1] || '').trim());
+  return `
+    <div id="notes-area">${n ? `
+      <div class="notes">
+        <section><span class="lbl">Field notes${n.offline ? '' : ' · written by Claude from your answers'}</span><div class="head">${esc(n.headline)}</div></section>
+        <section><span class="lbl">What you carry</span><p>${esc(n.strength)}</p></section>
+        <section><span class="lbl">Where you are growing</span><p>${esc(n.growth)}</p></section>
+        <section><span class="lbl">Watch for on the trail</span><p>${esc(n.watch)}</p></section>
+        <section><span class="lbl">Try this week</span><p>${esc(n.try)}</p></section>
+      </div>` : `<div class="guidebox"><span class="who">Trail Guide</span><p>Claude can read everything from your expedition and write your field notes: what you carry, where you are growing, and one thing to try this week.</p></div>
+      <div class="nav" style="margin-top:12px"><button type="button" class="btn guide" id="ask-notes" ${SAMPLE === undefined ? 'disabled' : ''}>${SAMPLE ? 'Write my field notes' : 'Show my field notes'}</button></div>`}</div>
+    <p class="ainote" id="notes-err"></p>
+    ${journal.length ? `<h2>In your own words</h2><div class="journal">${journal.map(([k, v]) => `<p><span>${esc(k)}</span>${esc(v)}</p>`).join('')}</div>` : ''}
+    <h2>How to read your badge</h2>
+    <ul class="key">${key.map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join('')}</ul>
+    <h2>Make it</h2>
+    <div class="seg" role="group" aria-label="What are you making?">
+      ${[['button', 'Button'], ['keychain', 'Keychain'], ['shirt', 'Shirt iron-on']].map(([v, l]) => `<button type="button" id="fmt-${v}" data-fmt="${v}" aria-pressed="${state.format === v}">${l}</button>`).join('')}
+    </div>
+    <label class="toggle"><input type="checkbox" id="mono" ${state.mono ? 'checked' : ''}> Print-friendly black and white</label>
+    <div class="out">
+      <img id="outimg" alt="Your finished badge image">
+      <p>${{ button: 'Line it up with your button maker’s cutting template so the outer rim wraps the edge.', keychain: 'Same badge with a punch mark at the top for the ring. Laminate before punching.', shirt: 'Mirrored so it reads correctly once ironed on. Print on transfer paper, trim close, press face down.' }[state.format]}<br><br>To save it, right-click the image and choose <strong>Save image as</strong>, or take a screenshot. Then open it in Adobe Express with your own ESU account to size it for printing.</p>
+    </div>`;
+}
+const BODIES = [body0, body1, body2, body3, body4, body5, body6, body7, body8, body9];
+
+function show(focusSel) {
+  const s = STEPS[state.step];
+  panel.innerHTML = `
+    <div class="kicker">${s.kicker}</div>
+    <h1>${s.title}</h1>
+    <p class="prompt">${s.prompt}</p>
+    ${BODIES[state.step]()}
+    <div class="tip"><span class="lbl">CSA prompt</span>${s.tip}</div>
+    <div class="nav">
+      ${state.step > 0 ? '<button type="button" class="btn" id="back">Back</button>' : ''}
+      ${state.step < 9 ? `<button type="button" class="btn go" id="next" ${canNext() ? '' : 'disabled'}>${state.step === 8 ? 'Reach the summit' : 'Next'}</button>`
+        : '<button type="button" class="btn go" id="restart">Start a new expedition</button>'}
+    </div>`;
+  panel.querySelectorAll('canvas[data-tthumb]').forEach(cv => render(cv, { ...badgeState(), terrain: cv.dataset.tthumb, word: '', motto: '' }));
+  panel.querySelectorAll('canvas[data-scene-img]').forEach(cv => drawScene(cv, cv.dataset.sceneImg));
+  panel.querySelectorAll('canvas[data-sym]').forEach(cv => render(cv, { ...badgeState(), style: cv.dataset.sym, motto: '' }));
+  bind();
+  drawProgress();
+  refreshBadge();
+  if (state.step === 9) makeOutput();
+  if (focusSel) document.querySelector(focusSel)?.focus();
+}
+function updateNext() { const n = document.getElementById('next'); if (n) n.disabled = !canNext(); }
+
+/* ================= events ================= */
+function bind() {
+  const $ = id => document.getElementById(id);
+  panel.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    const g = b.dataset.group, v = b.dataset.v;
+    if (g === 'word') { state.word = v; const i = $('own-word'); if (i) i.value = ''; }
+    if (g === 'motto') { state.motto = v; const i = $('own-motto'); if (i) i.value = ''; }
+    if (g === 'word' || g === 'motto') {
+      panel.querySelectorAll(`.chip[data-group="${g}"]`).forEach(x => x.setAttribute('aria-pressed', x === b));
+      refreshBadge(); updateNext(); return;
+    }
+    const list = g === 'self' ? state.selfWords : state.teamWords;
+    const i = list.indexOf(v);
+    if (i >= 0) list.splice(i, 1); else if (list.length < 3) list.push(v);
+    show(`.chip[data-group="${g}"][data-v="${v}"]`);
+  }));
+  $('own-word')?.addEventListener('input', e => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z\s'-]/g, '');
+    state.word = e.target.value.trim();
+    panel.querySelectorAll('.chip[data-group="word"]').forEach(x => x.setAttribute('aria-pressed', false));
+    refreshBadge(); updateNext();
+  });
+  $('pledge')?.addEventListener('change', e => { state.pledge = e.target.checked; updateNext(); });
+  panel.querySelectorAll('[data-pack]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.pack, i = state.pack.indexOf(v);
+    if (i >= 0) state.pack.splice(i, 1); else if (state.pack.length < 3) state.pack.push(v);
+    show(`[data-pack="${v}"]`);
+  }));
+  panel.querySelectorAll('[data-growth]').forEach(b => b.addEventListener('click', () => { state.growth = b.dataset.growth; show(`[data-growth="${state.growth}"]`); }));
+  panel.querySelectorAll('[data-terrain]').forEach(b => b.addEventListener('click', () => {
+    state.terrain = b.dataset.terrain;
+    panel.querySelectorAll('[data-terrain]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    refreshBadge(); updateNext();
+  }));
+  $('hard')?.addEventListener('input', e => { state.hard = e.target.value; });
+  panel.querySelectorAll('[data-slider]').forEach(r => r.addEventListener('input', () => {
+    const i = +r.dataset.slider;
+    state.sliders[i] = +r.value; state.moved[i] = true;
+    r.setAttribute('aria-valuetext', sliderRead(i));
+    refreshBadge(); updateNext();
+  }));
+  panel.querySelectorAll('[data-scene]').forEach(b => b.addEventListener('click', () => {
+    state.scene = b.dataset.scene;
+    panel.querySelectorAll('[data-scene]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    refreshBadge(); updateNext();
+  }));
+  $('notice')?.addEventListener('input', e => { state.notice = e.target.value; });
+  panel.querySelectorAll('[data-storm]').forEach(b => b.addEventListener('click', () => {
+    const v = b.dataset.storm, i = state.storm.indexOf(v);
+    if (i >= 0) state.storm.splice(i); else state.storm.push(v);
+    show(`[data-storm="${v}"]`);
+  }));
+  $('storm-clear')?.addEventListener('click', () => { state.storm = []; show(); });
+  $('ask-guide')?.addEventListener('click', askGuide);
+  $('guide-ans')?.addEventListener('input', e => { state.guideAnswer = e.target.value; updateNext(); });
+  $('sketch')?.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    sketchFile = f;
+    if (sketchURL) URL.revokeObjectURL(sketchURL);
+    sketchURL = URL.createObjectURL(f);
+    state.sketchFeedback = null;
+    show('#ask-sketch');
+  });
+  $('ask-sketch')?.addEventListener('click', askSketch);
+  panel.querySelectorAll('[data-style]').forEach(b => b.addEventListener('click', () => {
+    state.style = b.dataset.style;
+    panel.querySelectorAll('[data-style]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    refreshBadge(); updateNext();
+  }));
+  $('own-motto')?.addEventListener('input', e => {
+    state.motto = e.target.value.toUpperCase().trim();
+    panel.querySelectorAll('.chip[data-group="motto"]').forEach(x => x.setAttribute('aria-pressed', false));
+    refreshBadge(); updateNext();
+  });
+  $('ask-notes')?.addEventListener('click', askNotes);
+  panel.querySelectorAll('[data-fmt]').forEach(b => b.addEventListener('click', () => { state.format = b.dataset.fmt; show(`#fmt-${state.format}`); }));
+  $('mono')?.addEventListener('change', e => { state.mono = e.target.checked; refreshBadge(); makeOutput(); });
+  $('next')?.addEventListener('click', () => { if (!canNext()) return; busy?.abort(); state.step++; show(); panel.scrollIntoView({ block: 'start' }); });
+  $('back')?.addEventListener('click', () => { busy?.abort(); state.step--; show(); });
+  $('restart')?.addEventListener('click', () => {
+    busy?.abort();
+    Object.assign(state, fresh());
+    sketchFile = null; if (sketchURL) URL.revokeObjectURL(sketchURL); sketchURL = null;
+    show(); panel.scrollIntoView({ block: 'start' });
+  });
+}
+
+/* ================= Claude calls ================= */
+async function askGuide() {
+  const area = document.getElementById('guide-area');
+  const err = document.getElementById('guide-err');
+  if (!SAMPLE) { state.guide = offlineGuide(); show('#guide-ans'); return; }
+  area.innerHTML = `<div class="guidebox"><span class="who">Trail Guide · Claude</span><p>Reading your trail notes… this can take up to a minute.</p></div>`;
+  try {
+    const r = await askJSON(`${RULES}\n\nTask: Notice ONE real pattern or tension across these answers (for example, between what they carry and how they act in the storm, or between how they see themselves and how they think their team sees them). Then ask ONE open question that helps them think deeper about how they lead. Do not ask about anything private.\n\nReply with only JSON: {"observation": "one sentence, at most 30 words, phrased tentatively (\\"It looks like…\\")", "question": "one open question, at most 25 words"}\n\nTHEIR ANSWERS:\n${profile()}`, { cache: false });
+    if (!r || typeof r.question !== 'string') throw { code: 'upstream_error' };
+    state.guide = { observation: String(r.observation || ''), question: r.question };
+    show('#guide-ans');
+  } catch (e) {
+    if (e && e.code === 'cancelled') return;
+    state.guide = offlineGuide();
+    show('#guide-ans');
+    const el = document.getElementById('guide-err'); if (el) el.textContent = errCopy(e);
+  }
+}
+async function askSketch() {
+  const area = document.getElementById('sketch-area');
+  const btn = document.getElementById('ask-sketch');
+  if (!SAMPLE) return;
+  btn.disabled = true;
+  area.innerHTML = `<div class="guidebox"><span class="who">Trail Guide · Claude</span><p>${sketchFile ? 'Looking at your sketch…' : 'Reading your answers…'}</p></div>`;
+  const withImg = !!(sketchFile && IMAGES_OK);
+  try {
+    const r = await askJSON(`${RULES}\n\nTask: ${withImg ? 'The attached photo shows only a quick hand sketch the student drew of a symbol for how they lead. Describe what you see kindly, give one concrete tip to make it read clearly at small size on a round 2-inch badge, and say which of these badge symbols is closest in spirit: compass, rope, lantern, flag.' : 'Suggest trail lessons for their badge.'} Also write 3 short mottos for the bottom of their badge, drawn from their own answers and in trail or climbing language. Each motto must be UPPERCASE and at most 24 characters including spaces.\n\nReply with only JSON: {${withImg ? '"see": "one sentence", "feedback": "one or two sentences", "symbol": "compass|rope|lantern|flag", ' : ''}"mottos": ["...", "...", "..."]}\n\nTHEIR ANSWERS:\n${profile()}`, withImg ? { images: [sketchFile], cache: false } : { cache: false });
+    const mottos = Array.isArray(r && r.mottos) ? r.mottos.map(m => String(m).toUpperCase().slice(0, 26)).filter(Boolean).slice(0, 3) : [];
+    state.aiMottos = mottos;
+    state.sketchFeedback = withImg ? { see: String(r.see || ''), feedback: String(r.feedback || ''), symbol: ['compass', 'rope', 'lantern', 'flag'].includes(r.symbol) ? r.symbol : '' } : null;
+    show('.chip.ai');
+  } catch (e) {
+    if (e && e.code === 'cancelled') return;
+    area.innerHTML = '';
+    btn.disabled = false;
+    const el = document.getElementById('sketch-err'); if (el) el.textContent = errCopy(e);
+  }
+}
+async function askNotes() {
+  const area = document.getElementById('notes-area');
+  if (!SAMPLE) { state.notes = offlineNotes(); show(); return; }
+  area.innerHTML = `<div class="guidebox"><span class="who">Trail Guide · Claude</span><p>Writing your field notes… this can take up to a minute.</p></div>`;
+  const sym = SYMBOLS.find(s => s.v === state.style);
+  try {
+    const r = await askJSON(`${RULES}\n\nTask: Write this student's field notes from their leadership expedition. Speak to them as "you". Quote or echo their own words where it helps. Be honest: a growth edge should be real, not flattery.\n\nReply with only JSON: {"headline": "a title for them, at most 8 words", "strength": "2 sentences on what they carry as a leader", "growth": "2 sentences on where they are growing", "watch": "1 sentence: a blind spot to watch for, phrased kindly", "try": "1 specific thing to try this week in a club, class project or campus job"}\n\nTHEIR ANSWERS:\n${profile()}\nBadge symbol: ${sym ? sym.label + ' (' + sym.sub + ')' : '-'}\nTrail lesson: ${state.motto}`, { cache: false });
+    if (!r || typeof r.strength !== 'string') throw { code: 'upstream_error' };
+    state.notes = { headline: String(r.headline || ''), strength: r.strength, growth: String(r.growth || ''), watch: String(r.watch || ''), try: String(r.try || '') };
+    show();
+  } catch (e) {
+    if (e && e.code === 'cancelled') return;
+    state.notes = offlineNotes();
+    show();
+    const el = document.getElementById('notes-err'); if (el) el.textContent = errCopy(e);
+  }
+}
+
+function makeOutput() {
+  const img = document.getElementById('outimg');
+  if (!img) return;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 1500;
+  render(cv, badgeState(), { final: true, mirror: state.format === 'shirt' });
+  try { img.src = cv.toDataURL('image/png'); } catch (e) { img.alt = 'Image could not be generated. Take a screenshot of the badge instead.'; }
+}
+
+/* ================= boot ================= */
+show();
+if (document.fonts && document.fonts.load) {
+  Promise.all([document.fonts.load('900 44px Overpass'), document.fonts.load('800 25px Overpass')]).then(() => refreshBadge()).catch(() => {});
+}
+(async () => {
+  try {
+    SAMPLE = window.claude && window.claude.use ? await window.claude.use('sample') : null;
+    if (SAMPLE) {
+      const lim = await SAMPLE.limits().catch(() => null);
+      IMAGES_OK = !!(lim && lim.images);
+    }
+  } catch (e) { SAMPLE = null; }
+  if (state.step >= 7) show();
+})();
+</script>
+
+</body></html>
