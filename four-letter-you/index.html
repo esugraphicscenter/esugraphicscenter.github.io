@@ -1,0 +1,1161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Four Letter You Badge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: kiosk split — question card on the left, the four live dials / badge on the right; stacks on phones */
+:root{
+  --bg:#EFEAFF; --dot:#E0D6FF; --surface:#FFFFFF; --ink:#22183D; --muted:#625A85;
+  --edge:#22183D; --accent:#7B4DFF; --on-accent:#FFFFFF; --sun:#C8F03C; --on-sun:#22183D;
+  --mint:#1FA486; --chip:#F7F4FF; --track:#D6CCF5;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#15102A; --dot:#201941; --surface:#221B44; --ink:#F4F0FF; --muted:#B8AEDB;
+  --edge:#06040F; --accent:#9C7BFF; --on-accent:#FFFFFF; --sun:#D4F55A; --on-sun:#22183D;
+  --mint:#3FCBA8; --chip:#2C2454; --track:#3A3168; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#15102A; --dot:#201941; --surface:#221B44; --ink:#F4F0FF; --muted:#B8AEDB;
+  --edge:#06040F; --accent:#9C7BFF; --on-accent:#FFFFFF; --sun:#D4F55A; --on-sun:#22183D;
+  --mint:#3FCBA8; --chip:#2C2454; --track:#3A3168; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  background-image:radial-gradient(var(--dot) 2.5px, transparent 2.6px);background-size:28px 28px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.5px;line-height:1}
+.brand span{color:var(--accent)}
+.brand small{display:block;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.restart{font:700 14px var(--body);background:transparent;color:var(--muted);border:2px solid var(--track);border-radius:999px;padding:8px 16px;cursor:pointer}
+.restart.armed{border-color:var(--accent);color:var(--accent)}
+.progress{display:grid;grid-template-columns:10fr 6fr;gap:18px}
+.leg{display:flex;flex-direction:column;gap:6px;min-width:0}
+.leg b{font:700 12px var(--body);letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.leg.on b{color:var(--ink)}
+.pips{display:grid;gap:5px}
+.pip{height:12px;border-radius:6px;background:var(--track);transition:background .25s}
+.pip.done{background:var(--accent)}
+.pip.now{background:var(--sun);box-shadow:0 0 0 2px var(--edge)}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:28px;align-items:start}
+.panel{background:var(--surface);border:3px solid var(--edge);border-radius:28px;box-shadow:0 8px 0 var(--edge);
+  padding:30px 30px 26px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.panel.enter{animation:pop .28s ease-out}
+@keyframes pop{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+.kicker{font:800 13px var(--body);letter-spacing:1.6px;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,40px);line-height:1.12;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.sub{margin:0;color:var(--muted);font-size:17px;max-width:60ch}
+p{margin:0;max-width:62ch}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opts.one{grid-template-columns:minmax(0,1fr)}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);background:var(--surface);
+  border:3px solid var(--edge);border-radius:20px;box-shadow:0 5px 0 var(--edge);padding:14px 16px;cursor:pointer;
+  transition:transform .08s, box-shadow .08s, background .15s;min-width:0}
+.opt:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--edge)}
+.opt:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.opt[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.opt .k{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:700 15px var(--display);
+  background:var(--chip);color:var(--ink);border:2px solid var(--edge)}
+.opt[aria-pressed="true"] .k{background:var(--edge);color:var(--sun)}
+.opt .t{display:flex;flex-direction:column;min-width:0}
+.opt .t b{font-weight:800;font-size:18px;line-height:1.25}
+.opt .t span{font-size:14.5px;opacity:.8;line-height:1.35}
+.sw{flex:none;display:flex;gap:4px}
+.sw i{width:22px;height:22px;border-radius:50%;border:2px solid var(--edge);display:block}
+
+.duo{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;align-items:stretch}
+.opt.big{min-height:150px;justify-content:center;text-align:center}
+.opt.big .t{align-items:center}
+.opt.big .t b{font-family:var(--display);font-weight:600;font-size:23px;line-height:1.2}
+.or{align-self:center;font:700 20px var(--display);background:var(--accent);color:var(--on-accent);border:3px solid var(--edge);border-radius:50%;width:56px;height:56px;display:grid;place-items:center}
+.rounds{display:flex;align-items:center;gap:8px}
+.rd{width:36px;height:36px;border-radius:50%;border:2px solid var(--edge);background:var(--chip);color:var(--ink);font:700 15px var(--display);cursor:pointer}
+.rd.got{background:var(--mint);color:#fff}
+.rd.cur{box-shadow:0 0 0 3px var(--sun)}
+
+.opts.pics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.opt.pic{flex-direction:column;align-items:stretch;padding:10px;gap:8px}
+.opt.pic img{width:100%;height:auto;border-radius:12px;border:2px solid var(--edge);display:block}
+.opt.pic .t{align-items:center;text-align:center}
+.opt.pic .t b{font-size:16px}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:700 16px var(--body);color:var(--ink);background:var(--chip);border:2px solid var(--edge);border-radius:999px;padding:8px 16px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font:800 13px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.field input{font:700 22px var(--display);color:var(--ink);background:var(--chip);border:3px solid var(--edge);border-radius:16px;padding:12px 16px;width:100%;max-width:420px}
+.field input:focus{outline:3px solid var(--accent);outline-offset:2px}
+.hint{font-size:14px;color:var(--muted)}
+
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}
+.btn{font:700 18px var(--display);letter-spacing:.3px;border:3px solid var(--edge);border-radius:999px;padding:12px 26px;cursor:pointer;
+  background:var(--surface);color:var(--ink);box-shadow:0 5px 0 var(--edge);transition:transform .08s, box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.btn.go{background:var(--accent);color:var(--on-accent);margin-left:auto}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:0 5px 0 var(--edge)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.sliders{display:flex;flex-direction:column;gap:22px}
+.sl{display:flex;flex-direction:column;gap:6px}
+.sl .q{font:600 19px var(--display)}
+.sl .ends{display:flex;justify-content:space-between;gap:12px;font-weight:800;font-size:15.5px}
+.sl .ends span:last-child{text-align:right}
+.sl input{width:100%;accent-color:var(--accent);height:30px;cursor:pointer}
+.read{font:600 15px var(--display);color:var(--accent);text-align:center}
+
+.rates{display:flex;flex-direction:column;gap:12px}
+.rate{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:10px 14px}
+.rate b{font-weight:800;font-size:16px;line-height:1.3}
+.hs{display:flex;gap:2px}
+.hb{width:40px;height:40px;border:0;background:transparent;cursor:pointer;padding:2px;border-radius:10px}
+.hb svg{width:100%;height:100%;display:block}
+.hb path{fill:var(--track);stroke:var(--edge);stroke-width:2.2;stroke-linejoin:round}
+.hb.on path{fill:var(--accent)}
+
+.rank{display:flex;flex-direction:column;gap:10px}
+.rank .opt{padding:12px 16px}
+.rank .num{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:700 16px var(--display);border:2px dashed var(--track);color:var(--muted)}
+.rank .opt[aria-pressed="true"] .num{border:2px solid var(--edge);background:var(--edge);color:var(--sun)}
+
+.chat{display:flex;flex-direction:column;gap:10px;background:var(--chip);border:2px solid var(--edge);border-radius:20px;padding:16px}
+.bub{align-self:flex-start;max-width:80%;background:var(--surface);border:2px solid var(--edge);border-radius:18px 18px 18px 4px;padding:8px 14px;font-weight:700}
+.bub small{display:block;font:800 11px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.bub.me{align-self:flex-end;background:var(--accent);color:var(--on-accent);border-radius:18px 18px 4px 18px}
+.flip{font:600 18px var(--display);padding-top:12px;border-top:3px dashed var(--track)}
+
+.sentence{font:600 clamp(21px,2.4vw,28px)/1.45 var(--display);background:var(--chip);border:3px solid var(--edge);border-radius:20px;padding:14px 18px}
+.gap{color:var(--muted)}
+.fill{background:var(--sun);color:var(--on-sun);border-radius:10px;padding:0 8px}
+.then{display:flex;flex-direction:column;gap:12px}
+
+.left{font:600 20px var(--display)}
+.left b{font-size:34px;color:var(--accent);font-variant-numeric:tabular-nums}
+.alloc{display:flex;flex-direction:column;gap:14px}
+.al{display:grid;grid-template-columns:170px 42px minmax(0,1fr) 42px 26px;gap:10px;align-items:center}
+.nm{font-weight:800;line-height:1.25}
+.pm{width:42px;height:42px;border-radius:50%;border:3px solid var(--edge);background:var(--surface);color:var(--ink);font:700 22px var(--display);cursor:pointer;box-shadow:0 3px 0 var(--edge);line-height:1}
+.pm:active{transform:translateY(2px);box-shadow:0 1px 0 var(--edge)}
+.pm:disabled{opacity:.35;cursor:default}
+.pdots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.pdots i{height:18px;border-radius:5px;background:var(--track)}
+.pdots i.on{background:var(--accent)}
+.al em{font-style:normal;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+
+.code{display:flex;gap:10px;flex-wrap:wrap}
+.code span{font:700 44px/1 var(--display);width:64px;height:68px;display:grid;place-items:center;border:3px solid var(--edge);border-radius:16px;color:#fff;box-shadow:0 5px 0 var(--edge)}
+.dials{display:flex;flex-direction:column;gap:10px}
+.dial{display:grid;grid-template-columns:160px minmax(0,1fr) 160px;gap:10px;align-items:center;font-weight:700;font-size:15px;color:var(--muted)}
+.dial .on{color:var(--ink);font-weight:800}
+.dial b{font-family:var(--display);font-size:18px}
+.dial .r{text-align:right}
+.dt{height:18px;border-radius:9px;background:var(--track);border:2px solid var(--edge);overflow:hidden;display:flex}
+.df{display:block;height:100%}
+.note{background:var(--chip);border:2px dashed var(--track);border-radius:16px;padding:12px 16px;font-size:15px;color:var(--muted)}
+.note b{color:var(--ink)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:12px 16px;min-width:0}
+.card span{display:block;font:800 11.5px var(--body);letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.card ul{margin:0;padding-left:18px;font-weight:700;font-size:15.5px;line-height:1.4;display:flex;flex-direction:column;gap:4px}
+.seg{display:flex;gap:10px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15.5px}
+.credit{font-size:13px;color:var(--muted)}
+
+.easel{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.stage{width:100%;max-width:520px;aspect-ratio:1;position:relative}
+.stage.tall{aspect-ratio:2/3;max-width:400px}
+.stage canvas,.stage img{width:100%;height:100%;display:block;object-fit:contain}
+.cap{font:700 15px var(--body);color:var(--muted);text-align:center;max-width:42ch}
+.legend{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.lg{display:flex;align-items:center;gap:6px;font:700 13.5px var(--body);background:var(--surface);border:2px solid var(--edge);border-radius:999px;padding:4px 10px 4px 6px}
+.lg i{width:16px;height:16px;border-radius:50%;border:2px solid var(--edge)}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .easel{position:static;order:-1}
+  .stage{max-width:300px}
+  .stage.tall{max-width:260px}
+  .panel{padding:22px 18px 20px}
+}
+@media (max-width:560px){
+  .opts,.cols{grid-template-columns:minmax(0,1fr)}
+  .opts.pics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .duo{grid-template-columns:minmax(0,1fr)} .or{justify-self:center}
+  .al{grid-template-columns:96px 38px minmax(0,1fr) 38px 22px;gap:6px}
+  .pm{width:38px;height:38px}
+  .dial{grid-template-columns:92px minmax(0,1fr) 92px;font-size:13.5px}
+  .rate{grid-template-columns:minmax(0,1fr)}
+  .hb{width:36px;height:36px}
+  .progress{grid-template-columns:minmax(0,1fr);gap:10px}
+  .code span{width:54px;height:58px;font-size:36px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a href="../" class="gc-home" aria-label="Back to all badges">&larr; All badges</a>
+<style>.gc-home{position:fixed;left:16px;bottom:16px;z-index:50;font:700 15px system-ui,sans-serif;color:#141414;background:#FFC72C;border:3px solid #141414;border-radius:999px;padding:9px 16px;box-shadow:3px 3px 0 #141414;text-decoration:none}.gc-home:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #141414}@media print{.gc-home{display:none}}</style>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Four Letter <span>You</span><small>Graphics Center · Set your four dials</small></div>
+    <button type="button" class="restart" id="restart">Start over</button>
+  </header>
+  <div class="progress" aria-label="Progress">
+    <div class="leg" id="leg1"><b>Part 1 · Set your dials</b><div class="pips" id="pips1" style="grid-template-columns:repeat(10,1fr)"></div></div>
+    <div class="leg" id="leg2"><b>Part 2 · Design your badge</b><div class="pips" id="pips2" style="grid-template-columns:repeat(6,1fr)"></div></div>
+  </div>
+  <div class="app">
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <aside class="easel">
+      <div class="stage" id="stage">
+        <canvas id="badge" width="1080" height="1080" aria-label="Your four dials and badge, updating as you answer"></canvas>
+        <img id="outimg" alt="" hidden>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div class="cap" id="cap"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =============================== DATA =============================== */
+const INK = '#22183D';
+const AX = [
+  { a: 'E', b: 'I', an: 'Outgoing', bn: 'Inward', k: 'Energy', col: '#FF6B57' },
+  { a: 'S', b: 'N', an: 'Details', bn: 'Big picture', k: 'Information', col: '#1FA486' },
+  { a: 'T', b: 'F', an: 'Logic', bn: 'Heart', k: 'Decisions', col: '#7B4DFF' },
+  { a: 'J', b: 'P', an: 'Planned', bn: 'Flexible', k: 'Lifestyle', col: '#F2A20C' }
+];
+const OPP = { E: 'I', I: 'E', S: 'N', N: 'S', T: 'F', F: 'T', J: 'P', P: 'J' };
+
+const TYPES = {
+  INTJ: { n: 'The Long Game', sym: 'telescope', col: '#3D5AFE',
+    blurb: 'You see where things are headed before anyone else does, and you quietly build the plan to get there.',
+    bring: ['A plan three steps ahead', 'Calm focus under pressure', 'High standards for the work'],
+    help: ['Give me the why, not just the what', 'Let me think before I answer', 'Be direct. I can take it'],
+    watch: 'Not everyone can see the end goal yet. Bring people along before you speed ahead.',
+    phrases: ['THINKING AHEAD', 'EYES ON THE GOAL', 'PLAN IT, BUILD IT', 'PLAYING THE LONG GAME'] },
+  INTP: { n: 'The Tinkerer', sym: 'bulb', col: '#F2A20C',
+    blurb: 'Your brain never fully turns off. You love pulling ideas apart to see how they work.',
+    bring: ['Wild, original ideas', 'Questions nobody else thought to ask', 'Calm logic when things get messy'],
+    help: ['Give me room to explore', 'Debate with me. It’s how I learn', 'Remind me about deadlines (kindly)'],
+    watch: 'A great idea only counts once it leaves your head. Pick one and finish it.',
+    phrases: ['BUT WHY THOUGH', 'IDEAS ON DECK', 'LET ME THINK', 'ALWAYS CURIOUS'] },
+  ENTJ: { n: 'The Captain', sym: 'wheel', col: '#E53950',
+    blurb: 'When the group is stuck, you take the wheel, set a course, and get everyone moving.',
+    bring: ['Clear direction', 'Big goals and the drive to hit them', 'Decisions when no one else will make them'],
+    help: ['Bring me solutions, not just problems', 'Keep it short and clear', 'Push back if you disagree. I respect it'],
+    watch: 'Fast isn’t always better. Check in with your crew before you set sail.',
+    phrases: ['CAPTAIN MODE', 'FULL SPEED AHEAD', 'LET’S GO', 'I’VE GOT THE WHEEL'] },
+  ENTP: { n: 'The Wildcard', sym: 'dice', col: '#FF7A33',
+    blurb: 'You roll with new ideas, poke holes in old ones, and make every conversation more interesting.',
+    bring: ['Quick thinking on the spot', 'Creative fixes nobody saw coming', 'Energy that gets people talking'],
+    help: ['Let me brainstorm out loud', 'Keep things fresh', 'Hold me to the follow-through'],
+    watch: 'Playing devil’s advocate is fun for you. It isn’t always fun for everyone else.',
+    phrases: ['ROLL WITH IT', 'WHAT IF THOUGH', 'PLOT TWIST', 'WILDCARD ENERGY'] },
+  INFJ: { n: 'The Compass', sym: 'compass', col: '#00897B',
+    blurb: 'You have a strong sense of what’s right and a knack for understanding people on a deep level.',
+    bring: ['Deep listening', 'A clear sense of purpose', 'Insight into what people really need'],
+    help: ['Talk to me one-on-one', 'Share the bigger meaning', 'Give me quiet time to recharge'],
+    watch: 'You carry other people’s feelings. Make sure someone is checking on you, too.',
+    phrases: ['TRUE NORTH', 'FIND YOUR WAY', 'LEAD WITH HEART', 'QUIET INSIGHT'] },
+  INFP: { n: 'The Daydreamer', sym: 'moon', col: '#8E5CF7',
+    blurb: 'You live by your values and see the world in color, with an imagination that runs all night.',
+    bring: ['Creativity with meaning', 'Kindness that feels real', 'Support for people others overlook'],
+    help: ['Respect my values', 'Give me space to create', 'Encourage me when I doubt myself'],
+    watch: 'Daydreams need a first step. Pick one dream and give it a deadline.',
+    phrases: ['DREAM BIG', 'STAY TRUE', 'MOONLIGHT MIND', 'SOFT BUT STRONG'] },
+  ENFJ: { n: 'The Hype Coach', sym: 'megaphone', col: '#FF4F79',
+    blurb: 'You see the best in people and say it loud enough for them to believe it.',
+    bring: ['Hype that actually helps', 'A team that feels like a team', 'Getting people to show up'],
+    help: ['Tell me my effort mattered', 'Work as a team, not solo', 'Tell me early if something’s off'],
+    watch: 'You can give until you’re empty. It’s okay to be the one who gets coached sometimes.',
+    phrases: ['YOU GOT THIS', 'TEAM FIRST', 'BELIEVE IT', 'HYPE SQUAD'] },
+  ENFP: { n: 'The Spark', sym: 'sparkle', col: '#D63AF9',
+    blurb: 'You light up a room, start ten projects at once, and get people excited about what could be.',
+    bring: ['Contagious energy', 'Ideas that bring people together', 'Making anything feel possible'],
+    help: ['Keep it fun and flexible', 'Let me brainstorm before we decide', 'Help me land the plane'],
+    watch: 'Starting is your superpower. Finishing is your workout.',
+    phrases: ['GOOD VIBES', 'WHY NOT', 'LIGHT IT UP', 'SPARK SOMETHING'] },
+  ISTJ: { n: 'The Anchor', sym: 'anchor', col: '#1E5AA8',
+    blurb: 'You’re steady and reliable, the person everyone counts on when it matters.',
+    bring: ['Follow-through every time', 'Attention to the details', 'Calm in a storm'],
+    help: ['Give me clear expectations', 'Tell me about changes early', 'Respect the system that works'],
+    watch: 'Not every change is a storm. Sometimes the new way is worth a try.',
+    phrases: ['STEADY ON', 'COUNT ON ME', 'DONE RIGHT', 'HOLD THE LINE'] },
+  ISFJ: { n: 'The Umbrella', sym: 'umbrella', col: '#43A047',
+    blurb: 'You look out for people before they know they need it, and you remember the little things.',
+    bring: ['Quiet, steady support', 'Remembering what matters to people', 'Making everyone feel included'],
+    help: ['Notice what I do behind the scenes', 'Say thank you. It goes a long way', 'Give me a heads-up before big changes'],
+    watch: 'You cover everyone else. Don’t forget to stay out of the rain yourself.',
+    phrases: ['GOT YOU COVERED', 'RAIN OR SHINE', 'HERE FOR YOU', 'QUIET STRENGTH'] },
+  ESTJ: { n: 'The Game Plan', sym: 'clipboard', col: '#0097D6',
+    blurb: 'You organize the chaos, hand out the roles, and make sure the job actually gets done.',
+    bring: ['Structure and clear roles', 'Getting things done on time', 'Honest, direct feedback'],
+    help: ['Be on time and prepared', 'Tell me straight', 'Follow through on what you said'],
+    watch: 'Your way works, but it isn’t the only way. Leave room for other people’s ideas.',
+    phrases: ['GET IT DONE', 'ON IT', 'CHECK, CHECK, CHECK', 'STICK TO THE PLAN'] },
+  ESFJ: { n: 'The Host', sym: 'cupcake', col: '#F06FA8',
+    blurb: 'You bring people together and make everyone feel welcome, fed, and part of the group.',
+    bring: ['A welcoming vibe', 'Traditions people look forward to', 'Keeping the group connected'],
+    help: ['Show up for the group plans', 'Tell me you appreciate me', 'Keep the peace when you can'],
+    watch: 'You can’t keep everyone happy all the time. That’s not your job.',
+    phrases: ['ALL ARE WELCOME', 'PULL UP A CHAIR', 'SQUAD FIRST', 'SWEET VIBES'] },
+  ISTP: { n: 'The Fixer', sym: 'wrench', col: '#546E7A',
+    blurb: 'You figure things out hands-on and stay cool when everything breaks.',
+    bring: ['Practical fixes', 'A cool head in a crisis', 'Learning anything by doing it'],
+    help: ['Show me, don’t lecture me', 'Give me space to work', 'Keep meetings short'],
+    watch: 'People can’t read your mind. Share what you’re thinking, even when you’ve already solved it.',
+    phrases: ['I’LL FIX IT', 'HANDS ON', 'STAY COOL', 'FIGURE IT OUT'] },
+  ISFP: { n: 'The Artist', sym: 'palette', col: '#14B8A6',
+    blurb: 'You express yourself through what you make, wear, and do, and you live in the moment.',
+    bring: ['A creative eye', 'Gentle, genuine kindness', 'Living in the moment'],
+    help: ['Give me freedom to do it my way', 'Notice the details I add', 'Go easy on harsh criticism'],
+    watch: 'Avoiding conflict lets small things grow. Say the hard thing gently, but say it.',
+    phrases: ['MAKE IT YOURS', 'STAY CREATIVE', 'ART MODE', 'FEEL IT'] },
+  ESTP: { n: 'The Daredevil', sym: 'bolt', col: '#FFB800',
+    blurb: 'You act fast, think on your feet, and you’re always first to try the thing.',
+    bring: ['Bold action', 'Reading a situation fast', 'Fun under pressure'],
+    help: ['Keep it moving', 'Let me learn by doing', 'Skip the long speeches'],
+    watch: 'Fast decisions are great until they aren’t. Take one breath before you jump.',
+    phrases: ['FULL SEND', 'FIRST ONE IN', 'QUICK MOVES', 'TRY ANYTHING'] },
+  ESFP: { n: 'The Showstopper', sym: 'mic', col: '#C2185B',
+    blurb: 'You’re the life of the party, and you make ordinary moments feel like an event.',
+    bring: ['Fun that’s contagious', 'Making people feel seen', 'Energy when the group is dragging'],
+    help: ['Keep it social', 'Celebrate the wins', 'Give me feedback kindly and in person'],
+    watch: 'Not every moment needs a crowd. Some of the best ones are quiet.',
+    phrases: ['SHOWTIME', 'MIC CHECK', 'STEAL THE SHOW', 'GOOD TIMES ONLY'] }
+};
+
+const Q1 = [
+  { t: 'wyr', k: 'Would you rather', h: 'Would you rather…', sub: 'Three quick rounds. Go with your gut.', rounds: [
+    [['Go to a packed floor party', 'E'], ['Have a movie night with two close friends', 'I']],
+    [['Follow a recipe exactly', 'S'], ['Wing it and invent a new dish', 'N']],
+    [['Plan spring break hour by hour', 'J'], ['Book the bus and figure it out when you get there', 'P']]] },
+  { t: 'slider', k: 'Spectrum', h: 'Where do you land?', sub: 'Slide each one. The middle means “both.”', rows: [
+    ['After a long week, I recharge by…', ['Going out with people', 'E'], ['Having the room to myself', 'I']],
+    ['When a friend asks for feedback, I give…', ['The honest notes', 'T'], ['Encouragement first', 'F']],
+    ['In class, I like…', ['Real examples and facts', 'S'], ['Big ideas and theories', 'N']]] },
+  { t: 'chat', k: 'Group chat', h: 'Pick your reply.', rounds: [
+    { who: 'Your roommate', msg: 'can we talk? the dishes thing is getting to me', ask: 'What do you send back?', opts: [
+      ['Fair. Let’s make a chore chart and split it evenly.', 'T'], ['Oh no, I didn’t know it was bugging you. Let’s talk tonight.', 'F'],
+      ['Totally. What’s the fastest fix?', 'T'], ['I’m so sorry. Are we good?', 'F']] },
+    { who: 'Floor group chat', msg: 'who’s down for wings tonight??', ask: 'Your move?', opts: [
+      ['ME. I’ll grab a table for ten.', 'E'], ['In! Who else is coming?', 'E'],
+      ['Maybe. Who’s going?', 'I'], ['Staying in tonight. Have fun!', 'I']] }] },
+  { t: 'one', k: 'Be honest', h: 'My planner is…', sub: 'Pick the one that’s most true.', opts: [
+    ['color-coded, down to the hour', 'J'], ['a to-do list I check off every day', 'J'],
+    ['a bunch of sticky notes', 'P'], ['in my head. It works, I promise', 'P']] },
+  { t: 'rate', k: 'Rate it', h: 'How much does this sound like you?', sub: 'Give each one 1 to 5 sparkles.', items: [
+    ['I notice small details other people miss', 'S'], ['I’m always asking “what if?”', 'N'],
+    ['Fair beats nice when I make a tough call', 'T'], ['I can feel the mood of a room the second I walk in', 'F'],
+    ['I figure things out by talking them through out loud', 'E'], ['Deadlines are more like suggestions', 'P']] },
+  { t: 'rank', k: 'Rank it', h: 'Group project! Which jobs do you grab first?', sub: 'Tap your top three, in order.', items: [
+    ['Make the plan and the timeline', 'J'], ['Pitch the big idea', 'N'], ['Present to the class', 'E'],
+    ['Check every fact and detail', 'S'], ['Keep the team vibes good', 'F'], ['Crunch the numbers and logic', 'T']] },
+  { t: 'blank', k: 'Fill in the blank', h: 'Finish the sentences.', s: [
+    ['When I make a big decision, I go with', [['the pros and cons list', 'T'], ['how it affects the people involved', 'F'], ['whatever makes the most sense', 'T'], ['my gut and my values', 'F']]],
+    ['On a big project, I like', [['a clear plan from day one', 'J'], ['to keep my options open', 'P'], ['finishing early', 'J'], ['a last-minute burst of genius', 'P']]]] },
+  { t: 'pics', k: 'Superpower', h: 'Pick the superpower that’s most you.', sub: 'Go with the one you’d actually use.', opts: [
+    { s: 'telescope', t: 'See what’s coming next', p: 'N' }, { s: 'clipboard', t: 'Remember every detail', p: 'S' },
+    { s: 'wrench', t: 'Fix any problem with logic', p: 'T' }, { s: 'umbrella', t: 'Make anyone feel better', p: 'F' }] },
+  { t: 'pick', k: 'Three words', h: 'Which three words would your friends use for you?', sub: 'Pick exactly three.', items: [
+    ['Outgoing', 'E'], ['Low-key', 'I'], ['Practical', 'S'], ['Imaginative', 'N'],
+    ['Straight-up honest', 'T'], ['Warm', 'F'], ['Organized', 'J'], ['Spontaneous', 'P']] },
+  { t: 'alloc', k: 'Dial points', h: 'Spend 10 points on your perfect free Saturday.', sub: 'Use + and − until all 10 are spent.', rows: [
+    ['With a big crowd', 'E'], ['Solo recharge time', 'I'], ['Something brand new', 'N'],
+    ['What I already love', 'S'], ['A plan for every hour', 'J'], ['Zero plans', 'P']] }
+];
+
+const PALS = {
+  match: { n: 'My type color', d: 'Matches your result' },
+  violet: { n: 'Violet', c: '#7B4DFF', l: '#ECE5FF', p: '#C8F03C' },
+  warrior: { n: 'Warrior red', c: '#D21F3C', l: '#FFE3E7', p: '#FFC83D' },
+  ocean: { n: 'Ocean', c: '#2D7DD2', l: '#DDEEFF', p: '#C8F03C' },
+  mint: { n: 'Mint', c: '#1FA486', l: '#DDF7EE', p: '#FF6B9A' },
+  midnight: { n: 'Midnight', c: '#2A2350', l: '#E6E1FF', p: '#C8F03C' }
+};
+const FRAMES = { seal: 'Wavy seal', burst: 'Starburst', hex: 'Hexagon', none: 'Symbol only' };
+const BGS = { dots: 'Polka dots', stripes: 'Stripes', sparkles: 'Sparkles', rays: 'Sunburst', plain: 'Plain' };
+const Q2 = [
+  { k: 'pal', h: 'Pick your colors', sub: 'This sets your ring, your symbol frame, and your background.' },
+  { k: 'frame', h: 'Pick the shape around your symbol' },
+  { k: 'bg', h: 'Pick a background' },
+  { k: 'phrase', h: 'Pick the words for your ring', sub: 'Choose one, or write your own (up to 18 letters).' },
+  { k: 'dials', h: 'Show your dial bars under your letters?', sub: 'Little bars show how strongly you lean on each letter.' },
+  { k: 'name', h: 'Put your name on it' }
+];
+const FLOW = ['intro', ...Q1.map((_, i) => ({ p: 1, i })), 'reveal', ...Q2.map((_, i) => ({ p: 2, i })), 'finish'];
+const REVEAL = Q1.length + 1;
+
+function initA(q) {
+  switch (q.t) {
+    case 'wyr': return q.rounds.map(() => null);
+    case 'slider': return { v: q.rows.map(() => 2), t: q.rows.map(() => false) };
+    case 'rate': return q.items.map(() => null);
+    case 'rank': case 'pick': return [];
+    case 'chat': return [null, null];
+    case 'blank': return { a: null, b: null };
+    case 'alloc': return q.rows.map(() => 0);
+    default: return null;
+  }
+}
+function fresh() {
+  return { a1: Q1.map(initA), flip: [false, false, false, false], pal: null, frame: null, bg: null, phrase: null, custom: '', dials: null, name: '',
+    format: 'button', mono: false, shirt: 'color', mirror: false };
+}
+let st = fresh(), pos = 0, ui = { r: 0 }, hover = null, pourStart = null;
+
+/* points: [pole, n] pairs for each question */
+const RANKW = [2, 1.5, 1];
+function pts(i) {
+  const q = Q1[i], a = st.a1[i], out = [];
+  switch (q.t) {
+    case 'wyr': a.forEach((c, r) => { if (c != null) out.push([q.rounds[r][c][1], 2]); }); break;
+    case 'slider': q.rows.forEach((row, r) => { if (a.t[r]) out.push([row[1][1], (4 - a.v[r]) / 2], [row[2][1], a.v[r] / 2]); }); break;
+    case 'chat': a.forEach((k, r) => { if (k != null) out.push([q.rounds[r].opts[k][1], 2]); }); break;
+    case 'one': if (a != null) out.push([q.opts[a][1], 2]); break;
+    case 'pics': if (a != null) out.push([q.opts[a].p, 2]); break;
+    case 'rate': q.items.forEach((it, k) => { if (a[k] != null) out.push([it[1], (a[k] - 1) / 2], [OPP[it[1]], (5 - a[k]) / 2]); }); break;
+    case 'rank': a.forEach((k, n) => out.push([q.items[k][1], RANKW[n] || 0])); break;
+    case 'blank': if (a.a != null) out.push([q.s[0][1][a.a][1], 2]); if (a.b != null) out.push([q.s[1][1][a.b][1], 2]); break;
+    case 'pick': a.forEach(k => out.push([q.items[k][1], 1.5])); break;
+    case 'alloc': a.forEach((n, k) => { if (n) out.push([q.rows[k][1], n * .4]); }); break;
+  }
+  return out;
+}
+function done(i) {
+  const q = Q1[i], a = st.a1[i];
+  switch (q.t) {
+    case 'wyr': return a.every(x => x != null);
+    case 'slider': return a.t.every(Boolean);
+    case 'rate': return a.every(x => x != null);
+    case 'rank': return a.length === 3;
+    case 'pick': return a.length === 3;
+    case 'chat': return a[0] != null && a[1] != null;
+    case 'blank': return a.a != null && a.b != null;
+    case 'alloc': return a.reduce((x, y) => x + y, 0) === 10;
+    default: return a != null;
+  }
+}
+function dials() {
+  const T = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+  Q1.forEach((_, i) => pts(i).forEach(([l, n]) => { T[l] += n; }));
+  return AX.map((x, i) => {
+    const A = T[x.a], B = T[x.b], tot = A + B, pa = tot ? A / tot : .5;
+    const raw = A > B ? x.a : B > A ? x.b : null;
+    let lead = raw || x.b; if (st.flip[i]) lead = OPP[lead];
+    const pct = Math.round((lead === x.a ? pa : 1 - pa) * 100);
+    return { ...x, A, B, tot, pa, raw, lead, pct };
+  });
+}
+function codeOf() { return dials().map(d => d.lead).join(''); }
+
+/* =============================== DRAWING =============================== */
+const R = (a, b) => a + Math.random() * (b - a);
+function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+function S(c, fill, lw = 6, ink = INK) { if (fill) { c.fillStyle = fill; c.fill(); } if (lw) { c.lineWidth = lw; c.strokeStyle = ink; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke(); } }
+function poly(c, pts, close = true) { c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); if (close) c.closePath(); }
+function line(c, pts, color = INK, lw = 6) { poly(c, pts, false); c.lineWidth = lw; c.strokeStyle = color; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); }
+function sparkleP(c, x, y, s) {
+  const k = s * .2; c.beginPath(); c.moveTo(x, y - s);
+  c.quadraticCurveTo(x + k, y - k, x + s, y); c.quadraticCurveTo(x + k, y + k, x, y + s);
+  c.quadraticCurveTo(x - k, y + k, x - s, y); c.quadraticCurveTo(x - k, y - k, x, y - s); c.closePath();
+}
+/* outlined thick strokes: all ink passes first, then all fill passes, so joins stay clean */
+function thick(c, builders, f, ink, w, lw) {
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  builders.forEach(b => { b(); c.strokeStyle = ink; c.lineWidth = w + lw * 1.6; c.stroke(); });
+  if (f) builders.forEach(b => { b(); c.strokeStyle = f; c.lineWidth = w; c.stroke(); });
+}
+function lum(hex) { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16); const f = v => Math.max(0, Math.min(255, Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt)));
+  return '#' + [n >> 16, (n >> 8) & 255, n & 255].map(f).map(v => v.toString(16).padStart(2, '0')).join('');
+}
+const easeOutBack = t => { const k = 1.70158; return 1 + (k + 1) * Math.pow(t - 1, 3) + k * Math.pow(t - 1, 2); };
+
+function arcText(c, text, r, color, top, size) {
+  c.save(); let sz = size;
+  const fit = () => { c.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`; return [...text].reduce((s, ch) => s + c.measureText(ch).width + sz * .14, 0); };
+  while (fit() / r > 2.5 && sz > 14) sz -= 1;
+  c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const sp = sz * .14, ws = [...text].map(ch => c.measureText(ch).width + sp), total = ws.reduce((a, b) => a + b, 0) - sp;
+  let a = top ? -Math.PI / 2 - total / r / 2 : Math.PI / 2 + total / r / 2;
+  [...text].forEach((ch, i) => {
+    const w = ws[i], mid = top ? a + (w - sp) / 2 / r : a - (w - sp) / 2 / r;
+    c.save(); c.translate(300 + Math.cos(mid) * r, 300 + Math.sin(mid) * r); c.rotate(top ? mid + Math.PI / 2 : mid - Math.PI / 2);
+    c.fillText(ch, 0, 0); c.restore(); a += top ? w / r : -w / r;
+  });
+  c.restore();
+}
+
+/* 16 signature symbols in a ~200px box centred on 0,0.
+   f = main fill (null → outline only, for vinyl), hole = cut-out / accent color, tint = light accent */
+function drawSym(c, sym, x, y, k, f, ink = INK, lw = 8, hole = null, tint = null) {
+  c.save(); c.translate(x, y); c.scale(k, k);
+  const s = fill => S(c, fill, lw, ink), mono = !f, col = h => mono ? null : h, dot = (a, b, r) => { circ(c, a, b, r); c.fillStyle = ink; c.fill(); };
+  switch (sym) {
+    case 'telescope':
+      line(c, [[0, 8], [-50, 94]], ink, lw * 1.5); line(c, [[0, 8], [50, 94]], ink, lw * 1.5); line(c, [[0, 8], [0, 94]], ink, lw * 1.5);
+      c.save(); c.rotate(-.5);
+      rr(c, -108, -14, 24, 28, 6); s(f);
+      rr(c, -90, -22, 104, 44, 10); s(f);
+      rr(c, 8, -30, 78, 60, 12); s(f);
+      rr(c, 82, -36, 18, 72, 7); s(col(tint));
+      line(c, [[-34, -22], [-34, 22]], ink, lw * .8);
+      c.restore();
+      circ(c, 0, 8, 13); s(f);
+      break;
+    case 'bulb':
+      [-2.62, -2.09, -1.57, -1.05, -.52].forEach(a => line(c, [[Math.cos(a) * 68, -22 + Math.sin(a) * 68], [Math.cos(a) * 86, -22 + Math.sin(a) * 86]], ink, lw * 1.1));
+      c.beginPath(); c.arc(0, -22, 54, Math.PI * .78, Math.PI * .22); c.lineTo(24, 44); c.lineTo(-24, 44); c.closePath(); s(f);
+      if (!mono) { c.beginPath(); c.arc(0, -22, 38, 3.5, 4.2); c.lineWidth = lw; c.strokeStyle = tint || '#FFFFFF'; c.lineCap = 'round'; c.stroke(); }
+      line(c, [[-12, 42], [-12, 8], [0, -6], [12, 8], [12, 42]], ink, lw * .9);
+      rr(c, -28, 44, 56, 16, 6); s(f); rr(c, -24, 60, 48, 16, 6); s(f);
+      rr(c, -12, 76, 24, 12, 6); c.fillStyle = ink; c.fill();
+      break;
+    case 'wheel': {
+      const sp = [];
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + Math.PI / 8; sp.push(() => { c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(a) * 90, Math.sin(a) * 90); }); }
+      thick(c, sp, f, ink, 15, lw);
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + Math.PI / 8; circ(c, Math.cos(a) * 92, Math.sin(a) * 92, 11); s(f); }
+      thick(c, [() => { circ(c, 0, 0, 64); }], f, ink, 16, lw);
+      circ(c, 0, 0, 24); s(col(hole) || f); dot(0, 0, 8);
+      break; }
+    case 'dice':
+      c.save(); c.translate(44, -40); c.rotate(.32); rr(c, -38, -38, 76, 76, 16); s(f);
+      [[-17, -17], [0, 0], [17, 17]].forEach(([a, b]) => dot(a, b, 7.5)); c.restore();
+      c.save(); c.translate(-26, 20); c.rotate(-.2); rr(c, -54, -54, 108, 108, 20); s(f);
+      [[-26, -26], [26, -26], [0, 0], [-26, 26], [26, 26]].forEach(([a, b]) => dot(a, b, 10)); c.restore();
+      break;
+    case 'compass':
+      rr(c, -14, -108, 28, 24, 8); s(f);
+      circ(c, 0, 0, 90); s(f); circ(c, 0, 0, 70); s(col(tint));
+      for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; line(c, [[Math.cos(a) * 56, Math.sin(a) * 56], [Math.cos(a) * 66, Math.sin(a) * 66]], ink, lw * .8); }
+      poly(c, [[0, -56], [15, 0], [-15, 0]]); S(c, mono ? null : (hole || ink), lw * .75, ink);
+      poly(c, [[0, 56], [15, 0], [-15, 0]]); S(c, f, lw * .75, ink);
+      circ(c, 0, 0, 8); s(f);
+      break;
+    case 'moon':
+      c.save(); c.translate(-14, 12); c.rotate(-.3);
+      c.beginPath(); c.arc(0, 0, 80, 1.016, 2 * Math.PI - 1.016); c.arc(44, 0, 68, -1.5976, 1.5976, true); c.closePath(); s(f);
+      c.restore();
+      sparkleP(c, 54, -44, 30); s(f); sparkleP(c, 76, 30, 16); s(f);
+      break;
+    case 'megaphone':
+      c.save(); c.translate(-18, 0);
+      c.lineCap = 'round'; c.strokeStyle = ink; c.lineWidth = lw * 1.1;
+      c.beginPath(); c.arc(62, 0, 44, -.55, .55); c.stroke(); c.beginPath(); c.arc(62, 0, 64, -.5, .5); c.stroke();
+      rr(c, -46, 18, 24, 46, 8); s(f);
+      rr(c, -82, -30, 26, 60, 10); s(f);
+      poly(c, [[-58, -26], [50, -66], [50, 66], [-58, 26]]); s(f);
+      c.beginPath(); c.ellipse(50, 0, 16, 66, 0, 0, Math.PI * 2); s(col(tint));
+      line(c, [[-20, -40], [-20, 40]], ink, lw * .8);
+      c.restore();
+      break;
+    case 'sparkle':
+      sparkleP(c, -14, 12, 88); s(f); sparkleP(c, 58, -58, 30); s(f); sparkleP(c, 66, 52, 18); s(f);
+      break;
+    case 'anchor': {
+      const shank = () => { c.beginPath(); c.moveTo(0, -58); c.lineTo(0, 78); };
+      const bar = () => { c.beginPath(); c.moveTo(-40, -34); c.lineTo(40, -34); };
+      const arc = () => { c.beginPath(); c.arc(0, 8, 72, .4, Math.PI - .4); };
+      const ring = () => { circ(c, 0, -76, 17); };
+      thick(c, [shank, bar, arc, ring], f, ink, 14, lw);
+      poly(c, [[48, 24], [92, 16], [76, 58]]); s(f); poly(c, [[-48, 24], [-92, 16], [-76, 58]]); s(f);
+      break; }
+    case 'umbrella':
+      thick(c, [() => { c.beginPath(); c.moveTo(0, -10); c.lineTo(0, 62); c.arc(-17, 62, 17, 0, Math.PI, false); }], f, ink, 12, lw);
+      c.beginPath(); c.moveTo(-96, 0); c.arc(0, 0, 96, Math.PI, 0);
+      for (let i = 0; i < 4; i++) c.arc(72 - 48 * i, 0, 24, 0, Math.PI, true);
+      c.closePath(); s(f);
+      c.lineWidth = lw * .8; c.strokeStyle = ink; c.lineCap = 'round';
+      c.beginPath(); c.moveTo(0, -94); c.quadraticCurveTo(-34, -50, -48, -2); c.stroke();
+      c.beginPath(); c.moveTo(0, -94); c.quadraticCurveTo(34, -50, 48, -2); c.stroke();
+      c.beginPath(); c.moveTo(0, -94); c.lineTo(0, -24); c.stroke();
+      rr(c, -5, -114, 10, 20, 4); c.fillStyle = ink; c.fill();
+      break;
+    case 'clipboard':
+      rr(c, -72, -78, 144, 176, 18); s(f);
+      rr(c, -34, -98, 68, 36, 12); c.fillStyle = ink; c.fill();
+      for (let i = 0; i < 3; i++) { const yy = -26 + i * 42; line(c, [[-48, yy], [-36, yy + 11], [-16, yy - 11]], ink, lw); line(c, [[4, yy], [48, yy]], ink, lw); }
+      break;
+    case 'cupcake':
+      poly(c, [[-60, 12], [60, 12], [44, 92], [-44, 92]]); s(f);
+      [[-30, 18, -22, 88], [0, 18, 0, 88], [30, 18, 22, 88]].forEach(([a, b, d, e]) => line(c, [[a, b], [d, e]], ink, lw * .7));
+      c.beginPath(); c.ellipse(0, 10, 72, 24, 0, 0, Math.PI * 2); s(col(tint));
+      c.beginPath(); c.ellipse(0, -18, 58, 24, 0, 0, Math.PI * 2); s(col(tint));
+      c.beginPath(); c.ellipse(0, -44, 38, 20, 0, 0, Math.PI * 2); s(col(tint));
+      if (!mono) [[-34, 6, '#7B4DFF', .5], [22, 14, '#1FA486', -.4], [-12, -20, '#FFB800', .9], [28, -22, '#2D7DD2', .2], [-4, 20, '#FF6B57', -.8]].forEach(([a, b, cl, r]) => {
+        c.save(); c.translate(a, b); c.rotate(r); rr(c, -9, -3.5, 18, 7, 3.5); c.fillStyle = cl; c.fill(); c.restore(); });
+      line(c, [[8, -74], [20, -98]], ink, lw * .8);
+      circ(c, 6, -72, 14); s(col('#E53950'));
+      break;
+    case 'wrench':
+      c.save(); c.rotate(Math.PI / 4);
+      rr(c, -15, -30, 30, 126, 15); s(f);
+      circ(c, 0, -58, 40); s(f);
+      poly(c, [[-14, -112], [-14, -64], [14, -64], [14, -112]], false);
+      if (!mono && hole) { c.fillStyle = hole; c.fill(); }
+      c.lineWidth = lw; c.strokeStyle = ink; c.lineJoin = 'round'; c.stroke();
+      circ(c, 0, 80, 8); s(col(hole));
+      c.restore();
+      break;
+    case 'palette':
+      c.save(); c.rotate(-.18);
+      c.beginPath(); c.ellipse(0, 0, 98, 76, 0, 0, Math.PI * 2); s(f);
+      circ(c, -42, 34, 15); s(col(hole));
+      [[-46, -24, '#FF5C5C'], [-4, -44, '#FFC83D'], [42, -32, '#2D7DD2'], [58, 12, '#1FA486'], [22, 42, '#B14DFF']].forEach(([a, b, cl]) => { circ(c, a, b, 14); s(col(cl)); });
+      c.restore();
+      break;
+    case 'bolt':
+      poly(c, [[22, -102], [-58, 12], [-4, 12], [-24, 102], [60, -16], [8, -16], [36, -102]]); s(f);
+      break;
+    case 'mic':
+      c.lineWidth = lw * 1.4; c.strokeStyle = ink; c.lineCap = 'round';
+      c.beginPath(); c.arc(0, -34, 62, .2, Math.PI - .2); c.stroke();
+      thick(c, [() => { c.beginPath(); c.moveTo(0, 28); c.lineTo(0, 76); }], f, ink, 12, lw);
+      rr(c, -42, 76, 84, 18, 9); s(f);
+      rr(c, -40, -104, 80, 96, 40); s(f);
+      [-78, -60, -42].forEach(yy => line(c, [[-26, yy], [26, yy]], ink, lw * .6));
+      rr(c, -44, -22, 88, 18, 8); s(col(tint));
+      break;
+  }
+  c.restore();
+}
+
+function palOf(key, code) {
+  if (!key || key === 'match') { const col = TYPES[code].col; return { c: col, l: shade(col, .86), p: lum(col) > .55 ? '#7B4DFF' : '#C8F03C' }; }
+  return PALS[key];
+}
+
+/* ---------- live dials ---------- */
+const kn = [.5, .5, .5, .5];
+function stepKnobs(d) { d.forEach((x, i) => { kn[i] += ((1 - x.pa) - kn[i]) * (reduce ? 1 : .14); }); }
+function drawDialScreen(c, e) {
+  const d = dials();
+  c.fillStyle = '#F5F1FF'; c.fillRect(0, 0, 600, 600);
+  c.fillStyle = '#E6DEFF'; for (let y = 30; y < 600; y += 44) for (let x = (y / 44 % 2 ? 52 : 30); x < 600; x += 44) { circ(c, x, y, 6); c.fill(); }
+  // letter tiles
+  for (let i = 0; i < 4; i++) {
+    const w = 64, h = 64, x = 154 + i * 76, y = 120;
+    let letter = d[i].raw || '?', locked = false, sc = 1;
+    if (e >= 0) { const ts = 150 + i * 320; letter = d[i].lead; if (e > ts) { locked = true; sc = 1.6 - .6 * easeOutBack(Math.min(1, (e - ts) / 260)); } }
+    c.save(); c.translate(x + w / 2, y + h / 2); c.scale(sc, sc);
+    rr(c, -w / 2, -h / 2, w, h, 14); S(c, locked ? AX[i].col : '#FFFFFF', 5);
+    c.font = "700 42px Fredoka, 'Trebuchet MS', sans-serif"; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = locked ? '#FFFFFF' : (letter === '?' ? '#B9AEDB' : INK); c.fillText(letter, 0, 3);
+    c.restore();
+  }
+  // four dials
+  for (let i = 0; i < 4; i++) {
+    const x = AX[i], y = 250 + i * 62, lead = d[i].raw;
+    c.font = "800 13px Nunito, system-ui, sans-serif"; c.fillStyle = '#625A85'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(x.k.toUpperCase(), 300, y - 22);
+    rr(c, 168, y - 8, 264, 16, 8); S(c, '#FFFFFF', 4);
+    line(c, [[300, y - 4], [300, y + 4]], '#C9BEEA', 3);
+    [[128, x.a], [472, x.b]].forEach(([cx0, L]) => {
+      circ(c, cx0, y, 22); S(c, lead === L ? x.col : '#FFFFFF', 4);
+      c.font = "700 24px Fredoka, 'Trebuchet MS', sans-serif"; c.fillStyle = lead === L ? '#FFFFFF' : INK; c.fillText(L, cx0, y + 2);
+    });
+    const kx = 184 + kn[i] * 232;
+    circ(c, kx, y, 17); S(c, x.col, 4);
+    circ(c, kx - 5, y - 5, 4.5); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill();
+  }
+}
+
+/* ---------- badge ---------- */
+function drawBg(c, kind, P, mono) {
+  if (mono) return;
+  c.fillStyle = P.l; c.fillRect(0, 0, 600, 600);
+  const d = shade(P.l, -.07);
+  if (kind === 'dots') { c.fillStyle = d; for (let y = 30; y < 600; y += 44) for (let x = (y / 44 % 2 ? 52 : 30); x < 600; x += 44) { circ(c, x, y, 7); c.fill(); } }
+  else if (kind === 'stripes') { c.save(); c.translate(300, 300); c.rotate(-.6); c.fillStyle = d; for (let x = -480; x < 480; x += 56) c.fillRect(x, -480, 24, 960); c.restore(); }
+  else if (kind === 'sparkles') { c.fillStyle = d; for (let y = 34; y < 620; y += 62) for (let x = (Math.round(y / 62) % 2 ? 62 : 31); x < 620; x += 62) { sparkleP(c, x, y, 15); c.fill(); } }
+  else if (kind === 'rays') { c.fillStyle = d; for (let i = 0; i < 18; i++) { const a = i * Math.PI / 9; c.beginPath(); c.moveTo(300, 300); c.arc(300, 300, 440, a, a + Math.PI / 18); c.closePath(); c.fill(); } }
+}
+function framePath(c, kind, x, y, Rr) {
+  c.beginPath();
+  if (kind === 'seal') { for (let i = 0; i <= 216; i++) { const a = i / 216 * Math.PI * 2, r = Rr * (.95 + .05 * Math.cos(a * 18)); c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } }
+  else if (kind === 'burst') { for (let i = 0; i < 32; i++) { const a = i * Math.PI / 16 - Math.PI / 2, r = i % 2 ? Rr * .84 : Rr; c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } }
+  else { for (let i = 0; i < 6; i++) { const a = -Math.PI / 2 + i * Math.PI / 3, r = Rr * 1.04; c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } }
+  c.closePath();
+}
+function drawCenter(c, code, frame, P, cy, Rr, mono) {
+  const T = TYPES[code];
+  if (frame === 'none') { drawSym(c, T.sym, 300, cy, Rr / 102, mono ? null : P.c, INK, 9, mono ? null : P.l, mono ? null : shade(P.c, .55)); return; }
+  c.save(); if (!mono) { c.shadowColor = 'rgba(34,24,61,.25)'; c.shadowOffsetY = 8; } framePath(c, frame, 300, cy, Rr); S(c, mono ? null : P.c, 7); c.restore();
+  framePath(c, frame, 300, cy, Rr); S(c, null, 7);
+  if (!mono && frame === 'seal') { c.save(); c.setLineDash([10, 10]); circ(c, 300, cy, Rr * .82); c.lineWidth = 4; c.strokeStyle = 'rgba(255,255,255,.55)'; c.stroke(); c.restore(); }
+  drawSym(c, T.sym, 300, cy, Rr / (frame === 'hex' ? 150 : 158), mono ? null : '#FFFFFF', INK, 9, mono ? null : P.c, mono ? null : P.l);
+}
+function drawTiles(c, d, y, bars, mono) {
+  const w = 60, h = 58, g = 10, x0 = 300 - (4 * w + 3 * g) / 2;
+  d.forEach((x, i) => {
+    const xx = x0 + i * (w + g);
+    rr(c, xx, y, w, h, 12); S(c, mono ? null : '#FFFFFF', 5);
+    c.font = "700 40px Fredoka, 'Trebuchet MS', sans-serif"; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = INK;
+    c.fillText(x.lead, xx + w / 2, y + h / 2 + 1);
+    if (!bars && !mono) { rr(c, xx + 12, y + h - 11, w - 24, 5, 2.5); c.fillStyle = x.col; c.fill(); }
+    if (bars) {
+      rr(c, xx, y + h + 7, w, 12, 6); S(c, mono ? null : '#FFFFFF', 3);
+      c.save(); rr(c, xx, y + h + 7, w, 12, 6); c.clip(); c.fillStyle = mono ? INK : x.col; c.fillRect(xx, y + h + 7, w * x.pct / 100, 12); c.restore();
+      rr(c, xx, y + h + 7, w, 12, 6); S(c, null, 3);
+    }
+  });
+}
+function ribbon(c, text, P, y, mono) {
+  c.save(); c.font = "700 34px Fredoka, 'Trebuchet MS', sans-serif";
+  let sz = 34; while (c.measureText(text).width > 300 && sz > 20) { sz--; c.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`; }
+  const w = Math.max(200, c.measureText(text).width + 70), x0 = 300 - w / 2;
+  const fill = mono ? null : P.p, sh = mono ? null : shade(P.p, -.25);
+  poly(c, [[x0 - 34, y + 8], [x0 + 8, y + 8], [x0 + 8, y + 52], [x0 - 34, y + 52], [x0 - 20, y + 30]]); S(c, sh, 5);
+  poly(c, [[x0 + w + 34, y + 8], [x0 + w - 8, y + 8], [x0 + w - 8, y + 52], [x0 + w + 34, y + 52], [x0 + w + 20, y + 30]]); S(c, sh, 5);
+  rr(c, x0, y, w, 52, 10); S(c, fill, 5);
+  c.fillStyle = mono || lum(P.p) > .5 ? INK : '#FFFFFF'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, 300, y + 28); c.restore();
+}
+function badgeFace(c, v, P, mono) {
+  const d = dials(), hasName = !!(v.name || '').trim(), bars = v.dials === 'yes';
+  const L = hasName ? { cy: 210, R: 108, ty: 336, ry: 440 } : { cy: 232, R: 122, ty: 374 };
+  drawCenter(c, v.code, v.frame || 'seal', P, L.cy, L.R, mono);
+  drawTiles(c, d, L.ty, bars, mono);
+  if (hasName) ribbon(c, v.name.trim().toUpperCase(), P, L.ry, mono);
+}
+
+/* mode: 'dials' | 'pour' | 'badge' */
+const FLASH = 1900, P_END = 3600;
+function drawBadge(c, v, mode, e = 0, mono = false) {
+  const P = palOf(v.pal, v.code);
+  const showBadge = mode === 'badge' || (mode === 'pour' && e > FLASH);
+  const rim = mono ? null : (showBadge ? P.c : INK);
+  c.save();
+  circ(c, 300, 300, 296); S(c, rim, 6);
+  c.save(); circ(c, 300, 300, 252); c.clip();
+  if (mode === 'dials') drawDialScreen(c, -1);
+  else if (mode === 'pour') drawPour(c, v, P, e);
+  else { drawBg(c, v.bg || 'dots', P, mono); badgeFace(c, v, P, mono); }
+  c.restore();
+  circ(c, 300, 300, 252); S(c, null, 6);
+  const tc = mono ? INK : (lum(rim || '#FFFFFF') > .62 ? INK : '#FFFFFF');
+  if (showBadge) {
+    arcText(c, phraseText(v) || 'FOUR LETTER YOU', 274, tc, true, 32);
+    arcText(c, `${TYPES[v.code].n.toUpperCase()} · ${v.code}`, 276, tc, false, 22);
+  } else {
+    arcText(c, 'FOUR LETTER YOU', 274, tc, true, 32);
+    arcText(c, 'ESU GRAPHICS CENTER', 276, tc, false, 20);
+  }
+  if (mono) { circ(c, 300, 300, 296); S(c, null, 6); }
+  c.restore();
+}
+const CONF = Array.from({ length: 28 }, (_, i) => ({ a: i / 28 * Math.PI * 2 + R(-.15, .15), v: R(.22, .42), s: R(12, 24), col: AX[i % 4].col, spin: R(-.006, .006) }));
+function drawPour(c, v, P, e) {
+  if (e < FLASH) drawDialScreen(c, e);
+  else {
+    const q = e - FLASH, k = easeOutBack(Math.min(1, q / 700));
+    drawBg(c, 'dots', P, false);
+    c.save(); c.translate(300, 290); c.scale(Math.max(.01, k), Math.max(.01, k)); c.translate(-300, -290);
+    badgeFace(c, { code: v.code, frame: 'seal', name: '', dials: 'no' }, P, false); c.restore();
+    if (q < 1500) CONF.forEach((h, i) => {
+      const x = 300 + Math.cos(h.a) * h.v * q, y = 260 + Math.sin(h.a) * h.v * q + .0009 * q * q;
+      c.save(); c.globalAlpha = Math.max(0, 1 - q / 1500); c.translate(x, y); c.rotate(h.spin * q + i); sparkleP(c, 0, 0, h.s); S(c, h.col, 3); c.restore();
+    });
+  }
+  if (e > 1500 && e < 2400) { const a = e < FLASH ? (e - 1500) / 400 : 1 - (e - FLASH) / 500; c.fillStyle = `rgba(255,255,255,${Math.max(0, Math.min(1, a)) * .94})`; c.fillRect(0, 0, 600, 600); }
+}
+
+function phraseText(v) { if (!v.phrase) return ''; if (v.phrase === 'custom') return (v.custom || '').trim().toUpperCase(); return v.phrase; }
+function view() {
+  const v = { code: codeOf(), pal: st.pal, frame: st.frame, bg: st.bg, phrase: st.phrase, custom: st.custom, dials: st.dials, name: st.name };
+  if (hover) v[hover.k] = hover.v;
+  return v;
+}
+function mode() { return pos < REVEAL ? 'dials' : (pos === REVEAL && pourStart != null) ? 'pour' : 'badge'; }
+
+const cv = document.getElementById('badge'), cx = cv.getContext('2d');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function paint(now) {
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  cx.setTransform(cv.width / 600, 0, 0, cv.width / 600, 0, 0);
+  const m = mode();
+  drawBadge(cx, view(), m, m === 'pour' ? now - pourStart : 0);
+}
+function loop() {
+  const now = performance.now();
+  if (mode() === 'pour' && now - pourStart > P_END) { pourStart = null; render(); }
+  if (FLOW[pos] !== 'finish') { stepKnobs(dials()); paint(now); }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- export ---------- */
+function wrapText(c, text, x, y, w, lh) {
+  const words = text.split(' '); let lineS = '';
+  words.forEach(wd => { const t = lineS ? lineS + ' ' + wd : wd; if (c.measureText(t).width > w && lineS) { c.fillText(lineS, x, y); y += lh; lineS = wd; } else lineS = t; });
+  if (lineS) { c.fillText(lineS, x, y); y += lh; }
+  return y;
+}
+function compose(fmt) {
+  const v = view(), mono = st.mono && fmt !== 'shirt';
+  if (fmt === 'card') return composeCard(v);
+  const size = fmt === 'shirt' ? 2400 : 1500;
+  const out = document.createElement('canvas'); out.width = out.height = size;
+  const o = out.getContext('2d'), s = size / 600;
+  o.setTransform(s, 0, 0, s, 0, 0);
+  if (fmt === 'shirt') {
+    if (st.mirror) { o.translate(600, 0); o.scale(-1, 1); }
+    drawBadge(o, v, 'badge', 0, st.shirt === 'vinyl');
+  } else if (fmt === 'button') drawBadge(o, v, 'badge', 0);
+  else if (fmt === 'sticker') {
+    circ(o, 300, 300, 296); o.fillStyle = '#FFFFFF'; o.fill();
+    o.save(); o.setLineDash([10, 8]); circ(o, 300, 300, 294); o.lineWidth = 3; o.strokeStyle = '#9A8FBF'; o.stroke(); o.restore();
+    o.save(); o.translate(300, 300); o.scale(.9, .9); o.translate(-300, -300); drawBadge(o, v, 'badge', 0); o.restore();
+  } else {
+    const P = palOf(v.pal, v.code);
+    o.save(); o.beginPath(); o.arc(300, 330, 268, 0, Math.PI * 2); o.moveTo(342, 40); o.arc(300, 40, 42, 0, Math.PI * 2); o.fillStyle = '#FFFFFF'; o.fill(); o.restore();
+    o.save(); o.setLineDash([10, 8]); o.lineWidth = 3; o.strokeStyle = '#9A8FBF'; circ(o, 300, 330, 266); o.stroke(); circ(o, 300, 40, 40); o.stroke(); o.restore();
+    rr(o, 278, 40, 44, 50, 10); S(o, P.c, 5); circ(o, 300, 40, 30); S(o, P.c, 5); circ(o, 300, 40, 11); S(o, '#FFFFFF', 4);
+    o.save(); o.translate(300, 330); o.scale(.86, .86); o.translate(-300, -300); drawBadge(o, v, 'badge', 0); o.restore();
+  }
+  return mono ? gray(out) : out;
+}
+function gray(src) { const g = document.createElement('canvas'); g.width = src.width; g.height = src.height; const gx = g.getContext('2d'); gx.filter = 'grayscale(1) contrast(1.15)'; gx.drawImage(src, 0, 0); return g; }
+function composeCard(v) {
+  const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
+  const o = out.getContext('2d'), T = TYPES[v.code], P = palOf(v.pal, v.code), d = dials();
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  o.fillStyle = P.l; o.fillRect(0, 0, W, 760);
+  o.fillStyle = P.c; o.fillRect(0, 0, W, 120);
+  o.fillStyle = lum(P.c) > .62 ? INK : '#FFFFFF'; o.font = "700 54px Fredoka, 'Trebuchet MS', sans-serif"; o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillText('FOUR LETTER YOU', W / 2, 62);
+  o.save(); o.translate(W / 2 - 310, 140); o.scale(620 / 600, 620 / 600); drawBadge(o, v, 'badge', 0); o.restore();
+  o.textAlign = 'center'; o.textBaseline = 'alphabetic'; o.fillStyle = INK;
+  o.font = "700 70px Fredoka, 'Trebuchet MS', sans-serif"; o.fillText((v.name || '').trim() || 'Me', W / 2, 870);
+  o.fillStyle = lum(P.c) > .55 ? shade(P.c, -.35) : P.c; o.font = "600 48px Fredoka, 'Trebuchet MS', sans-serif"; o.fillText(`${v.code} · ${T.n}`, W / 2, 935);
+  o.textAlign = 'left'; o.fillStyle = '#625A85'; o.font = "800 26px Nunito, system-ui, sans-serif"; o.fillText('MY FOUR DIALS', 110, 1010);
+  d.forEach((x, i) => {
+    const y = 1040 + i * 56;
+    o.textAlign = 'left'; o.fillStyle = x.lead === x.a ? INK : '#8A82A8'; o.font = `${x.lead === x.a ? 800 : 700} 27px Nunito, system-ui, sans-serif`;
+    o.fillText(`${x.a} · ${x.an}`, 110, y + 28);
+    rr(o, 400, y + 6, 400, 28, 14); S(o, '#EEE9FB', 3);
+    o.save(); rr(o, 400, y + 6, 400, 28, 14); o.clip(); o.fillStyle = x.col; if (x.lead === x.a) o.fillRect(400, y + 6, 400 * x.pa, 28); else o.fillRect(400 + 400 * x.pa, y + 6, 400 * (1 - x.pa), 28); o.restore(); rr(o, 400, y + 6, 400, 28, 14); S(o, null, 3);
+    o.textAlign = 'right'; o.fillStyle = x.lead === x.b ? INK : '#8A82A8'; o.font = `${x.lead === x.b ? 800 : 700} 27px Nunito, system-ui, sans-serif`;
+    o.fillText(`${x.bn} · ${x.b}`, 1090, y + 28);
+  });
+  const col = (x, title, items) => {
+    o.textAlign = 'left'; o.fillStyle = '#625A85'; o.font = "800 26px Nunito, system-ui, sans-serif"; o.fillText(title, x, 1310);
+    o.fillStyle = INK; o.font = "700 29px Nunito, system-ui, sans-serif"; let y = 1358;
+    items.forEach(t => { sparkleP(o, x + 10, y - 10, 12); o.fillStyle = P.c; o.fill(); o.fillStyle = INK; y = wrapText(o, t, x + 34, y, 430, 38) + 14; });
+  };
+  col(110, 'WHAT I BRING', T.bring); col(640, 'HOW TO WORK WITH ME', T.help);
+  o.fillStyle = '#9A8FBF'; o.font = "700 22px Nunito, system-ui, sans-serif"; o.textAlign = 'center';
+  o.fillText('ESU Graphics Center · Inspired by Carl Jung’s psychological types · A fun lens, not a label', W / 2, 1750);
+  return st.mono ? gray(out) : out;
+}
+
+/* tile images for the superpower question */
+const TILE = {};
+Q1.find(q => q.t === 'pics').opts.forEach(op => {
+  const t = document.createElement('canvas'); t.width = 300; t.height = 200; const c = t.getContext('2d'), colr = AX.find(a => a.a === op.p || a.b === op.p).col, tint = shade(colr, .84);
+  c.fillStyle = tint; c.fillRect(0, 0, 300, 200);
+  c.fillStyle = shade(tint, -.06); for (let y = 18; y < 200; y += 34) for (let x = (y / 34 % 2 ? 34 : 17); x < 300; x += 34) { circ(c, x, y, 4); c.fill(); }
+  drawSym(c, op.s, 150, 102, .72, colr, INK, 8, tint, '#FFFFFF');
+  TILE[op.s] = t.toDataURL('image/png');
+});
+
+/* =============================== UI =============================== */
+const panel = document.getElementById('panel'), cap = document.getElementById('cap'), outimg = document.getElementById('outimg');
+const legend = document.getElementById('legend'), stage = document.getElementById('stage');
+const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const LET = 'ABCDEF';
+function seeded(n, seed) { let s = seed * 9301 + 49297; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280; const a = [...Array(n).keys()]; for (let i = n - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const STARSVG = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 Q23.4 16.6 37 20 Q23.4 23.4 20 37 Q16.6 23.4 3 20 Q16.6 16.6 20 3 Z"/></svg>';
+
+function pips() {
+  [['pips1', 1, Q1.length], ['pips2', REVEAL + 1, Q2.length]].forEach(([id, start, n]) => {
+    let h = ''; for (let i = 0; i < n; i++) { const at = start + i; h += `<span class="pip ${pos > at ? 'done' : pos === at ? 'now' : ''}"></span>`; }
+    document.getElementById(id).innerHTML = h;
+  });
+  document.getElementById('leg1').classList.toggle('on', pos >= 1 && pos < REVEAL);
+  document.getElementById('leg2').classList.toggle('on', pos > REVEAL);
+}
+function canNext() {
+  const f = FLOW[pos];
+  if (f === 'intro' || f === 'reveal') return true;
+  if (f.p === 1) return done(f.i);
+  const k = Q2[f.i].k;
+  if (k === 'phrase') return !!phraseText(st);
+  if (k === 'name') return !!st.name.trim();
+  return st[k] != null;
+}
+function navHTML(label) {
+  return `<div class="nav">${pos > 0 ? '<button type="button" class="btn" data-a="back">Back</button>' : ''}<button type="button" class="btn go" id="next" data-a="next" ${canNext() ? '' : 'disabled'}>${label}</button></div>`;
+}
+function refreshNext() { const n = document.getElementById('next'); if (n) n.disabled = !canNext(); }
+
+function q1Body(i) {
+  const q = Q1[i], a = st.a1[i];
+  const pr = (on) => `aria-pressed="${on}"`;
+  switch (q.t) {
+    case 'wyr': {
+      const r = ui.r, [A, B] = q.rounds[r];
+      return `<div class="rounds">${q.rounds.map((_, k) => `<button type="button" class="rd ${a[k] != null ? 'got' : ''} ${k === r ? 'cur' : ''}" data-a="round" data-v="${k}" aria-label="Round ${k + 1}">${k + 1}</button>`).join('')}</div>
+        <div class="duo"><button type="button" class="opt big" data-a="wyr" data-v="0" ${pr(a[r] === 0)}><span class="t"><b>${esc(A[0])}</b></span></button>
+        <div class="or">OR</div>
+        <button type="button" class="opt big" data-a="wyr" data-v="1" ${pr(a[r] === 1)}><span class="t"><b>${esc(B[0])}</b></span></button></div>`;
+    }
+    case 'pics': return `<div class="opts pics">${seeded(q.opts.length, i + 3).map(k => { const o = q.opts[k]; return `<button type="button" class="opt pic" data-a="set" data-v="${k}" ${pr(a === k)}><img src="${TILE[o.s]}" alt=""><span class="t"><b>${esc(o.t)}</b></span></button>`; }).join('')}</div>`;
+    case 'slider': return `<div class="sliders">${q.rows.map((row, r) => `<div class="sl"><div class="q">${esc(row[0])}</div>
+        <div class="ends"><span>${esc(row[1][0])}</span><span>${esc(row[2][0])}</span></div>
+        <input type="range" min="0" max="4" step="1" data-r="${r}" value="${a.v[r]}" aria-label="${esc(row[0])}">
+        <div class="read" id="rd-${r}">${a.t[r] ? readout(row, a.v[r]) : 'Slide to choose'}</div></div>`).join('')}</div>`;
+    case 'rate': return `<div class="rates">${seeded(q.items.length, i + 5).map(k => `<div class="rate"><b>${esc(q.items[k][0])}</b><div class="hs" role="group" aria-label="Rate: ${esc(q.items[k][0])}">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="hb ${a[k] != null && a[k] >= n ? 'on' : ''}" data-a="rate" data-k="${k}" data-v="${n}" aria-label="${n} sparkle${n > 1 ? 's' : ''}" aria-pressed="${a[k] === n}">${STARSVG}</button>`).join('')}</div></div>`).join('')}</div>`;
+    case 'rank': return `<div class="rank">${seeded(q.items.length, i + 7).map(k => { const n = a.indexOf(k); return `<button type="button" class="opt" data-a="rank" data-v="${k}" ${pr(n >= 0)}><span class="num">${n >= 0 ? n + 1 : ''}</span><span class="t"><b>${esc(q.items[k][0])}</b></span></button>`; }).join('')}</div>
+        <p class="hint">${a.length} of 3 picked${a.length === 3 ? '. Tap a numbered one to redo from there.' : ''}</p>`;
+    case 'pick': return `<div class="opts">${seeded(q.items.length, i + 9).map(k => `<button type="button" class="opt" data-a="pick" data-v="${k}" ${pr(a.includes(k))}><span class="k">${a.includes(k) ? '✓' : ''}</span><span class="t"><b>${esc(q.items[k][0])}</b></span></button>`).join('')}</div>
+        <p class="hint">${a.length} of 3 picked${a.length === 3 ? '. Tap one to swap it out.' : ''}</p>`;
+    case 'chat': {
+      const block = (rd, r) => `<div class="chat"><div class="bub"><small>${esc(rd.who)}</small>${esc(rd.msg)}</div>${a[r] != null ? `<div class="bub me">${esc(rd.opts[a[r]][0])}</div>` : ''}</div>
+        <p class="${r ? 'flip' : 'sub'}">${esc(rd.ask)}</p>
+        <div class="opts one">${seeded(rd.opts.length, r + 11).map((k, n) => `<button type="button" class="opt" data-a="chat" data-r="${r}" data-v="${k}" ${pr(a[r] === k)}><span class="k">${LET[n]}</span><span class="t"><b>${esc(rd.opts[k][0])}</b></span></button>`).join('')}</div>`;
+      return block(q.rounds[0], 0) + (a[0] != null ? block(q.rounds[1], 1) : '');
+    }
+    case 'blank': {
+      const part = (sk, key) => { const [stem, opts] = q.s[sk], cur = a[key];
+        return `<div class="sentence">${esc(stem)} ${cur != null ? `<span class="fill">${esc(opts[cur][0])}</span>` : '<span class="gap">_______</span>'}.</div>
+        <div class="chips">${seeded(opts.length, sk + 21).map(k => `<button type="button" class="chip" data-a="blank" data-r="${key}" data-v="${k}" ${pr(cur === k)}>${esc(opts[k][0])}</button>`).join('')}</div>`; };
+      return part(0, 'a') + (a.a != null ? `<div class="then">${part(1, 'b')}</div>` : '');
+    }
+    case 'one': return `<div class="opts one">${seeded(q.opts.length, i + 3).map((k, n) => `<button type="button" class="opt" data-a="set" data-v="${k}" ${pr(a === k)}><span class="k">${LET[n]}</span><span class="t"><b>…${esc(q.opts[k][0])}</b></span></button>`).join('')}</div>`;
+    case 'alloc': {
+      const left = 10 - a.reduce((x, y) => x + y, 0);
+      return `<div class="left">Points left: <b>${left}</b></div><div class="alloc">${q.rows.map((row, k) => `<div class="al"><span class="nm">${esc(row[0])}</span>
+        <button type="button" class="pm" data-a="alloc" data-k="${k}" data-v="-1" aria-label="Remove a point from ${esc(row[0])}" ${a[k] ? '' : 'disabled'}>−</button>
+        <div class="pdots">${Array.from({ length: 10 }, (_, n) => `<i class="${n < a[k] ? 'on' : ''}"></i>`).join('')}</div>
+        <button type="button" class="pm" data-a="alloc" data-k="${k}" data-v="1" aria-label="Add a point to ${esc(row[0])}" ${left ? '' : 'disabled'}>+</button><em>${a[k]}</em></div>`).join('')}</div>`;
+    }
+  }
+}
+function readout(row, v) { return v === 2 ? 'Both, equally' : (v === 0 || v === 4 ? 'All the way: ' : 'Leaning: ') + (v < 2 ? row[1][0] : row[2][0]); }
+
+function q2Body(i) {
+  const q = Q2[i], code = codeOf(), pr = on => `aria-pressed="${on}"`, prev = (k, v) => `data-a="q2" data-k="${k}" data-v="${esc(v)}"`;
+  if (q.k === 'pal') return `<div class="opts">${Object.entries(PALS).map(([k, p]) => { const P = palOf(k, code);
+    return `<button type="button" class="opt" ${prev('pal', k)} ${pr(st.pal === k)}><span class="sw"><i style="background:${P.c}"></i><i style="background:${P.l}"></i><i style="background:${P.p}"></i></span><span class="t"><b>${p.n}</b>${p.d ? `<span>${p.d}</span>` : ''}</span></button>`; }).join('')}</div>`;
+  if (q.k === 'frame') return `<div class="opts">${Object.entries(FRAMES).map(([k, n]) => `<button type="button" class="opt" ${prev('frame', k)} ${pr(st.frame === k)}><span class="t"><b>${n}</b></span></button>`).join('')}</div>`;
+  if (q.k === 'bg') return `<div class="opts">${Object.entries(BGS).map(([k, n]) => `<button type="button" class="opt" ${prev('bg', k)} ${pr(st.bg === k)}><span class="t"><b>${n}</b></span></button>`).join('')}</div>`;
+  if (q.k === 'phrase') return `<div class="chips">${TYPES[code].phrases.map(p => `<button type="button" class="chip" ${prev('phrase', p)} ${pr(st.phrase === p)}>${esc(p)}</button>`).join('')}
+      <button type="button" class="chip" ${prev('phrase', 'custom')} ${pr(st.phrase === 'custom')}>Write my own</button></div>
+      ${st.phrase === 'custom' ? `<div class="field"><label for="custom">Your words</label><input id="custom" maxlength="18" autocomplete="off" value="${esc(st.custom)}" placeholder="e.g. BUILT DIFFERENT"></div>` : ''}`;
+  if (q.k === 'dials') return `<div class="opts">${[['yes', 'Yes, show my dial bars'], ['no', 'Just my letters']].map(([k, n]) => `<button type="button" class="opt" ${prev('dials', k)} ${pr(st.dials === k)}><span class="t"><b>${n}</b></span></button>`).join('')}</div>`;
+  if (q.k === 'name') return `<div class="field"><label for="name">Name for the ribbon</label><input id="name" maxlength="14" autocomplete="off" value="${esc(st.name)}" placeholder="First name or nickname"></div><p class="hint">Up to 14 letters.</p>`;
+}
+
+function codeTiles(d) { return `<div class="code" aria-label="Your four letters">${d.map(x => `<span style="background:${x.col}">${x.lead}</span>`).join('')}</div>`; }
+function dialBars(d) {
+  return `<div class="dials">${d.map(x => `<div class="dial"><span class="${x.lead === x.a ? 'on' : ''}"><b>${x.a}</b> ${x.an}${x.lead === x.a ? ` · ${x.pct}%` : ''}</span>
+    <span class="dt" role="img" aria-label="${x.an} ${Math.round(x.pa * 100)}%, ${x.bn} ${100 - Math.round(x.pa * 100)}%"><span class="df" style="width:${x.lead === x.a ? Math.round(x.pa * 100) : 100 - Math.round(x.pa * 100)}%;background:${x.col}${x.lead === x.b ? ';margin-left:auto' : ''}"></span></span>
+    <span class="r ${x.lead === x.b ? 'on' : ''}">${x.lead === x.b ? `${x.pct}% · ` : ''}${x.bn} <b>${x.b}</b></span></div>`).join('')}</div>`;
+}
+
+function render() {
+  const f = FLOW[pos];
+  hover = null;
+  panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter');
+  pips();
+  outimg.hidden = true; cv.hidden = false; stage.classList.remove('tall');
+  legend.innerHTML = pos < REVEAL ? AX.map(x => `<span class="lg"><i style="background:${x.col}"></i>${x.a} or ${x.b} · ${x.k}</span>`).join('') : '';
+  if (f === 'intro') {
+    panel.innerHTML = `<div class="kicker">ESU Graphics Center</div>
+      <h1>What are your four letters?</h1>
+      <p class="sub">Answer 10 quick questions and watch your four dials move. Each dial is a pair of opposites, like Outgoing or Inward. At the end, your letters lock in and you get one of 16 types, with its own nickname and signature symbol.</p>
+      <p>No type is better than another, and there are no wrong answers. Pick what’s true for you, not what sounds good.</p>
+      <p class="sub">Then design your badge and leave with it as a button, sticker, keychain, iron-on for a shirt, or a profile card.</p>
+      ${navHTML('Start')}`;
+    cap.textContent = 'Your dials move as you answer.';
+  } else if (f === 'reveal') {
+    const d = dials(), code = codeOf(), T = TYPES[code];
+    if (pourStart != null) {
+      panel.innerHTML = `<div class="kicker">Locking in</div><h1>Here come your letters…</h1><p class="sub">All four dials are set. Let’s see what you’ve got.</p>
+        <div class="nav"><button type="button" class="btn" data-a="skip">Skip</button></div>`;
+      cap.textContent = 'Watch your letters lock in.';
+    } else {
+      const close = d.map((x, i) => ({ x, i })).filter(({ x, i }) => st.flip[i] || Math.abs(x.pa - .5) < .1);
+      panel.innerHTML = `<div class="kicker">Your four letters</div>
+        ${codeTiles(d)}
+        <h1>${esc(T.n)}</h1>
+        <p class="sub">${esc(T.blurb)}</p>
+        <h2>Your four dials</h2>
+        ${dialBars(d)}
+        <div class="note"><b>A fun lens, not a label.</b> Everyone uses both sides of every dial. Your letters just show which way you lean right now.</div>
+        ${close.length ? `<div class="chips">${close.map(({ x, i }) => `<button type="button" class="chip" data-a="flip" data-v="${i}">${st.flip[i] ? `Switch back to ${OPP[x.lead]}` : `Close call on ${x.a} or ${x.b}. Feels more like ${OPP[x.lead]}? Flip it`}</button>`).join('')}</div>` : ''}
+        ${navHTML('Design my badge')}`;
+      cap.textContent = 'This is your starting badge. You’ll design it next.';
+    }
+  } else if (f === 'finish') {
+    panel.innerHTML = finishHTML();
+    makeOut();
+  } else if (f.p === 1) {
+    const q = Q1[f.i];
+    panel.innerHTML = `<div class="kicker">${q.k} · ${f.i + 1} of ${Q1.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q1Body(f.i)}${navHTML(f.i === Q1.length - 1 ? 'Lock in my letters' : 'Next')}`;
+    capDials();
+    wireQ1(f.i);
+  } else {
+    const q = Q2[f.i];
+    panel.innerHTML = `<div class="kicker">Design · ${f.i + 1} of ${Q2.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q2Body(f.i)}${navHTML(f.i === Q2.length - 1 ? 'Finish my badge' : 'Next')}`;
+    cap.textContent = 'Point at an option to preview it on your badge.';
+    wireQ2();
+  }
+}
+function capDials() { const n = dials().filter(x => x.raw).length; cap.textContent = n ? `${n} of 4 dials leaning one way` : 'Your dials are centered. Answer to move them.'; }
+
+/* ---------- interactions ---------- */
+let restartArmed = null;
+document.getElementById('restart').onclick = e => {
+  const b = e.currentTarget;
+  if (restartArmed) { clearTimeout(restartArmed); restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; st = fresh(); pos = 0; pourStart = null; render(); return; }
+  b.classList.add('armed'); b.textContent = 'Tap again to start over';
+  restartArmed = setTimeout(() => { restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; }, 3000);
+};
+function go(d) {
+  const f = FLOW[pos];
+  if (d > 0 && typeof f === 'object' && f.p === 1 && f.i === Q1.length - 1) { st.flip = [false, false, false, false]; pourStart = reduce ? null : performance.now(); }
+  else pourStart = null;
+  pos = Math.max(0, Math.min(FLOW.length - 1, pos + d));
+  ui = { r: 0 };
+  const nf = FLOW[pos];
+  if (typeof nf === 'object' && nf.p === 1 && Q1[nf.i].t === 'wyr') { const fn = st.a1[nf.i].findIndex(x => x == null); ui.r = fn < 0 ? Q1[nf.i].rounds.length - 1 : fn; }
+  render();
+  window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+let advT;
+panel.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const act = b.dataset.a, v = b.dataset.v, f = FLOW[pos];
+  if (act === 'next') { if (canNext()) go(1); return; }
+  if (act === 'back') { go(-1); return; }
+  if (act === 'skip') { pourStart = null; render(); return; }
+  if (act === 'flip') { const i = +v; st.flip[i] = !st.flip[i]; if (st.phrase && st.phrase !== 'custom') st.phrase = null; render(); return; }
+  if (act === 'again') { st = fresh(); pos = 0; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'fmt') { st.format = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'shirt') { st.shirt = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'q2') { const k = b.dataset.k; st[k] = v; hover = null; renderQ2Keep(k + v); return; }
+  if (typeof f !== 'object' || f.p !== 1) return;
+  const a = st.a1[f.i];
+  const re = (focusSel) => { const y = window.scrollY; rerenderQ1(f.i, focusSel); window.scrollTo(0, y); };
+  if (act === 'round') { ui.r = +v; re(`[data-a="round"][data-v="${v}"]`); return; }
+  if (act === 'wyr') {
+    a[ui.r] = +v; re(`[data-a="wyr"][data-v="${v}"]`);
+    clearTimeout(advT);
+    const nextR = a.findIndex(x => x == null);
+    if (nextR >= 0) advT = setTimeout(() => { ui.r = nextR; re('[data-a="wyr"][data-v="0"]'); }, 380);
+    return;
+  }
+  if (act === 'set') { st.a1[f.i] = +v; re(`[data-a="set"][data-v="${v}"]`); return; }
+  if (act === 'rate') { a[+b.dataset.k] = +v; re(`[data-a="rate"][data-k="${b.dataset.k}"][data-v="${v}"]`); return; }
+  if (act === 'rank') { const k = +v, n = a.indexOf(k); if (n >= 0) a.splice(n); else if (a.length < 3) a.push(k); re(`[data-a="rank"][data-v="${v}"]`); return; }
+  if (act === 'pick') { const k = +v, n = a.indexOf(k); if (n >= 0) a.splice(n, 1); else if (a.length < 3) a.push(k); re(`[data-a="pick"][data-v="${v}"]`); return; }
+  if (act === 'chat') { a[+b.dataset.r] = +v; re(`[data-a="chat"][data-r="${b.dataset.r}"][data-v="${v}"]`); return; }
+  if (act === 'blank') { a[b.dataset.r] = +v; re(`[data-a="blank"][data-r="${b.dataset.r}"][data-v="${v}"]`); return; }
+  if (act === 'alloc') { const k = +b.dataset.k, left = 10 - a.reduce((x, y) => x + y, 0); if (+v > 0 && left > 0) a[k]++; if (+v < 0 && a[k] > 0) a[k]--; re(`[data-a="alloc"][data-k="${k}"][data-v="${v}"]`); return; }
+});
+function rerenderQ1(i, focusSel) {
+  const q = Q1[i];
+  panel.innerHTML = `<div class="kicker">${q.k} · ${i + 1} of ${Q1.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q1Body(i)}${navHTML(i === Q1.length - 1 ? 'Lock in my letters' : 'Next')}`;
+  capDials(); wireQ1(i);
+  const el = focusSel && panel.querySelector(focusSel); if (el) el.focus({ preventScroll: true });
+}
+function wireQ1(i) {
+  const q = Q1[i];
+  if (q.t !== 'slider') return;
+  panel.querySelectorAll('input[type=range]').forEach(inp => inp.addEventListener('input', () => {
+    const r = +inp.dataset.r, a = st.a1[i]; a.v[r] = +inp.value; a.t[r] = true;
+    document.getElementById('rd-' + r).textContent = readout(q.rows[r], a.v[r]);
+    capDials(); refreshNext();
+  }));
+}
+function renderQ2Keep(key) {
+  const f = FLOW[pos], q = Q2[f.i];
+  panel.innerHTML = `<div class="kicker">Design · ${f.i + 1} of ${Q2.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${q2Body(f.i)}${navHTML(f.i === Q2.length - 1 ? 'Finish my badge' : 'Next')}`;
+  wireQ2();
+  const el = [...panel.querySelectorAll('[data-a="q2"]')].find(b => b.dataset.k + b.dataset.v === key);
+  if (st.phrase === 'custom' && key === 'phrasecustom') document.getElementById('custom')?.focus(); else el?.focus({ preventScroll: true });
+}
+function wireQ2() {
+  panel.querySelectorAll('[data-a="q2"]').forEach(b => {
+    b.addEventListener('pointerenter', () => { hover = { k: b.dataset.k, v: b.dataset.v }; });
+    b.addEventListener('pointerleave', () => { hover = null; });
+  });
+  const nm = document.getElementById('name'); if (nm) { nm.addEventListener('input', () => { st.name = nm.value; refreshNext(); }); nm.addEventListener('keydown', e => { if (e.key === 'Enter' && canNext()) go(1); }); }
+  const cu = document.getElementById('custom'); if (cu) cu.addEventListener('input', () => { st.custom = cu.value; refreshNext(); });
+}
+
+/* ---------- finish ---------- */
+const FMTS = [['button', 'Button'], ['sticker', 'Sticker'], ['keychain', 'Keychain'], ['shirt', 'Shirt (Cricut)'], ['card', 'Profile card']];
+function finishHTML() {
+  const d = dials(), code = codeOf(), T = TYPES[code], nm = st.name.trim();
+  const tips = {
+    button: '<p>The colored ring wraps around the edge of the button.</p>',
+    sticker: '<p>Print on sticker paper and cut along the dotted line.</p>',
+    keychain: '<p>Print, laminate, and cut along the dotted line. Punch the small circle at the top for the ring.</p>',
+    card: '<p>A 4 × 6 profile card with your badge, your four dials, and how to work with you. Print it on cardstock.</p>',
+    shirt: st.shirt === 'vinyl'
+      ? `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space. Choose <b>Simple</b> and keep it as one layer.</li><li>Size it about 8–10 in wide for the front, or 3.5 in for a chest logo.</li><li>Load heat transfer vinyl shiny side down. Turn on <b>Mirror</b> on the mat screen before you cut.</li><li>Weed out the extra vinyl and press it using your vinyl’s heat guide.</li></ol>`
+      : `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space as a <b>Print Then Cut</b> image.</li><li>Keep it within about 6.75 × 9.25 in (the Print Then Cut limit).</li><li>Print on printable heat transfer paper. Light-shirt paper usually needs a mirrored print, so turn on <b>Mirror</b> below. Dark-shirt paper does not.</li><li>Cut, peel, and press using the paper’s heat guide.</li></ol>`
+  };
+  cap.textContent = 'Right-click the picture and choose “Save image as” to keep it.';
+  return `<div class="kicker">Your badge is ready</div>
+    ${codeTiles(d)}
+    <h1>${esc(nm)} is ${esc(T.n)}</h1>
+    <p class="sub">${esc(T.blurb)}</p>
+    ${dialBars(d)}
+    <div class="cols">
+      <div class="card"><span>What I bring</span><ul>${T.bring.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
+      <div class="card"><span>How to work with me</span><ul>${T.help.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>
+    </div>
+    <div class="note"><b>Watch for:</b> ${esc(T.watch)}</div>
+    <h2>Make it</h2>
+    <div class="seg" role="group" aria-label="What are you making?">${FMTS.map(([k, l]) => `<button type="button" class="chip" data-a="fmt" data-v="${k}" aria-pressed="${st.format === k}">${l}</button>`).join('')}</div>
+    ${st.format === 'shirt' ? `<div class="seg" role="group" aria-label="Shirt method">${[['color', 'Full color (printable iron-on)'], ['vinyl', 'One color (vinyl cut)']].map(([k, l]) => `<button type="button" class="chip" data-a="shirt" data-v="${k}" aria-pressed="${st.shirt === k}">${l}</button>`).join('')}</div>
+      ${st.shirt === 'color' ? `<label class="toggle"><input type="checkbox" id="mirror" ${st.mirror ? 'checked' : ''}> Mirror the picture</label>` : '<p class="hint">Leave this picture unmirrored. Design Space mirrors it for you when you turn on Mirror.</p>'}`
+      : `<label class="toggle"><input type="checkbox" id="mono" ${st.mono ? 'checked' : ''}> Black and white (saves color ink)</label>`}
+    ${tips[st.format]}
+    <div class="note"><b>To save:</b> right-click your picture and choose <b>Save image as</b>. Then print or upload the saved file.</div>
+    <p class="credit">Inspired by Carl Jung’s theory of psychological types. Questions, nicknames, and symbols written for the ESU Graphics Center. Not affiliated with the Myers-Briggs Company or 16Personalities.</p>
+    <div class="nav"><button type="button" class="btn" data-a="back">Back</button><button type="button" class="btn go" data-a="again">Start a new badge</button></div>`;
+}
+function makeOut() {
+  const m = document.getElementById('mono'); if (m) m.onchange = () => { st.mono = m.checked; makeOut(); };
+  const mi = document.getElementById('mirror'); if (mi) mi.onchange = () => { st.mirror = mi.checked; makeOut(); };
+  const run = () => {
+    const out = compose(st.format);
+    outimg.src = out.toDataURL('image/png');
+    outimg.alt = `${st.name.trim()}’s Four Letter You ${st.format === 'card' ? 'profile card' : st.format}, ready to print`;
+    stage.classList.toggle('tall', st.format === 'card');
+    outimg.hidden = false; cv.hidden = true;
+    outimg.style.background = st.format === 'shirt' ? 'repeating-conic-gradient(var(--chip) 0 25%, var(--surface) 0 50%) 0 0/24px 24px' : 'transparent';
+  };
+  document.fonts && document.fonts.ready ? document.fonts.ready.then(run) : run();
+}
+
+render();
+requestAnimationFrame(loop);
+document.fonts && document.fonts.ready.then(() => paint(performance.now()));
+</script>
+</body>
+</html>
