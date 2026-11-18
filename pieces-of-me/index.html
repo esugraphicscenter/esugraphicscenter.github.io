@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pieces of Me Badge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: kiosk split — question card on the left, the live mosaic on the right; stacks on phones */
+:root{
+  --bg:#FBEFE6; --dot:#F2DCCB; --surface:#FFFFFF; --ink:#2A1A12; --muted:#7A5E50;
+  --edge:#2A1A12; --accent:#C4552A; --on-accent:#FFFFFF; --sun:#FFC72C; --on-sun:#2A1A12;
+  --chip:#FFF6EF; --track:#EBD2C2;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1E130E; --dot:#2B1C15; --surface:#2A1B14; --ink:#FBEFE6; --muted:#CDB3A4;
+  --edge:#0B0604; --accent:#E9794B; --on-accent:#FFFFFF; --sun:#FFD25A; --on-sun:#2A1A12;
+  --chip:#35241B; --track:#4A3226; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1E130E; --dot:#2B1C15; --surface:#2A1B14; --ink:#FBEFE6; --muted:#CDB3A4;
+  --edge:#0B0604; --accent:#E9794B; --on-accent:#FFFFFF; --sun:#FFD25A; --on-sun:#2A1A12;
+  --chip:#35241B; --track:#4A3226; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  background-image:radial-gradient(var(--dot) 2.5px, transparent 2.6px);background-size:28px 28px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.5px;line-height:1}
+.brand span{color:var(--accent)}
+.brand small{display:block;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.restart{font:700 14px var(--body);background:transparent;color:var(--muted);border:2px solid var(--track);border-radius:999px;padding:8px 16px;cursor:pointer}
+.restart.armed{border-color:var(--accent);color:var(--accent)}
+.progress{display:grid;grid-template-columns:10fr 6fr;gap:18px}
+.leg{display:flex;flex-direction:column;gap:6px;min-width:0}
+.leg b{font:700 12px var(--body);letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.leg.on b{color:var(--ink)}
+.pips{display:grid;gap:5px}
+.pip{height:12px;border-radius:6px;background:var(--track);transition:background .25s}
+.pip.done{background:var(--accent)}
+.pip.now{background:var(--sun);box-shadow:0 0 0 2px var(--edge)}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:28px;align-items:start}
+.panel{background:var(--surface);border:3px solid var(--edge);border-radius:28px;box-shadow:0 8px 0 var(--edge);
+  padding:30px 30px 26px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.panel.enter{animation:pop .28s ease-out}
+@keyframes pop{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+.kicker{font:800 13px var(--body);letter-spacing:1.6px;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,40px);line-height:1.12;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.sub{margin:0;color:var(--muted);font-size:17px;max-width:60ch}
+p{margin:0;max-width:62ch}
+.lbl{font:800 13px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:-6px}
+
+.imgs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.img{display:flex;flex-direction:column;align-items:center;gap:4px;font:inherit;color:var(--ink);background:var(--surface);
+  border:3px solid var(--edge);border-radius:18px;box-shadow:0 4px 0 var(--edge);padding:8px 6px 8px;cursor:pointer;min-width:0;
+  transition:transform .08s, box-shadow .08s, background .15s}
+.img:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--edge)}
+.img:active{transform:translateY(3px);box-shadow:0 1px 0 var(--edge)}
+.img[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.img img{width:100%;max-width:92px;aspect-ratio:1;display:block}
+.img span{font-weight:800;font-size:13.5px;line-height:1.2;text-align:center}
+
+.sws{display:flex;flex-wrap:wrap;gap:10px}
+.sw{width:42px;height:42px;border-radius:50%;border:3px solid var(--edge);cursor:pointer;padding:0;box-shadow:0 3px 0 var(--edge)}
+.sw[aria-pressed="true"]{outline:4px solid var(--sun);outline-offset:2px}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);background:var(--surface);
+  border:3px solid var(--edge);border-radius:20px;box-shadow:0 5px 0 var(--edge);padding:12px 14px;cursor:pointer;
+  transition:transform .08s, box-shadow .08s, background .15s;min-width:0}
+.opt:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--edge)}
+.opt:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.opt[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.opt .t{display:flex;flex-direction:column;min-width:0}
+.opt .t b{font-weight:800;font-size:17px;line-height:1.25}
+.opt .t span{font-size:14px;opacity:.8;line-height:1.35}
+.dots{flex:none;display:flex;gap:3px}
+.dots i{width:20px;height:20px;border-radius:50%;border:2px solid var(--edge);display:block}
+.stripe{flex:none;width:44px;height:28px;border-radius:8px;border:2px solid var(--edge);display:block}
+
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:700 16px var(--body);color:var(--ink);background:var(--chip);border:2px solid var(--edge);border-radius:999px;padding:8px 16px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font:800 13px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.field input{font:700 20px var(--display);color:var(--ink);background:var(--chip);border:3px solid var(--edge);border-radius:16px;padding:10px 16px;width:100%;max-width:440px}
+.field input:focus{outline:3px solid var(--accent);outline-offset:2px}
+.hint{font-size:14px;color:var(--muted)}
+
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}
+.btn{font:700 18px var(--display);letter-spacing:.3px;border:3px solid var(--edge);border-radius:999px;padding:12px 26px;cursor:pointer;
+  background:var(--surface);color:var(--ink);box-shadow:0 5px 0 var(--edge);transition:transform .08s, box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.btn.go{background:var(--accent);color:var(--on-accent);margin-left:auto}
+.btn.sm{font-size:15px;padding:8px 18px;box-shadow:0 4px 0 var(--edge)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:0 5px 0 var(--edge)}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.note{background:var(--chip);border:2px dashed var(--track);border-radius:16px;padding:12px 16px;font-size:15px;color:var(--muted)}
+.note b{color:var(--ink)}
+.pcs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pc{display:flex;gap:10px;align-items:center;background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:8px 12px;min-width:0}
+.pc img{width:46px;height:46px;flex:none}
+.pc div{min-width:0;display:flex;flex-direction:column}
+.pc small{font:800 11px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.pc b{font-weight:800;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.seg{display:flex;gap:10px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15.5px}
+.credit{font-size:13px;color:var(--muted)}
+
+.easel{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.stage{width:100%;max-width:520px;aspect-ratio:1;position:relative}
+.stage.tall{aspect-ratio:2/3;max-width:400px}
+.stage canvas,.stage img{width:100%;height:100%;display:block;object-fit:contain}
+.cap{font:700 15px var(--body);color:var(--muted);text-align:center;max-width:44ch}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .easel{position:static;order:-1}
+  .stage{max-width:300px}
+  .stage.tall{max-width:260px}
+  .panel{padding:22px 18px 20px}
+}
+@media (max-width:560px){
+  .imgs{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .opts,.pcs{grid-template-columns:minmax(0,1fr)}
+  .progress{grid-template-columns:minmax(0,1fr);gap:10px}
+  .sw{width:38px;height:38px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a href="../" class="gc-home" aria-label="Back to all badges">&larr; All badges</a>
+<style>.gc-home{position:fixed;left:16px;bottom:16px;z-index:50;font:700 15px system-ui,sans-serif;color:#141414;background:#FFC72C;border:3px solid #141414;border-radius:999px;padding:9px 16px;box-shadow:3px 3px 0 #141414;text-decoration:none}.gc-home:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #141414}@media print{.gc-home{display:none}}</style>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Pieces of <span>Me</span><small>Graphics Center · Build your mosaic</small></div>
+    <button type="button" class="restart" id="restart">Start over</button>
+  </header>
+  <div class="progress" aria-label="Progress">
+    <div class="leg" id="leg1"><b>Part 1 · Pick your pieces</b><div class="pips" id="pips1" style="grid-template-columns:repeat(10,1fr)"></div></div>
+    <div class="leg" id="leg2"><b>Part 2 · Set it in glass</b><div class="pips" id="pips2" style="grid-template-columns:repeat(6,1fr)"></div></div>
+  </div>
+  <div class="app">
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <aside class="easel">
+      <div class="stage" id="stage">
+        <canvas id="badge" width="1080" height="1080" aria-label="Your mosaic, filling in as you answer"></canvas>
+        <img id="outimg" alt="" hidden>
+      </div>
+      <button type="button" class="btn sm" id="recut">Cut new glass</button>
+      <div class="cap" id="cap"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =============================== DATA =============================== */
+const INK = '#2A1A12', TAU = Math.PI * 2;
+const GLASS = [['Terracotta', '#D9653B'], ['Marigold', '#F2A900'], ['Chili', '#C8102E'], ['Rose', '#E8649A'], ['Plum', '#8E44AD'],
+  ['Cobalt', '#2357C7'], ['Turquoise', '#11A3A0'], ['Jade', '#2E9E5B'], ['Olive', '#8A9A2B'], ['Cacao', '#7A4A2A']];
+
+const TILES = [
+  { k: 'Roots', h: 'Where do your roots trace back to?', sub: 'Pick one or two images. Your roots can be one place, many places, or a question you’re still answering.', ph: 'e.g. Puebla + Ghana', multi: 2,
+    imgs: ['globe', 'pin', 'compass', 'treeRoots', 'mountains', 'wave', 'palm', 'cactus', 'river', 'boat', 'plane', 'magnifier'] },
+  { k: 'Food', h: 'What food tastes like home?', sub: 'Pick the image closest to it, then name the dish if you want.', ph: 'e.g. Abuela’s pozole',
+    imgs: ['bowl', 'pot', 'skillet', 'bread', 'riceBowl', 'flatbread', 'dumpling', 'pepper', 'corn', 'fruit', 'cup', 'cake'] },
+  { k: 'Music or sound', h: 'What sound or music moves you?', sub: 'The song at every family party counts. So does a voice you grew up hearing.', ph: 'e.g. Bachata on Sundays',
+    imgs: ['drum', 'guitar', 'maracas', 'flute', 'piano', 'violin', 'trumpet', 'mic', 'headphones', 'notes', 'dancer', 'radio'] },
+  { k: 'Celebration', h: 'What celebration do you look forward to?', ph: 'e.g. Lunar New Year',
+    imgs: ['confetti', 'lantern', 'fireworks', 'gift', 'balloons', 'lights', 'garland', 'moonStar', 'sun', 'table', 'sparkler', 'banner'] },
+  { k: 'Tradition', h: 'What tradition or ritual matters to you?', sub: 'Something your family does, makes, or keeps.', ph: 'e.g. Building the ofrenda',
+    imgs: ['candle', 'photo', 'flower', 'book', 'needle', 'clayPot', 'joined', 'bell', 'path', 'seedling', 'textile', 'incense'] },
+  { k: 'A word', h: 'What word or phrase from your family stays with you?', sub: 'Type it in the box below if you want it on your profile card.', ph: 'e.g. Ubuntu',
+    imgs: ['speech', 'quotes', 'letters', 'pen', 'envelope', 'scroll', 'signHand', 'ear', 'chatHearts', 'language', 'bookmark', 'megaphone'] },
+  { k: 'My person', h: 'Who carries your culture?', sub: 'The person who keeps it alive for you.', ph: 'e.g. My Lola',
+    imgs: ['grandma', 'grandpa', 'mother', 'father', 'siblings', 'auntUncle', 'family', 'teacher', 'friends', 'child', 'ancestors', 'chosen'] },
+  { k: 'A place', h: 'What place feels like home?', ph: 'e.g. Grandma’s kitchen in Ponce',
+    imgs: ['house', 'apartment', 'skyline', 'farm', 'mountains', 'beach', 'kitchen', 'market', 'park', 'street', 'school', 'hometown'] },
+  { k: 'A value', h: 'What value was passed down to you?', ph: 'e.g. Respeto',
+    imgs: ['heart', 'handshake', 'shield', 'scales', 'bulb', 'seedling', 'community', 'star', 'anchor', 'openHand', 'flame', 'key'] },
+  { k: 'Know this', h: 'What do you want people to know about your culture?', ph: 'e.g. We are not all the same',
+    imgs: ['bridge', 'door', 'eye', 'mirror', 'puzzle', 'waveHand', 'heartHand', 'sunrise', 'chain', 'sparkles', 'footsteps', 'openArms'] }
+];
+
+const GROUTS = { charcoal: ['Charcoal', '#2B2420'], cream: ['Cream', '#F3EADB'], gold: ['Gold', '#C9962E'], spectrum: ['Spectrum', null] };
+/* small-glass palettes. Pride palettes sit in the list under plain names, no separate heading. */
+const PALS = {
+  match: { n: 'Match my pieces', d: 'Each patch takes the color of the piece next to it' },
+  clay: { n: 'Clay', c: ['#B5542D', '#D9653B', '#E8A15A', '#8A4B2E', '#F0C987'] },
+  prism: { n: 'Prism', c: ['#E40303', '#FF8C00', '#FFED00', '#008026', '#004DFF', '#750787'] },
+  ocean: { n: 'Ocean', c: ['#0B4F6C', '#01BAEF', '#2FBF71', '#5FD3E0', '#1C6E8C'] },
+  cotton: { n: 'Cotton candy', c: ['#5BCEFA', '#F5A9B8', '#FFFFFF', '#F5A9B8', '#5BCEFA'] },
+  garden: { n: 'Garden', c: ['#2E7D32', '#7CB342', '#C0CA33', '#F48FB1', '#FFB300'] },
+  twilight: { n: 'Twilight', c: ['#D60270', '#D60270', '#9B4F96', '#0038A8', '#0038A8'] },
+  jewel: { n: 'Jewel', c: ['#7B1FA2', '#00897B', '#C2185B', '#1565C0', '#F9A825'] },
+  sunset: { n: 'Sunset', c: ['#D52D00', '#EF7627', '#FF9A56', '#FFFFFF', '#D162A4', '#B55690', '#A30262'] },
+  citrine: { n: 'Citrine', c: ['#FCF434', '#FFFFFF', '#9C59D1', '#2C2C2C'] },
+  moonlight: { n: 'Moonlight', c: ['#1A1A1A', '#A3A3A3', '#FFFFFF', '#800080'] }
+};
+const FINISHES = { glossy: ['Glossy', 'A little shine on every piece'], matte: ['Matte', 'Flat, soft color'], frosted: ['Frosted', 'Hazy, like sea glass'] };
+const PATTERNS = { scattered: ['Scattered', 'Colors mixed like a real mosaic'], swirl: ['Swirl', 'Colors spin around the center'], rings: ['Rings', 'Colors in circles, center to edge'] };
+const RINGS = {
+  terra: ['Terracotta', '#D9653B'], charcoal: ['Charcoal', '#2B2420'], cream: ['Cream', '#F3EADB'], gold: ['Gold', '#C9962E'], cobalt: ['Cobalt', '#2357C7'],
+  rainbow: ['Rainbow stripes', ['#E40303', '#FF8C00', '#FFED00', '#008026', '#004DFF', '#750787']],
+  progress: ['Progress stripes', ['#000000', '#784F17', '#5BCEFA', '#F5A9B8', '#FFFFFF', '#E40303', '#FF8C00', '#FFED00', '#008026', '#004DFF', '#750787']]
+};
+const Q2 = [
+  { k: 'center', h: 'What goes in the center?', sub: 'Your name, your initials, or one word in your heritage language. This is the only text on your button.' },
+  { k: 'grout', h: 'Pick your grout', sub: 'Grout is the line between the pieces of glass.' },
+  { k: 'pal', h: 'Pick the colors for your small glass', sub: 'The small pieces fill in around your 10 picture pieces.' },
+  { k: 'finish', h: 'Pick your glass finish' },
+  { k: 'pattern', h: 'How should the small glass be laid?' },
+  { k: 'ring', h: 'Pick your outer ring', sub: 'On a button, this ring folds around the edge, so you see it on the side.' }
+];
+const FLOW = ['intro', ...TILES.map((_, i) => ({ p: 1, i })), ...Q2.map((_, i) => ({ p: 2, i })), 'finish'];
+const P2 = TILES.length + 1;
+
+function fresh() {
+  return { p: TILES.map((_, i) => ({ img: [], col: i, words: '' })), center: '', grout: 'charcoal', pal: 'match', finish: 'glossy',
+    pattern: 'scattered', ring: 'terra', seed: (Math.random() * 1e9) | 0, format: 'button', shirt: 'color', mirror: false, mono: false };
+}
+let st = fresh(), pos = 0, hover = null, dirty = true;
+
+/* =============================== COLOR =============================== */
+function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+function rgb2hex(r) { return '#' + r.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+function mix(a, b, t) { const A = hex2rgb(a), B2 = hex2rgb(b); return rgb2hex(A.map((v, i) => v + (B2[i] - v) * t)); }
+function lum(hex) { const [r, g, b] = hex2rgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; }
+function hsl(hex) {
+  let [r, g, b] = hex2rgb(hex).map(v => v / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b); let h = 0, s = 0; const l = (mx + mn) / 2;
+  if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn);
+    h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+  return [h, s * 100, l * 100];
+}
+function jit(hex, j, k) { const [h, s, l] = hsl(hex); const L = Math.max(4, Math.min(97, l + j * 7 - (l > 92 ? 4 : 0))); return `hsl(${(h + k * 5).toFixed(1)},${s.toFixed(1)}%,${L.toFixed(1)}%)`; }
+const glassCol = i => GLASS[st.p[i].col][1];
+
+/* =============================== ICON KIT =============================== */
+/* Each image is drawn in a ~180px box centred on 0,0 with thick ink outlines.
+   F = main glass color, T = light tint, Wc = white. In line mode (vinyl) the fills are null and shapes punch out. */
+let X, LW = 8, INKC = INK, F, T, Wc, H, LINE = false;
+const B = () => X.beginPath();
+function cir(x, y, r) { B(); X.arc(x, y, r, 0, TAU); }
+function rct(x, y, w, h, r = 8) { B(); X.roundRect(x, y, w, h, r); }
+function pol(...a) { B(); X.moveTo(a[0], a[1]); for (let i = 2; i < a.length; i += 2) X.lineTo(a[i], a[i + 1]); X.closePath(); }
+function ell(x, y, rx, ry, rot = 0) { B(); X.ellipse(x, y, rx, ry, rot, 0, TAU); }
+function pl(p) { B(); p.forEach((q, i) => i ? X.lineTo(q[0], q[1]) : X.moveTo(q[0], q[1])); }
+function sp(p) { B(); X.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length - 1; i++) X.quadraticCurveTo(p[i][0], p[i][1], (p[i][0] + p[i + 1][0]) / 2, (p[i][1] + p[i + 1][1]) / 2); const l = p[p.length - 1]; X.lineTo(l[0], l[1]); }
+function erase() { X.save(); X.globalCompositeOperation = 'destination-out'; X.fillStyle = '#000'; X.fill(); X.restore(); }
+function strk(w = LW) { X.lineWidth = w; X.strokeStyle = INKC; X.lineJoin = 'round'; X.lineCap = 'round'; X.stroke(); }
+function s(fill, w) { if (fill) { X.fillStyle = fill; X.fill(); } else if (LINE && fill === null) erase(); strk(w); }
+function ink() { X.fillStyle = INKC; X.fill(); }
+function ln(p, w) { pl(p); strk(w); }
+function sm(p, w) { sp(p); strk(w); }
+function tk(bs, fill, w) { bs.forEach(b => { b(); strk(w + LW * 1.6); }); bs.forEach(b => { b(); if (fill) { X.strokeStyle = fill; X.lineWidth = w; X.stroke(); } else { X.save(); X.globalCompositeOperation = 'destination-out'; X.strokeStyle = '#000'; X.lineWidth = w; X.stroke(); X.restore(); } }); }
+function uni(bs, fill) { bs.forEach(b => { b(); strk(LW * 2); }); bs.forEach(b => { b(); if (fill) { X.fillStyle = fill; X.fill(); } else erase(); }); }
+function txt(t, x, y, sz) { X.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`; X.textAlign = 'center'; X.textBaseline = 'middle'; X.fillStyle = INKC; X.fillText(t, x, y); }
+function thin(w, fn) { const w0 = LW; LW = w; fn(); LW = w0; }
+function heart(x, y, k, fill) { B(); X.moveTo(x, y + 50 * k); X.bezierCurveTo(x - 80 * k, y - 4 * k, x - 50 * k, y - 66 * k, x, y - 30 * k); X.bezierCurveTo(x + 50 * k, y - 66 * k, x + 80 * k, y - 4 * k, x, y + 50 * k); X.closePath(); s(fill); }
+function star5(x, y, R, r, fill) { const a = []; for (let i = 0; i < 10; i++) { const t = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r : R; a.push(x + Math.cos(t) * q, y + Math.sin(t) * q); } pol(...a); s(fill); }
+function sparkle(x, y, z, fill) { const k = z * .22; B(); X.moveTo(x, y - z); X.quadraticCurveTo(x + k, y - k, x + z, y); X.quadraticCurveTo(x + k, y + k, x, y + z); X.quadraticCurveTo(x - k, y + k, x - z, y); X.quadraticCurveTo(x - k, y - k, x, y - z); X.closePath(); s(fill); }
+function flower(x, y, k, fill) { for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * TAU; cir(x + Math.cos(a) * 18 * k, y + Math.sin(a) * 18 * k, 15 * k); s(fill); } cir(x, y, 11 * k); s(Wc); }
+function foot(x, y, r, fill) { X.save(); X.translate(x, y); X.rotate(r); ell(0, 6, 14, 22); s(fill); thin(5, () => { cir(-8, -24, 6); s(fill); cir(2, -28, 6); s(fill); cir(11, -23, 5); s(fill); }); X.restore(); }
+function crescent(cx, cy, r, ox, oy, r2, fill) {
+  X.save(); B(); X.rect(-300, -300, 600, 600); X.arc(cx + ox, cy + oy, r2, 0, TAU); X.clip('evenodd'); cir(cx, cy, r); s(fill); X.restore();
+  X.save(); cir(cx, cy, r); X.clip(); cir(cx + ox, cy + oy, r2); strk(); X.restore();
+}
+function person(x, y, k, fill, kind = 'plain') {
+  const hy = y - 24 * k, hr = 22 * k, gran = kind === 'gran', bun = kind === 'bun' || gran, hair = LINE ? null : gran ? '#D8D2CC' : H;
+  if (kind === 'long') { rct(x - 27 * k, hy - 25 * k, 54 * k, 58 * k, 24 * k); s(hair); }
+  if (bun) { cir(x, hy - 26 * k, 11 * k); s(hair); }
+  B(); X.arc(x, y + 38 * k, 40 * k, Math.PI, 0); X.closePath(); s(fill);
+  cir(x, hy, hr); s(Wc);
+  if (kind !== 'plain' && kind !== 'hat') { B(); X.arc(x, hy, hr, Math.PI * .97, Math.PI * 2.03); X.quadraticCurveTo(x, hy - hr * .55, x - hr * .99, hy + hr * .1); X.closePath(); s(hair); }
+  if (kind === 'beard') { B(); X.arc(x, hy, hr, Math.PI * .1, Math.PI * .9); X.quadraticCurveTo(x, hy + hr * .25, x + hr * .95, hy + hr * .31); X.closePath(); s(hair); }
+  if (kind === 'hat') { rct(x - 31 * k, hy - 22 * k, 62 * k, 10 * k, 4 * k); s(T); rct(x - 18 * k, hy - 40 * k, 36 * k, 21 * k, 6 * k); s(T); ell(x - 5 * k, hy + 9 * k, 7 * k, 3 * k, -.3); ink(); ell(x + 5 * k, hy + 9 * k, 7 * k, 3 * k, .3); ink(); }
+  if (gran) thin(Math.max(3.5, 4.5 * k), () => { cir(x - 9 * k, hy + 3 * k, 6.5 * k); strk(); cir(x + 9 * k, hy + 3 * k, 6.5 * k); strk(); });
+}
+function personFull(x, fill) {
+  tk([() => pl([[x - 7, 30], [x - 12, 84]]), () => pl([[x + 7, 30], [x + 12, 84]])], fill, 12);
+  rct(x - 18, -30, 36, 64, 14); s(fill); cir(x, -50, 18); s(Wc);
+}
+function hand(x, y, k, rot, ext, fill) {
+  X.save(); X.translate(x, y); X.rotate(rot); X.scale(k, k);
+  const bs = [() => rct(-30, -18, 60, 54, 18), () => rct(-20, 28, 40, 34, 8)];
+  const fx = [-29, -13, 3, 18], len = [50, 58, 54, 42];
+  fx.forEach((v, i) => bs.push(ext[i + 1] ? () => rct(v, -16 - len[i], 14, len[i] + 10, 7) : () => rct(v, -28, 14, 20, 7)));
+  bs.push(ext[0] ? () => { B(); X.save(); X.translate(-26, 16); X.rotate(-1.15); X.roundRect(-7, -48, 14, 52, 7); X.restore(); }
+                 : () => { B(); X.save(); X.translate(-24, 14); X.rotate(.9); X.roundRect(-7, -34, 14, 34, 7); X.restore(); });
+  uni(bs, fill); X.restore();
+}
+
+const ICONS = {
+  /* roots */
+  globe: ['Globe', () => { cir(0, 0, 70); s(F); ell(0, 0, 30, 70); s(null); ln([[-70, 0], [70, 0]]); ln([[-60, -36], [60, -36]]); ln([[-60, 36], [60, 36]]); }],
+  pin: ['Map pin', () => { B(); X.arc(0, -22, 56, Math.PI * .8, Math.PI * .2); X.lineTo(0, 80); X.closePath(); s(F); cir(0, -22, 22); s(Wc); }],
+  compass: ['Compass', () => { cir(0, 0, 74); s(T); cir(0, 0, 58); s(Wc); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; ln([[Math.cos(a) * 64, Math.sin(a) * 64], [Math.cos(a) * 74, Math.sin(a) * 74]], 6); }
+    pol(0, -50, 15, 0, 0, 50, -15, 0); s(F); pol(0, -50, 15, 0, -15, 0); ink(); cir(0, 0, 7); s(Wc); }],
+  treeRoots: ['Tree with roots', () => { tk([() => pl([[0, 30], [-34, 74]]), () => pl([[0, 30], [0, 82]]), () => pl([[0, 30], [34, 74]]), () => pl([[-16, 52], [-54, 58]]), () => pl([[16, 52], [54, 58]])], T, 8);
+    ln([[-80, 34], [80, 34]], 6); rct(-13, -16, 26, 54, 4); s(T); uni([() => cir(0, -44, 40), () => cir(-38, -24, 28), () => cir(38, -24, 28)], F); }],
+  mountains: ['Mountains', () => { cir(54, -50, 16); s(T); pol(-86, 62, -22, -48, 14, 8, 40, -22, 88, 62); s(F); pol(-22, -48, -39, -18, -28, -10, -18, -22, -5, -20); s(Wc); }],
+  wave: ['Ocean wave', () => { B(); X.moveTo(-84, 64); X.lineTo(-84, 10); X.quadraticCurveTo(-74, -64, 4, -66); X.quadraticCurveTo(70, -66, 80, -12); X.quadraticCurveTo(56, -36, 30, -24);
+    X.quadraticCurveTo(4, -8, 22, 18); X.quadraticCurveTo(44, 40, 84, 34); X.lineTo(84, 64); X.closePath(); s(F); sm([[-62, 44], [-32, 32], [-2, 44]], 6); cir(62, -32, 7); s(Wc); }],
+  palm: ['Palm tree', () => { ln([[-60, 74], [60, 74]], 6); pol(-9, 74, 9, 74, 16, 0, 6, -32, -4, -32, 4, 0); s(T);
+    [[-30, -52, .3], [30, -52, -.3], [-36, -28, -.55], [36, -28, .55]].forEach(([x, y, r]) => { ell(x, y, 36, 12, r); s(F); }); cir(-7, -30, 8); s(T); cir(9, -30, 8); s(T); }],
+  cactus: ['Cactus', () => { ln([[-64, 76], [64, 76]], 6); tk([() => pl([[0, 76], [0, -58]]), () => pl([[0, 18], [-42, 18], [-42, -26]]), () => pl([[0, -4], [40, -4], [40, -42]])], F, 32);
+    ln([[0, -40], [0, -18]], 4); ln([[-42, -10], [-42, 4]], 4); ln([[40, -28], [40, -16]], 4); }],
+  river: ['River', () => { pol(-88, -16, -62, -60, -40, -16); s(T); pol(46, -26, 68, -66, 88, -26); s(T);
+    B(); X.moveTo(-16, -84); X.bezierCurveTo(-66, -30, 40, 10, -46, 84); X.lineTo(46, 84); X.bezierCurveTo(86, 14, -16, -24, 18, -84); X.closePath(); s(F);
+    sm([[-8, -44], [2, -34], [-6, -24]], 5); sm([[10, 32], [22, 42], [14, 54]], 5); }],
+  boat: ['Boat', () => { ln([[0, 22], [0, -80]]); pol(6, -74, 6, 12, 66, 12); s(T); pol(-6, -58, -6, 12, -54, 12); s(Wc); pol(-80, 22, 80, 22, 54, 58, -54, 58); s(F);
+    sm([[-86, 76], [-57, 68], [-28, 76], [0, 68], [28, 76], [57, 68], [86, 76]], 6); }],
+  plane: ['Airplane', () => { X.save(); X.rotate(-.55); pol(-14, 0, 16, 0, -6, -68, -28, -68); s(T); pol(-14, 0, 16, 0, -6, 68, -28, 68); s(T); pol(-64, 0, -48, 0, -66, -32, -80, -32); s(T);
+    rct(-88, -16, 178, 32, 16); s(F); [-24, -4, 16, 36].forEach(x => { cir(x, -2, 5); ink(); }); X.restore(); }],
+  magnifier: ['Still discovering', () => { tk([() => pl([[24, 24], [70, 70]])], T, 22); cir(-14, -14, 56); s(F); cir(-14, -14, 40); s(Wc); txt('?', -14, -10, 56); }],
+  /* food */
+  bowl: ['Bowl', () => { sm([[-24, -32], [-32, -52], [-22, -74]], 6); sm([[12, -32], [4, -52], [14, -74]], 6); rct(-28, 58, 56, 14, 6); s(F);
+    B(); X.arc(0, -12, 78, 0, Math.PI); X.closePath(); s(F); ell(0, -12, 78, 14); s(T); }],
+  pot: ['Cooking pot', () => { rct(-90, -12, 24, 26, 8); s(T); rct(66, -12, 24, 26, 8); s(T); rct(-66, -24, 132, 90, 16); s(F); rct(-76, -40, 152, 20, 9); s(T); rct(-13, -54, 26, 16, 6); s(T);
+    sm([[-30, -62], [-38, -76], [-28, -90]], 6); sm([[30, -62], [22, -76], [32, -90]], 6); }],
+  skillet: ['Skillet', () => { tk([() => pl([[36, -8], [88, -48]])], T, 16); cir(-14, 10, 64); s(F); cir(-14, 10, 48); s(T);
+    B(); X.moveTo(-52, 10); X.bezierCurveTo(-52, -32, 12, -36, 18, 0); X.bezierCurveTo(24, 38, -52, 46, -52, 10); X.closePath(); s(Wc); cir(-16, 6, 13); s(F); }],
+  bread: ['Bread', () => { B(); X.moveTo(-80, 54); X.lineTo(-80, -8); X.bezierCurveTo(-80, -68, 80, -68, 80, -8); X.lineTo(80, 54); X.closePath(); s(F);
+    [[-42, -36, -26, -12], [-8, -44, 8, -20], [26, -36, 42, -12]].forEach(([a, b, c, d]) => ln([[a, b], [c, d]], 7)); }],
+  riceBowl: ['Rice bowl', () => { tk([() => pl([[4, -26], [78, -86]]), () => pl([[18, -20], [88, -68]])], T, 7); ell(0, -14, 62, 32); s(Wc);
+    [[-24, -26], [8, -32], [30, -20], [-42, -14], [-6, -16]].forEach(([x, y]) => { ell(x, y, 6, 3.5, .4); ink(); }); rct(-28, 62, 56, 14, 6); s(F);
+    B(); X.arc(0, -8, 78, 0, Math.PI); X.closePath(); s(F); }],
+  flatbread: ['Flatbread', () => { ell(6, -16, 78, 42); s(T); ell(-4, 10, 82, 48); s(F); [[-38, 0], [0, 18], [36, -2], [-10, -16], [26, 28], [-44, 26]].forEach(([x, y]) => { ell(x, y, 9, 6, .3); s(T); }); }],
+  dumpling: ['Dumpling', () => { ell(0, 66, 84, 12); s(F); B(); X.moveTo(-82, 42); X.bezierCurveTo(-76, -62, 76, -62, 82, 42); X.quadraticCurveTo(0, 64, -82, 42); X.closePath(); s(T);
+    [-44, -22, 0, 22, 44].forEach(x => sm([[x, -12], [x + 5, -28], [x + 12, -42]], 6)); }],
+  pepper: ['Chili pepper', () => { B(); X.moveTo(-34, -38); X.bezierCurveTo(42, -64, 80, 10, 36, 82); X.bezierCurveTo(30, 30, -14, 6, -34, -38); X.closePath(); s(F);
+    tk([() => pl([[-34, -42], [-54, -74]])], T, 10); ell(-28, -40, 19, 11, -.5); s(T); }],
+  corn: ['Corn', () => { X.save(); X.rotate(.35); ell(0, -12, 30, 68); s(F);
+    [-56, -36, -16, 4, 24].forEach(y => { const w = 30 * Math.sqrt(Math.max(0, 1 - ((y + 12) / 68) ** 2)) - 4; ln([[-w, y], [w, y]], 4); }); ln([[-12, -66], [-12, 44]], 4); ln([[12, -66], [12, 44]], 4);
+    B(); X.moveTo(0, 70); X.quadraticCurveTo(-70, 26, -44, -40); X.quadraticCurveTo(-24, 24, 8, 54); X.closePath(); s(T);
+    B(); X.moveTo(0, 70); X.quadraticCurveTo(70, 26, 44, -40); X.quadraticCurveTo(24, 24, -8, 54); X.closePath(); s(T); X.restore(); }],
+  fruit: ['Fruit', () => { ln([[0, -44], [6, -68]], 7); ell(26, -58, 24, 10, -.5); s(T); B(); X.moveTo(0, -40); X.bezierCurveTo(52, -64, 84, -4, 60, 42);
+    X.bezierCurveTo(42, 78, -42, 78, -60, 42); X.bezierCurveTo(-84, -4, -52, -64, 0, -40); X.closePath(); s(F); sm([[-42, 2], [-36, -20], [-22, -30]], 6); }],
+  cup: ['Tea or coffee', () => { ell(0, 66, 80, 12); s(T); tk([() => { B(); X.arc(48, 12, 24, -1.3, 1.3); }], T, 12); pol(-54, -30, 54, -30, 42, 60, -42, 60); s(F); ell(0, -30, 54, 10); s(T);
+    sm([[-14, -44], [-22, -62], [-12, -82]], 6); sm([[14, -44], [6, -62], [16, -82]], 6); }],
+  cake: ['Cake', () => { ell(0, 70, 88, 12); s(T); rct(-72, 4, 144, 64, 10); s(F); rct(-54, -38, 108, 46, 10); s(T);
+    sm([[-72, 24], [-52, 34], [-32, 22], [-12, 34], [8, 22], [28, 34], [48, 22], [72, 32]], 6); rct(-6, -72, 12, 34, 4); s(Wc);
+    B(); X.moveTo(0, -98); X.quadraticCurveTo(15, -82, 0, -76); X.quadraticCurveTo(-15, -82, 0, -98); X.closePath(); s(F); }],
+  /* music */
+  drum: ['Drum', () => { tk([() => pl([[-14, -56], [-60, -88]]), () => pl([[14, -56], [60, -88]])], T, 8);
+    B(); X.moveTo(-64, -34); X.lineTo(-64, 52); X.ellipse(0, 52, 64, 17, 0, Math.PI, 0, true); X.lineTo(64, -34); X.closePath(); s(F);
+    ln([[-64, -22], [-32, 52], [0, -22], [32, 52], [64, -22]], 5); ell(0, -34, 64, 17); s(Wc); }],
+  guitar: ['Guitar', () => { X.save(); X.rotate(-.6); tk([() => pl([[0, -30], [0, -94]])], T, 16); rct(-13, -112, 26, 22, 5); s(T);
+    uni([() => cir(0, 38, 42), () => cir(0, -12, 32)], F); cir(0, 22, 13); ink(); rct(-17, 56, 34, 9, 3); s(T); X.restore(); }],
+  maracas: ['Maracas', () => { [[-28, 0, -.4], [30, 8, .4]].forEach(([x, y, r]) => { X.save(); X.translate(x, y); X.rotate(r); tk([() => pl([[0, 10], [0, 74]])], T, 13);
+    ell(0, -28, 32, 42); s(F); sm([[-24, -18], [0, -8], [24, -18]], 5); cir(-10, -44, 4.5); ink(); cir(10, -44, 4.5); ink(); X.restore(); }); }],
+  flute: ['Flute', () => { X.save(); X.rotate(-.5); rct(-94, -14, 188, 28, 14); s(F); [-50, -28, -6, 16, 38].forEach(x => { cir(x, 0, 5.5); ink(); }); rct(62, -16, 11, 32, 3); s(T); X.restore(); }],
+  piano: ['Piano', () => { rct(-88, -60, 176, 120, 14); s(F); rct(-74, -34, 148, 80, 4); s(Wc); thin(5, () => { for (let i = 1; i < 8; i++) ln([[-74 + i * 18.5, -34], [-74 + i * 18.5, 46]]); });
+    [1, 2, 4, 5, 6].forEach(i => { rct(-74 + i * 18.5 - 6, -34, 12, 46, 2); ink(); }); }],
+  violin: ['Violin', () => { X.save(); X.rotate(.45); tk([() => pl([[0, -40], [0, -98]])], T, 12); rct(-10, -112, 20, 18, 5); s(T);
+    uni([() => cir(0, 36, 36), () => cir(0, -14, 28), () => rct(-22, -4, 44, 32, 6)], F); sm([[-14, 10], [-9, 20], [-14, 30]], 4); sm([[14, 10], [9, 20], [14, 30]], 4); X.restore(); }],
+  trumpet: ['Trumpet', () => { rct(-58, 8, 74, 36, 16); strk(); rct(-92, -8, 14, 16, 4); s(T); rct(-82, -12, 112, 24, 10); s(F);
+    B(); X.moveTo(26, -14); X.quadraticCurveTo(62, -18, 86, -52); X.lineTo(86, 52); X.quadraticCurveTo(62, 18, 26, 14); X.closePath(); s(F); ell(86, 0, 10, 52); s(T);
+    [-46, -26, -6].forEach(x => { rct(x - 6, -46, 12, 36, 4); s(T); }); }],
+  mic: ['Microphone', () => { B(); X.arc(0, 4, 50, 0, Math.PI); strk(); ln([[0, 54], [0, 74]]); rct(-34, 72, 68, 14, 7); s(T); rct(-33, -88, 66, 102, 33); s(F);
+    [-50, -30, -10].forEach(y => ln([[-31, y], [31, y]], 5)); }],
+  headphones: ['Headphones', () => { tk([() => { B(); X.arc(0, 8, 68, Math.PI, 0); }], T, 14); rct(-90, 0, 32, 66, 12); s(F); rct(58, 0, 32, 66, 12); s(F); }],
+  notes: ['Music notes', () => { ln([[-16, 44], [-16, -38]], 10); ln([[62, 28], [62, -60]], 10); pol(-16, -52, 62, -72, 62, -46, -16, -26); s(F);
+    ell(-38, 50, 25, 18, -.4); s(F); ell(40, 34, 25, 18, -.4); s(F); }],
+  dancer: ['Dancer', () => { pol(4, -8, -48, 54, 58, 44); s(T); tk([() => pl([[0, -40], [4, -4]]), () => pl([[0, -32], [-50, -64]]), () => pl([[2, -30], [52, -12]]), () => pl([[4, 0], [-26, 78]]), () => pl([[4, 0], [42, 60], [32, 84]])], F, 15);
+    cir(-4, -64, 18); s(Wc); }],
+  radio: ['Radio', () => { ln([[44, -36], [78, -88]], 6); cir(78, -88, 7); s(T); rct(-86, -36, 172, 106, 16); s(F); cir(-38, 16, 32); s(T);
+    [[-50, 4], [-26, 4], [-50, 28], [-26, 28], [-38, 16]].forEach(([x, y]) => { cir(x, y, 4.5); ink(); }); rct(12, -16, 56, 24, 5); s(Wc); ln([[26, -16], [26, 8]], 4); cir(26, 44, 10); s(Wc); cir(56, 44, 10); s(Wc); }],
+  /* celebration */
+  confetti: ['Confetti', () => { pol(-82, 82, -46, -16, 16, 46); s(F); ell(-15, 15, 44, 13, .785); s(T);
+    [[32, -30, .4, F], [10, -64, -.3, T], [76, 28, .8, T]].forEach(([x, y, r, f]) => { X.save(); X.translate(x, y); X.rotate(r); rct(-10, -6, 20, 12, 3); s(f); X.restore(); });
+    cir(58, -6, 8); s(F); cir(-22, -62, 8); s(T); sparkle(62, -56, 16, F); sm([[24, 6], [34, -4], [44, 6], [54, -4]], 5); }],
+  lantern: ['Lantern', () => { ln([[0, -94], [0, -72]], 5); ell(0, 0, 60, 64); s(F); ell(0, 0, 26, 64); strk(5); ln([[0, -62], [0, 62]], 5);
+    rct(-24, -76, 48, 16, 5); s(T); rct(-24, 60, 48, 16, 5); s(T); ln([[0, 76], [0, 96]], 5); ln([[-9, 84], [-9, 96]], 4); ln([[9, 84], [9, 96]], 4); }],
+  fireworks: ['Fireworks', () => { const burst = (cx, cy, r0, r1, n, f, d) => { const bs = []; for (let i = 0; i < n; i++) { const a = i / n * TAU; bs.push(() => pl([[cx + Math.cos(a) * r0, cy + Math.sin(a) * r0], [cx + Math.cos(a) * r1, cy + Math.sin(a) * r1]])); }
+      tk(bs, f, 9); if (d) for (let i = 0; i < n; i++) { const a = i / n * TAU; cir(cx + Math.cos(a) * (r1 + 13), cy + Math.sin(a) * (r1 + 13), 6); s(T); } };
+    burst(-16, 14, 22, 54, 10, F, 1); burst(54, -54, 10, 26, 8, T, 0); cir(-16, 14, 11); s(Wc); }],
+  gift: ['Gift', () => { rct(-64, -8, 128, 82, 6); s(F); rct(-74, -36, 148, 30, 6); s(F); rct(-12, -36, 24, 110, 2); s(T); ell(-25, -52, 25, 14, .35); s(T); ell(25, -52, 25, 14, -.35); s(T); cir(0, -42, 10); s(Wc); }],
+  balloons: ['Balloons', () => { sm([[-32, 8], [-20, 44], [-6, 88]], 4); sm([[32, -2], [18, 44], [-2, 88]], 4); sm([[2, -28], [4, 30], [-4, 88]], 4);
+    ell(2, -62, 26, 32); s(Wc); ell(-34, -28, 31, 37, -.2); s(F); ell(34, -40, 31, 37, .2); s(T); pol(-38, 14, -28, 14, -33, 6); s(F); pol(30, 2, 40, 2, 35, -6); s(T); }],
+  lights: ['String lights', () => { sm([[-94, -60], [-46, -16], [0, -6], [46, -16], [94, -60]], 5);
+    [[-66, -36], [-22, -14], [22, -14], [66, -36]].forEach(([x, y], i) => { rct(x - 8, y, 16, 13, 3); ink(); ell(x, y + 32, 14, 20); s(i % 2 ? T : F); }); }],
+  garland: ['Flower garland', () => { sm([[-92, -40], [-46, 4], [0, 18], [46, 4], [92, -40]], 5); ell(-24, 20, 14, 7, .3); s(T); ell(24, 20, 14, 7, -.3); s(T);
+    flower(-58, -6, 1, F); flower(0, 16, 1.1, T); flower(58, -6, 1, F); }],
+  moonStar: ['Moon and star', () => { crescent(-14, 8, 64, 28, -18, 54, F); star5(54, -48, 26, 11, T); star5(44, 44, 14, 6, T); }],
+  sun: ['Sun', () => { const bs = []; for (let i = 0; i < 12; i++) { const a = i / 12 * TAU; bs.push(() => pl([[Math.cos(a) * 60, Math.sin(a) * 60], [Math.cos(a) * 84, Math.sin(a) * 84]])); }
+    tk(bs, T, 10); cir(0, 0, 50); s(F); sm([[-20, 12], [0, 24], [20, 12]], 6); cir(-17, -10, 5.5); ink(); cir(17, -10, 5.5); ink(); }],
+  table: ['Shared table', () => { person(-56, -30, .64, T); person(56, -30, .64, F); tk([() => pl([[-62, 10], [-70, 76]]), () => pl([[62, 10], [70, 76]])], T, 10);
+    rct(-90, -8, 180, 18, 6); s(F); ell(-34, -14, 22, 7); s(Wc); ell(34, -14, 22, 7); s(Wc); B(); X.arc(0, -12, 17, Math.PI, 0); X.closePath(); s(T); }],
+  sparkler: ['Sparkler', () => { tk([() => pl([[-64, 84], [6, -8]])], T, 8); for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; ln([[12 + Math.cos(a) * 18, -16 + Math.sin(a) * 18], [12 + Math.cos(a) * 40, -16 + Math.sin(a) * 40]], 5); }
+    sparkle(-36, -62, 17, F); sparkle(64, -64, 15, F); sparkle(64, 22, 12, T); cir(12, -16, 12); s(F); }],
+  banner: ['Paper flag banner', () => { sm([[-94, -68], [-46, -48], [0, -42], [46, -48], [94, -68]], 5);
+    [[-68, -58, -.12], [-23, -46, -.04], [23, -46, .04], [68, -58, .12]].forEach(([x, y, r], i) => { X.save(); X.translate(x, y); X.rotate(r);
+      B(); X.moveTo(-20, 0); X.lineTo(20, 0); X.lineTo(20, 60); for (let k = 0; k < 4; k++) { X.lineTo(20 - 10 * k - 5, 51); X.lineTo(20 - 10 * (k + 1), 60); } X.closePath(); s(i % 2 ? T : F);
+      thin(4, () => { pol(0, 12, 9, 25, 0, 38, -9, 25); s(Wc); cir(-10, 44, 3.5); s(Wc); cir(10, 44, 3.5); s(Wc); cir(-11, 10, 3); s(Wc); cir(11, 10, 3); s(Wc); }); X.restore(); }); }],
+  /* tradition */
+  candle: ['Candle', () => { ell(0, 80, 54, 12); s(F); rct(-27, -24, 54, 102, 6); s(T); sm([[-27, -8], [-19, 8], [-13, -4]], 5); ln([[0, -24], [0, -38]], 5);
+    B(); X.moveTo(0, -90); X.quadraticCurveTo(30, -56, 0, -36); X.quadraticCurveTo(-30, -56, 0, -90); X.closePath(); s(F); }],
+  photo: ['Framed photo', () => { X.save(); X.rotate(-.08); rct(-74, -64, 148, 128, 10); s(F); rct(-58, -48, 116, 96, 4); s(Wc); B(); X.arc(0, 48, 34, Math.PI, 0); X.closePath(); s(T); cir(0, 2, 19); s(T); X.restore(); }],
+  flower: ['Flower', () => { tk([() => pl([[0, 6], [0, 88]])], T, 9); ell(22, 58, 22, 10, -.6); s(T); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ell(Math.cos(a) * 31, -22 + Math.sin(a) * 31, 25, 15, a); s(F); } cir(0, -22, 18); s(Wc); }],
+  book: ['Open book', () => { B(); X.moveTo(-90, -34); X.lineTo(-90, 62); X.quadraticCurveTo(-44, 46, 0, 64); X.quadraticCurveTo(44, 46, 90, 62); X.lineTo(90, -34); X.closePath(); s(F);
+    [-1, 1].forEach(d => { B(); X.moveTo(0, -46); X.quadraticCurveTo(40 * d, -66, 80 * d, -50); X.lineTo(80 * d, 48); X.quadraticCurveTo(40 * d, 34, 0, 52); X.closePath(); s(Wc); });
+    thin(4, () => [-28, -10, 8, 26].forEach(y => { ln([[-64, y], [-16, y - 4]]); ln([[16, y - 4], [64, y]]); })); }],
+  needle: ['Needle and thread', () => { sm([[-12, 8], [22, 44], [46, 2], [50, -58]], 4); rct(-68, -60, 66, 16, 6); s(T); rct(-60, -46, 50, 88, 4); s(F);
+    thin(4, () => [-30, -14, 2, 18].forEach(y => ln([[-60, y], [-10, y + 6]]))); rct(-68, 40, 66, 16, 6); s(T); tk([() => pl([[40, 84], [52, -78]])], Wc, 8); ell(51, -62, 2.5, 8, .07); ink(); }],
+  clayPot: ['Clay pot', () => { const pot = () => { B(); X.moveTo(-24, -56); X.lineTo(24, -56); X.lineTo(22, -42); X.bezierCurveTo(86, -30, 86, 56, 30, 76); X.lineTo(-30, 76); X.bezierCurveTo(-86, 56, -86, -30, -22, -42); X.closePath(); };
+    pot(); s(F); X.save(); pot(); X.clip(); ln([[-80, 4], [-62, -12], [-44, 4], [-26, -12], [-8, 4], [10, -12], [28, 4], [46, -12], [64, 4], [82, -12]], 5); ln([[-80, 30], [80, 30]], 5); X.restore(); rct(-35, -72, 70, 18, 6); s(T); }],
+  joined: ['Joined hands', () => { tk([() => pl([[-30, -16], [0, 14]]), () => pl([[30, -16], [0, 14]]), () => pl([[-58, -16], [-72, 30]]), () => pl([[58, -16], [72, 30]])], F, 11);
+    personFull(-44, F); personFull(44, T); cir(0, 14, 10); s(Wc); }],
+  bell: ['Bell', () => { cir(0, -72, 12); strk(6); cir(0, 64, 13); s(T); B(); X.moveTo(-60, 42); X.bezierCurveTo(-60, -22, -42, -62, 0, -62); X.bezierCurveTo(42, -62, 60, -22, 60, 42); X.lineTo(72, 56); X.lineTo(-72, 56); X.closePath(); s(F); ln([[-54, 28], [54, 28]], 5); }],
+  path: ['Footprints on a path', () => { X.save(); X.setLineDash([2, 14]); sm([[-74, 94], [-36, 44], [30, 16], [-12, -36], [36, -92]], 6); X.restore();
+    foot(-44, 66, .45, F); foot(10, 28, .55, T); foot(-18, -18, -.15, F); foot(28, -64, .3, T); }],
+  seedling: ['Seedling', () => { ell(0, 64, 66, 18); s(T); tk([() => sp([[0, 62], [3, 24], [0, -8]])], F, 8); ell(-28, -22, 31, 15, .5); s(F); ell(28, -32, 31, 15, -.5); s(F);
+    ln([[-6, -12], [-46, -32]], 4); ln([[6, -22], [46, -42]], 4); }],
+  textile: ['Woven textile', () => { rct(-76, -66, 152, 118, 6); s(F); rct(-76, -44, 152, 18, 0); s(T); rct(-76, 14, 152, 18, 0); s(T);
+    [-51, -17, 17, 51].forEach(x => { pol(x, -22, x + 13, -6, x, 10, x - 13, -6); s(Wc); }); thin(5, () => { for (let x = -68; x <= 68; x += 13.6) ln([[x, 54], [x, 74]]); }); }],
+  incense: ['Incense', () => { sm([[0, -30], [-14, -50], [8, -70], [-6, -94]], 5); sm([[16, -42], [26, -60], [16, -78]], 4); tk([() => pl([[0, 46], [0, -22]])], T, 7); cir(0, -25, 5); s(F);
+    B(); X.arc(0, 40, 46, 0, Math.PI); X.closePath(); s(F); ell(0, 40, 46, 10); s(T); }],
+  /* a word */
+  speech: ['Speech bubble', () => { uni([() => rct(-82, -64, 164, 102, 26), () => pol(-44, 30, -64, 80, -6, 36)], F); [-32, 0, 32].forEach(x => { cir(x, -13, 9); ink(); }); }],
+  quotes: ['Quote marks', () => { [-36, 36].forEach((x, i) => uni([() => cir(x, 16, 26), () => { B(); X.moveTo(x - 26, 14); X.quadraticCurveTo(x - 28, -40, x + 18, -58); X.lineTo(x + 24, -42); X.quadraticCurveTo(x - 2, -26, x + 4, -8); X.closePath(); }], i ? T : F)); }],
+  letters: ['Alphabet letters', () => { [[-50, -14, -.12, 'A', F], [0, 14, .06, 'B', T], [50, -12, .14, 'C', Wc]].forEach(([x, y, r, l, f]) => { X.save(); X.translate(x, y); X.rotate(r); rct(-31, -33, 62, 66, 12); s(f); txt(l, 0, 3, 46); X.restore(); }); }],
+  pen: ['Pen', () => { sm([[-82, 72], [-52, 58], [-22, 72], [8, 58]], 5); X.save(); X.rotate(-.75); rct(-72, -15, 114, 30, 10); s(F); pol(42, -15, 42, 15, 84, 0); s(T); ln([[62, 0], [84, 0]], 4); rct(-58, -21, 12, 42, 4); s(T); X.restore(); }],
+  envelope: ['Envelope', () => { rct(-82, -54, 164, 108, 8); s(F); ln([[-82, 54], [-24, 4]], 5); ln([[82, 54], [24, 4]], 5); pol(-82, -54, 0, 14, 82, -54); s(T); heart(0, 12, .34, Wc); }],
+  scroll: ['Scroll', () => { rct(-60, -62, 120, 124, 4); s(Wc); thin(5, () => [-36, -18, 0, 18, 36].forEach(y => ln([[-40, y], [40, y]]))); rct(-76, -80, 152, 24, 12); s(F); rct(-76, 56, 152, 24, 12); s(F); }],
+  signHand: ['Sign language', () => { hand(0, 14, 1.18, 0, [1, 1, 0, 0, 1], F); }],
+  ear: ['Ear', () => { X.save(); X.translate(-18, 0); B(); X.moveTo(18, 76); X.bezierCurveTo(-12, 76, -14, 42, -32, 26); X.bezierCurveTo(-64, -4, -54, -84, 8, -84); X.bezierCurveTo(62, -84, 72, -30, 50, 2);
+    X.bezierCurveTo(38, 20, 42, 46, 18, 76); X.closePath(); s(F); sm([[-16, -14], [-2, -46], [26, -42], [24, -12], [6, 4], [10, 26]], 6); X.restore(); [18, 32].forEach(r => { B(); X.arc(58, -22, r, -.6, .6); strk(6); }); }],
+  chatHearts: ['Chat hearts', () => { uni([() => rct(-88, -72, 106, 72, 22), () => pol(-62, -8, -74, 22, -36, -4)], T); heart(-35, -36, .36, Wc);
+    uni([() => rct(-16, -12, 104, 72, 22), () => pol(56, 54, 72, 84, 30, 56)], F); heart(36, 24, .36, Wc); }],
+  language: ['Language', () => { uni([() => rct(-82, -70, 164, 112, 28), () => pol(30, 36, 56, 84, 0, 40)], F); X.save(); X.translate(0, -14); X.scale(.55, .55); const f0 = F; F = Wc; ICONS.globe[1](); F = f0; X.restore(); }],
+  bookmark: ['Book with bookmark', () => { rct(-46, -68, 108, 140, 8); s(Wc); rct(-58, -76, 108, 142, 8); s(F); rct(-58, -76, 24, 142, 4); s(T); ln([[-18, -40], [34, -40]], 6); ln([[-18, -20], [22, -20]], 5);
+    pol(16, 60, 34, 60, 34, 94, 25, 85, 16, 94); s(Wc); }],
+  megaphone: ['Megaphone', () => { rct(-32, 16, 18, 40, 6); s(T); rct(-76, -25, 32, 50, 8); s(T); pol(-48, -21, 42, -62, 42, 62, -48, 21); s(F); ell(42, 0, 14, 62); s(T); [22, 36].forEach(r => { B(); X.arc(50, 0, r, -.55, .55); strk(6); }); }],
+  /* my person */
+  grandma: ['Grandmother', () => { person(0, 6, 1.6, F, 'gran'); }],
+  grandpa: ['Grandfather', () => { person(0, 12, 1.6, F, 'hat'); }],
+  mother: ['Mother', () => { person(0, 8, 1.6, F, 'long'); }],
+  father: ['Father', () => { person(0, 8, 1.6, F, 'beard'); }],
+  siblings: ['Siblings', () => { person(-34, 4, 1.2, F, 'short'); person(40, 26, .95, T, 'bun'); }],
+  auntUncle: ['Aunt or uncle', () => { person(-40, 10, 1.12, F, 'long'); person(40, 10, 1.12, T, 'beard'); }],
+  family: ['Whole family', () => { person(-46, 2, 1.04, F, 'long'); person(46, 2, 1.04, T, 'short'); person(0, 42, .7, F); }],
+  teacher: ['Teacher or mentor', () => { rct(-4, -76, 92, 64, 4); s(Wc); ln([[12, -58], [64, -58]], 5); ln([[12, -40], [48, -40]], 5); person(-42, 20, 1.2, F, 'short'); ln([[-14, 0], [22, -28]], 6); }],
+  friends: ['Friends', () => { person(-38, 16, 1.12, F, 'bun'); person(38, 16, 1.12, T, 'short'); heart(0, -60, .34, F); }],
+  child: ['Child', () => { sm([[30, 6], [44, -20], [48, -42]], 4); ell(50, -64, 18, 22); s(T); B(); X.arc(-8, 66, 34, Math.PI, 0); X.closePath(); s(F); cir(-8, 0, 32); s(Wc); B(); X.arc(-8, 0, 32, Math.PI * .97, Math.PI * 2.03); X.quadraticCurveTo(-8, -18, -40, 3); X.closePath(); s(H); }],
+  ancestors: ['Ancestors', () => { tk([() => pl([[0, 86], [0, 8]]), () => pl([[0, 22], [-50, -18]]), () => pl([[0, 22], [50, -18]]), () => pl([[0, 2], [0, -50]])], T, 12);
+    [[-54, -26], [54, -26], [0, -62]].forEach(([x, y]) => { cir(x, y, 26); s(F); thin(4, () => { B(); X.arc(x, y + 18, 13, Math.PI, 0); X.closePath(); s(Wc); cir(x, y - 4, 8); s(Wc); }); }); }],
+  chosen: ['Chosen family', () => { heart(0, 8, .62, F); thin(6, () => [[-52, -46, .62, T], [54, -42, .52, F], [-56, 50, .52, F], [56, 50, .66, T]].forEach(([x, y, k, f]) => person(x, y, k, f))); }],
+  /* a place */
+  house: ['House', () => { rct(34, -60, 16, 36, 2); s(T); rct(-60, -6, 120, 80, 4); s(F); pol(-78, 2, 0, -68, 78, 2); s(T); rct(-14, 30, 28, 44, 4); s(Wc); rct(24, 14, 24, 20, 3); s(Wc); rct(-48, 14, 24, 20, 3); s(Wc); }],
+  apartment: ['Apartment building', () => { rct(-54, -86, 108, 172, 6); s(F); thin(5, () => { for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) { rct(-40 + c * 29, -72 + r * 26, 20, 16, 3); s(Wc); } }); rct(-13, 58, 26, 28, 3); s(T); }],
+  skyline: ['City skyline', () => { [[-90, -20, 40, 100, T], [-20, -40, 42, 120, T], [58, -30, 32, 110, T], [-58, -70, 38, 150, F], [22, -86, 36, 166, F]].forEach(([x, y, w, h, f]) => { rct(x, y, w, h, 3); s(f); });
+    thin(4, () => [[-48, -56], [-48, -36], [-34, -56], [-34, -36], [32, -72], [46, -72], [32, -52], [46, -52]].forEach(([x, y]) => { rct(x - 4, y, 8, 10, 1); s(Wc); })); ln([[-94, 80], [94, 80]], 6); }],
+  farm: ['Farm', () => { rct(54, -44, 32, 124, 4); s(T); B(); X.arc(70, -44, 16, Math.PI, 0); X.closePath(); s(T); pol(-64, 80, -64, -6, -36, -48, 22, -48, 50, -6, 50, 80); s(F);
+    rct(-32, 30, 50, 50, 2); s(Wc); ln([[-32, 30], [18, 80]], 5); ln([[18, 30], [-32, 80]], 5); rct(-20, -26, 26, 20, 2); s(Wc); }],
+  beach: ['Beach', () => { cir(60, -64, 16); s(T); tk([() => pl([[-16, -30], [6, 68]])], Wc, 7); B(); X.moveTo(-88, 62); X.quadraticCurveTo(0, 40, 88, 58); X.lineTo(88, 84); X.lineTo(-88, 84); X.closePath(); s(T);
+    X.save(); X.translate(-16, -30); X.rotate(-.18); B(); X.arc(0, 0, 68, Math.PI, 0); X.closePath(); s(F); ln([[0, 0], [-34, -58]], 5); ln([[0, 0], [34, -58]], 5); X.restore(); }],
+  kitchen: ['Kitchen', () => { sm([[-30, -64], [-38, -78], [-28, -92]], 5); rct(-58, -60, 52, 36, 8); s(T); rct(12, -52, 46, 28, 8); s(Wc); rct(-76, -24, 152, 98, 8); s(F); rct(-54, 10, 108, 48, 6); s(Wc);
+    [-54, -30, 30, 54].forEach(x => { cir(x, -8, 6); s(Wc); }); }],
+  market: ['Market stall', () => { ln([[-66, -40], [-66, 24]], 7); ln([[66, -40], [66, 24]], 7); rct(-80, 22, 160, 52, 6); s(T); [[-48, 10], [-16, 8], [16, 10], [48, 8]].forEach(([x, y], i) => { cir(x, y, 15); s(i % 2 ? F : Wc); });
+    B(); X.moveTo(-88, -78); X.lineTo(88, -78); X.lineTo(88, -46); for (let k = 0; k < 6; k++) X.arc(88 - 14.67 - 29.33 * k, -46, 14.67, 0, Math.PI); X.closePath(); s(F);
+    thin(4, () => { for (let k = 1; k < 6; k++) ln([[88 - 29.33 * k, -78], [88 - 29.33 * k, -46]]); }); }],
+  park: ['Park', () => { ln([[-90, 76], [90, 76]], 6); tk([() => pl([[-38, 76], [-38, -6]])], T, 14); uni([() => cir(-38, -40, 36), () => cir(-64, -16, 24), () => cir(-12, -16, 24)], F);
+    ln([[20, 10], [20, 30]], 5); ln([[76, 10], [76, 30]], 5); rct(10, 28, 78, 10, 3); s(T); rct(10, 0, 78, 11, 3); s(T); ln([[20, 38], [20, 76]], 6); ln([[78, 38], [78, 76]], 6); }],
+  street: ['Street corner', () => { tk([() => pl([[-38, 86], [-38, -52]]), () => pl([[-38, -52], [-10, -66]])], T, 9); pol(-24, -62, 6, -62, 13, -44, -31, -44); s(F);
+    tk([() => pl([[46, 86], [46, -24]])], T, 8); pol(6, -60, 70, -60, 88, -45, 70, -30, 6, -30); s(Wc); ln([[20, -45], [58, -45]], 5); ln([[-90, 86], [90, 86]], 6); }],
+  school: ['School', () => { pol(-88, -8, 0, -60, 88, -8); s(T); rct(-78, -8, 156, 84, 4); s(F); cir(0, -28, 14); s(Wc); ln([[0, -28], [0, -37]], 4); ln([[0, -28], [7, -24]], 4);
+    [-58, -32, 32, 58].forEach(x => { rct(x - 9, 8, 18, 34, 3); s(Wc); }); rct(-15, 36, 30, 40, 4); s(Wc); ln([[-90, 76], [90, 76]], 6); }],
+  hometown: ['Hometown map', () => { pol(-86, -58, -29, -72, -29, 64, -86, 78); s(T); pol(-29, -72, 29, -58, 29, 78, -29, 64); s(Wc); pol(29, -58, 86, -72, 86, 64, 29, 78); s(T);
+    X.save(); X.setLineDash([2, 12]); sm([[-66, 50], [-38, 10], [0, 26], [40, -8]], 6); X.restore(); X.save(); X.translate(46, -28); X.scale(.44, .44); ICONS.pin[1](); X.restore(); }],
+  /* a value */
+  heart: ['Heart', () => { heart(0, 12, 1.36, F); sm([[-58, -18], [-50, -40], [-30, -48]], 7); }],
+  handshake: ['Handshake', () => { tk([() => pl([[-94, 48], [-34, 8]])], F, 32); tk([() => pl([[94, 48], [34, 8]])], T, 32); rct(-46, -26, 72, 46, 20); s(F); rct(-10, -20, 58, 42, 18); s(T);
+    thin(4, () => [0, 14, 28].forEach(x => ln([[x, -16], [x, 4]]))); }],
+  shield: ['Shield', () => { const sh = () => { X.moveTo(0, -82); X.lineTo(68, -58); X.lineTo(64, 8); X.quadraticCurveTo(54, 60, 0, 86); X.quadraticCurveTo(-54, 60, -64, 8); X.lineTo(-68, -58); X.closePath(); };
+    B(); sh(); s(F); X.save(); X.scale(.62, .62); B(); sh(); X.restore(); s(T); star5(0, 0, 22, 9, Wc); }],
+  scales: ['Scales', () => { rct(-50, 62, 100, 14, 6); s(F); rct(-6, -68, 12, 132, 4); s(T); rct(-72, -62, 144, 11, 4); s(F);
+    thin(4, () => { ln([[-62, -51], [-86, -4]]); ln([[-62, -51], [-38, -4]]); ln([[62, -51], [38, -4]]); ln([[62, -51], [86, -4]]); });
+    [-62, 62].forEach(x => { B(); X.ellipse(x, -4, 26, 16, 0, 0, Math.PI); X.closePath(); s(F); }); cir(0, -72, 10); s(F); }],
+  bulb: ['Lightbulb', () => { [-2.62, -2.09, -1.57, -1.05, -.52].forEach(a => ln([[Math.cos(a) * 68, -20 + Math.sin(a) * 68], [Math.cos(a) * 86, -20 + Math.sin(a) * 86]], 7));
+    B(); X.arc(0, -20, 54, Math.PI * .78, Math.PI * .22); X.lineTo(23, 42); X.lineTo(-23, 42); X.closePath(); s(F); rct(-23, 42, 46, 34, 6); s(T); ln([[-23, 54], [23, 54]], 4); ln([[-23, 64], [23, 64]], 4); }],
+  community: ['Community', () => { person(-54, 14, .95, T); person(54, 14, .95, T); person(0, 2, 1.15, F); }],
+  star: ['Star', () => { star5(0, 6, 88, 38, F); }],
+  anchor: ['Anchor', () => { tk([() => pl([[0, -56], [0, 72]]), () => pl([[-36, -36], [36, -36]]), () => { B(); X.arc(0, 14, 60, .25, Math.PI - .25); }, () => { B(); X.arc(0, -70, 13, 0, TAU); }], F, 13);
+    pol(42, 22, 74, 16, 64, 48); s(F); pol(-42, 22, -74, 16, -64, 48); s(F); }],
+  openHand: ['Open hand', () => { hand(0, 14, 1.2, 0, [1, 1, 1, 1, 1], F); }],
+  flame: ['Flame', () => { const fp = k => { B(); X.moveTo(0, -86 * k); X.bezierCurveTo(26 * k, -52 * k, 62 * k, -18 * k, 58 * k, 26 * k); X.bezierCurveTo(54 * k, 62 * k, 28 * k, 84 * k, 0, 84 * k);
+      X.bezierCurveTo(-28 * k, 84 * k, -58 * k, 62 * k, -58 * k, 26 * k); X.bezierCurveTo(-58 * k, -6 * k, -30 * k, -18 * k, -28 * k, -46 * k); X.bezierCurveTo(-12 * k, -30 * k, -4 * k, -52 * k, 0, -86 * k); X.closePath(); };
+    fp(1); s(F); X.save(); X.translate(0, 28); fp(.55); X.restore(); s(T); }],
+  key: ['Key', () => { X.save(); X.rotate(-.6); uni([() => cir(-52, 0, 31), () => rct(-26, -9, 110, 18, 4), () => rct(54, 4, 12, 24, 2), () => rct(71, 4, 12, 17, 2)], F); cir(-52, 0, 11); s(Wc); X.restore(); }],
+  /* know this */
+  bridge: ['Bridge', () => { sm([[-92, 78], [-61, 70], [-30, 78], [0, 70], [30, 78], [61, 70], [92, 78]], 5); rct(-88, -42, 18, 112, 3); s(T); rct(70, -42, 18, 112, 3); s(T);
+    tk([() => { B(); X.arc(0, 64, 68, Math.PI, 0); }], F, 10); thin(5, () => [-44, -22, 22, 44].forEach(x => ln([[x, -26], [x, 64 - Math.sqrt(68 * 68 - x * x)]]))); rct(-92, -42, 184, 16, 4); s(F); }],
+  door: ['Open door', () => { rct(-56, -86, 112, 172, 6); s(T); rct(-44, -74, 88, 160, 3); s(Wc); thin(4, () => { ln([[-8, -40], [16, -52]]); ln([[0, -10], [30, -16]]); ln([[0, 22], [30, 26]]); });
+    pol(-44, -74, -6, -64, -6, 74, -44, 86); s(F); cir(-16, 8, 5); ink(); }],
+  eye: ['Eye', () => { thin(5, () => { ln([[-44, -30], [-54, -48]]); ln([[0, -38], [0, -58]]); ln([[44, -30], [54, -48]]); }); B(); X.moveTo(-86, 0); X.quadraticCurveTo(0, -72, 86, 0); X.quadraticCurveTo(0, 72, -86, 0); X.closePath(); s(Wc);
+    cir(0, 0, 33); s(F); cir(0, 0, 13); ink(); if (!LINE) { cir(10, -10, 5); X.fillStyle = '#fff'; X.fill(); } }],
+  mirror: ['Mirror', () => { tk([() => pl([[0, 46], [0, 90]])], T, 16); ell(0, -16, 54, 64); s(F); ell(0, -16, 40, 50); s(Wc); ln([[-20, -42], [4, -58]], 5); ln([[-22, -20], [14, -48]], 5); }],
+  puzzle: ['Puzzle piece', () => { B(); X.moveTo(-58, -52); X.lineTo(-16, -52); X.arc(0, -64, 20, .75 * Math.PI, .25 * Math.PI); X.lineTo(58, -52); X.lineTo(58, -16); X.arc(70, 0, 20, 1.25 * Math.PI, .75 * Math.PI);
+    X.lineTo(58, 64); X.lineTo(-58, 64); X.closePath(); s(F); cir(-20, 20, 8); s(T); }],
+  waveHand: ['Waving hand', () => { hand(-8, 18, 1.1, -.3, [1, 1, 1, 1, 1], F); [86, 102].forEach(r => { B(); X.arc(-8, 18, r, -1.2, -.75); strk(6); }); }],
+  heartHand: ['Heart in hand', () => { heart(4, -26, .66, F); tk([() => sp([[-86, 20], [-42, 62], [20, 62], [72, 26]])], T, 26); tk([() => pl([[62, 34], [80, 4]])], T, 14); }],
+  sunrise: ['Sunrise', () => { const bs = []; for (let i = 1; i < 6; i++) { const a = Math.PI + i / 6 * Math.PI; bs.push(() => pl([[Math.cos(a) * 58, 30 + Math.sin(a) * 58], [Math.cos(a) * 84, 30 + Math.sin(a) * 84]])); }
+    tk(bs, T, 9); B(); X.arc(0, 30, 46, Math.PI, 0); X.closePath(); s(F); ln([[-90, 30], [90, 30]], 7); ln([[-60, 54], [60, 54]], 6); ln([[-32, 74], [32, 74]], 6); }],
+  chain: ['Linked chain', () => { [[-30, 12, F], [30, -12, T]].forEach(([x, y, f]) => { X.save(); X.translate(x, y); X.rotate(-.6); tk([() => { B(); X.roundRect(-44, -21, 88, 42, 21); }], f, 12); X.restore(); }); }],
+  sparkles: ['Sparkles', () => { sparkle(-12, 14, 64, F); sparkle(54, -50, 26, T); sparkle(-60, -54, 18, T); }],
+  footsteps: ['Footsteps forward', () => { foot(-26, 56, -.15, F); foot(24, 16, .15, F); tk([() => pl([[0, -34], [0, -78]])], T, 12); pol(-24, -62, 0, -94, 24, -62); s(T); }],
+  openArms: ['Open arms', () => { tk([() => pl([[-12, -14], [-60, -68]]), () => pl([[12, -14], [60, -68]]), () => pl([[-8, 34], [-28, 88]]), () => pl([[8, 34], [28, 88]])], F, 15);
+    rct(-21, -30, 42, 70, 16); s(F); cir(0, -50, 21); s(Wc); }]
+};
+
+/* draw image `key` centred at x,y, `size` = rough diameter in px */
+function drawIcon(c, key, x, y, size, col, line = false) {
+  X = c; const k = size / 190; c.save(); c.translate(x, y); c.scale(k, k);
+  LINE = line; F = line ? null : col; T = line ? null : mix(col, '#FFFFFF', .55); Wc = line ? null : '#FFFFFF'; H = line ? null : mix(col, INK, .55); LW = 8;
+  c.lineJoin = 'round'; c.lineCap = 'round';
+  try { ICONS[key][1](); } catch (e) { console.warn(key, e); }
+  c.restore(); LINE = false;
+}
+
+/* =============================== MOSAIC GEOMETRY =============================== */
+const CX = 300, CY = 300, FACE = 252, CUT = 247;
+function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function clipHalf(poly, px, py, qx, qy) {
+  const mx = (px + qx) / 2, my = (py + qy) / 2, nx = qx - px, ny = qy - py, side = (x, y) => (x - mx) * nx + (y - my) * ny, out = [];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i], b = poly[(i + 1) % poly.length], sa = side(a[0], a[1]), sb = side(b[0], b[1]);
+    if (sa <= 0) out.push(a);
+    if ((sa <= 0) !== (sb <= 0)) { const t = sa / (sa - sb); out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); }
+  }
+  return out;
+}
+function blobPts(r, x, y, rad, n, lo, hi) { const o = r() * TAU, p = []; for (let v = 0; v < n; v++) { const a = o + v / n * TAU + (r() - .5) * .35, q = rad * (lo + r() * (hi - lo)); p.push([x + Math.cos(a) * q, y + Math.sin(a) * q]); } return p; }
+let G = null, Gseed = null;
+function geom() {
+  if (G && Gseed === st.seed) return G;
+  const r = rng(st.seed), feats = [];
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * TAU / 10 + (r() - .5) * .1, d = 168 + (r() - .5) * 10, rad = 49 + (r() - .5) * 4;
+    const x = CX + Math.cos(a) * d, y = CY + Math.sin(a) * d;
+    feats.push({ x, y, rad, a, pts: blobPts(r, x, y, rad, 7 + (r() < .5 ? 1 : 0), .9, 1.1) });
+  }
+  const center = { x: CX, y: CY, rad: 82, pts: blobPts(r, CX, CY, 82, 9, .93, 1.06) };
+  const P = [];
+  for (let t = 0; t < 9000 && P.length < 420; t++) {
+    const x = CX + (r() * 2 - 1) * 262, y = CY + (r() * 2 - 1) * 262, d = Math.hypot(x - CX, y - CY);
+    if (d > 262 || d < 86) continue;
+    if (feats.some(f => Math.hypot(x - f.x, y - f.y) < f.rad * 1.0)) continue;
+    if (P.some(p => Math.hypot(x - p[0], y - p[1]) < 18.5)) continue;
+    P.push([x, y]);
+  }
+  const cells = [];
+  P.forEach((p, i) => {
+    let poly = [[p[0] - 60, p[1] - 60], [p[0] + 60, p[1] - 60], [p[0] + 60, p[1] + 60], [p[0] - 60, p[1] + 60]];
+    P.forEach((q, j) => { if (i !== j && Math.abs(q[0] - p[0]) < 70 && Math.abs(q[1] - p[1]) < 70) poly = clipHalf(poly, p[0], p[1], q[0], q[1]); });
+    if (poly.length < 3) return;
+    let cx = 0, cy = 0; poly.forEach(v => { cx += v[0]; cy += v[1]; }); cx /= poly.length; cy /= poly.length;
+    const sh = .8 + r() * .07;
+    const pts = poly.map(v => [cx + (v[0] - cx) * sh + (r() - .5) * 1.4, cy + (v[1] - cy) * sh + (r() - .5) * 1.4]);
+    let near = 0, nd = 1e9; feats.forEach((f, k) => { const dd = Math.hypot(cx - f.x, cy - f.y); if (dd < nd) { nd = dd; near = k; } });
+    cells.push({ pts, cx, cy, d: Math.hypot(cx - CX, cy - CY), ang: Math.atan2(cy - CY, cx - CX), near, j: r() * 2 - 1, h: r() * 2 - 1, u: r(), sp: [[r(), r()], [r(), r()], [r(), r()]] });
+  });
+  G = { feats, center, cells }; Gseed = st.seed; return G;
+}
+
+/* =============================== BADGE RENDER =============================== */
+function path(c, pts) { c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); }
+function view() {
+  const v = { p: st.p, center: st.center, grout: st.grout, pal: st.pal, finish: st.finish, pattern: st.pattern, ring: st.ring };
+  if (hover) v[hover.k] = hover.v;
+  return v;
+}
+function fillerHex(cell, v, pieceCols) {
+  const list = v.pal === 'match' ? null : PALS[v.pal].c;
+  const n = list ? list.length : 10, pick = i => list ? list[((i % n) + n) % n] : pieceCols[((i % 10) + 10) % 10];
+  if (v.pattern === 'rings') { const band = Math.floor((cell.d - 84) / ((FACE - 84) / Math.max(list ? n : 6, 4))); return list ? pick(band) : pick(band * 3); }
+  if (v.pattern === 'swirl') {
+    const sectors = list ? n * 2 : 10; let a = cell.ang + Math.PI / 2 + Math.sin(cell.d * .03) * .9 + (list ? 0 : TAU / 20);
+    a = ((a % TAU) + TAU) % TAU; return pick(Math.floor(a / (TAU / sectors)));
+  }
+  return list ? pick(Math.floor(cell.u * n)) : pieceCols[cell.near];
+}
+function groutStyle(c, v) {
+  if (v.grout !== 'spectrum') return GROUTS[v.grout][1];
+  if (!c.createConicGradient) return '#C9962E';
+  const g = c.createConicGradient(-Math.PI / 2, CX, CY); ['#E40303', '#FF8C00', '#FFED00', '#008026', '#004DFF', '#750787', '#E40303'].forEach((h, i) => g.addColorStop(i / 6, h)); return g;
+}
+function finishFx(c, pts, cx, cy, rad, v, cell) {
+  if (v.finish === 'frosted') {
+    c.save(); path(c, pts); c.clip(); c.fillStyle = 'rgba(255,255,255,.3)'; c.fill();
+    c.fillStyle = 'rgba(255,255,255,.55)'; (cell ? cell.sp : [[.3, .2], [.7, .6], [.4, .8]]).forEach(([a, b]) => { c.beginPath(); c.arc(cx + (a - .5) * rad, cy + (b - .5) * rad, rad * .07 + .6, 0, TAU); c.fill(); });
+    c.restore();
+  } else if (v.finish === 'glossy') {
+    c.save(); path(c, pts); c.clip(); c.strokeStyle = 'rgba(255,255,255,.62)'; c.lineCap = 'round'; c.lineWidth = Math.max(1.6, rad * .13);
+    c.beginPath(); c.arc(cx, cy, rad * .58, Math.PI * 1.08, Math.PI * 1.42); c.stroke(); c.restore();
+  }
+}
+/* mode: 'color' (screen + full-color exports) or 'vinyl' (one color, transparent background) */
+function drawBadge(c, v, opt = {}) {
+  const g = geom(), vinyl = opt.vinyl, pieceCols = v.p.map(q => GLASS[q.col][1]);
+  c.save();
+  if (!vinyl) {
+    const R = RINGS[v.ring][1];
+    if (Array.isArray(R)) { const w = (300 - FACE) / R.length; R.forEach((h, i) => { c.beginPath(); c.arc(CX, CY, 300 - i * w, 0, TAU); c.fillStyle = h; c.fill(); }); }
+    else { c.beginPath(); c.arc(CX, CY, 300, 0, TAU); c.fillStyle = R; c.fill(); }
+    c.beginPath(); c.arc(CX, CY, FACE, 0, TAU); c.fillStyle = groutStyle(c, v); c.fill();
+  }
+  c.save(); c.beginPath(); c.arc(CX, CY, CUT, 0, TAU); c.clip();
+  g.cells.forEach(cell => {
+    path(c, cell.pts);
+    if (vinyl) { c.fillStyle = INK; c.fill(); return; }
+    c.fillStyle = jit(fillerHex(cell, v, pieceCols), cell.j, cell.h); c.fill();
+    if (v.finish !== 'matte') finishFx(c, cell.pts, cell.cx, cell.cy, 17, v, cell);
+  });
+  const gs = vinyl ? null : groutStyle(c, v);
+  const piece = (pts, fill) => {
+    path(c, pts);
+    if (vinyl) { c.save(); c.globalCompositeOperation = 'destination-out'; c.lineWidth = 8; c.lineJoin = 'round'; c.stroke(); c.restore(); path(c, pts); c.fillStyle = INK; c.fill(); return; }
+    c.lineWidth = 9; c.lineJoin = 'round'; c.strokeStyle = gs; c.stroke(); c.fillStyle = fill; c.fill();
+  };
+  g.feats.forEach((f, i) => {
+    const q = v.p[i], col = GLASS[q.col][1], answered = q.img.length > 0;
+    piece(f.pts, answered ? mix(col, '#FFFFFF', .8) : '#EFE6DD');
+    if (!vinyl && v.finish === 'frosted') finishFx(c, f.pts, f.x, f.y, f.rad, v);
+    const sz = f.rad * 1.42;
+    if (vinyl) {
+      c.save(); c.globalCompositeOperation = 'destination-out'; c.beginPath(); c.arc(f.x, f.y, f.rad * .86, 0, TAU); c.fill(); c.restore();
+      q.img.forEach((k, n) => { const o = q.img.length > 1 ? (n ? 1 : -1) * f.rad * .34 : 0; drawIcon(c, k, f.x + o, f.y + o * .6, q.img.length > 1 ? sz * .66 : sz, INK, true); });
+    } else if (answered) {
+      q.img.forEach((k, n) => { const o = q.img.length > 1 ? (n ? 1 : -1) * f.rad * .34 : 0; drawIcon(c, k, f.x + o, f.y + o * .6, q.img.length > 1 ? sz * .66 : sz, col); });
+    } else {
+      c.font = `700 ${f.rad * .9}px Fredoka, 'Trebuchet MS', sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#C2B2A4'; c.fillText(String(i + 1), f.x, f.y + 2);
+    }
+    if (!vinyl && v.finish === 'glossy') finishFx(c, f.pts, f.x, f.y, f.rad, v);
+    if (opt.cur === i) { const t = (Math.sin(performance.now() / 260) + 1) / 2; path(c, f.pts); c.lineWidth = 6; c.strokeStyle = `rgba(255,199,44,${.55 + .45 * t})`; c.stroke(); }
+  });
+  const ce = g.center; piece(ce.pts, '#FFF3DE');
+  if (!vinyl && v.finish === 'frosted') finishFx(c, ce.pts, ce.x, ce.y, ce.rad, v);
+  const word = (v.center || '').trim();
+  if (word) {
+    let sz = 46; c.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`;
+    while (c.measureText(word).width > ce.rad * 1.6 && sz > 16) { sz -= 1; c.font = `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`; }
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    if (vinyl) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillText(word, ce.x, ce.y + 2); c.restore(); }
+    else { c.fillStyle = INK; c.fillText(word, ce.x, ce.y + 2); }
+  } else if (!vinyl) {
+    c.fillStyle = '#C2B2A4'; c.font = `700 22px Fredoka, 'Trebuchet MS', sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('your word', ce.x, ce.y + 2);
+  }
+  if (!vinyl && v.finish === 'glossy') finishFx(c, ce.pts, ce.x, ce.y, ce.rad, v);
+  c.restore();
+  if (!vinyl) {
+    c.lineWidth = 3; c.strokeStyle = INK; c.beginPath(); c.arc(CX, CY, 298.5, 0, TAU); c.stroke();
+    if (opt.guide) { c.save(); c.setLineDash([8, 8]); c.lineWidth = 2; c.strokeStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.arc(CX, CY, FACE + 1, 0, TAU); c.stroke(); c.restore(); }
+  }
+  c.restore();
+}
+
+/* =============================== LIVE CANVAS =============================== */
+const cv = document.getElementById('badge'), cx = cv.getContext('2d');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function curTile() { const f = FLOW[pos]; return typeof f === 'object' && f.p === 1 ? f.i : null; }
+function paint() {
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  cx.setTransform(cv.width / 600, 0, 0, cv.width / 600, 0, 0);
+  drawBadge(cx, view(), { cur: curTile(), guide: FLOW[pos] !== 'intro' && (typeof FLOW[pos] !== 'object' || FLOW[pos].p === 2) });
+}
+function loop() {
+  if (FLOW[pos] !== 'finish' && (dirty || (curTile() != null && !reduce))) { paint(); dirty = false; }
+  requestAnimationFrame(loop);
+}
+
+/* =============================== EXPORT =============================== */
+function wrapText(c, text, x, y, w, lh, maxLines = 2) {
+  const words = text.split(' '); let line = '', n = 0;
+  for (const wd of words) { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > w && line) { c.fillText(line, x, y); y += lh; n++; line = wd; if (n >= maxLines - 1) { } } else line = t; }
+  if (line) { c.fillText(line, x, y); y += lh; }
+  return y;
+}
+function compose(fmt) {
+  const v = view(), mono = st.mono && fmt !== 'shirt';
+  if (fmt === 'card') return composeCard(v);
+  const size = fmt === 'shirt' ? 2400 : 1500;
+  const out = document.createElement('canvas'); out.width = out.height = size;
+  const o = out.getContext('2d'), sc = size / 600;
+  o.setTransform(sc, 0, 0, sc, 0, 0);
+  if (fmt === 'shirt') {
+    if (st.mirror) { o.translate(600, 0); o.scale(-1, 1); }
+    if (st.shirt === 'vinyl') drawBadge(o, v, { vinyl: true });
+    else { o.save(); o.beginPath(); o.arc(CX, CY, FACE, 0, TAU); o.clip(); drawBadge(o, v); o.restore(); o.lineWidth = 3; o.strokeStyle = INK; o.beginPath(); o.arc(CX, CY, FACE, 0, TAU); o.stroke(); }
+  } else if (fmt === 'button') drawBadge(o, v);
+  else if (fmt === 'sticker') {
+    o.beginPath(); o.arc(300, 300, 296, 0, TAU); o.fillStyle = '#FFFFFF'; o.fill();
+    o.save(); o.setLineDash([10, 8]); o.beginPath(); o.arc(300, 300, 294, 0, TAU); o.lineWidth = 3; o.strokeStyle = '#B59A8A'; o.stroke(); o.restore();
+    o.save(); o.translate(300, 300); o.scale(.9, .9); o.translate(-300, -300); drawBadge(o, v); o.restore();
+  } else {
+    const ringC = RINGS[v.ring][1], tabC = Array.isArray(ringC) ? '#D9653B' : ringC;
+    o.save(); o.beginPath(); o.arc(300, 330, 268, 0, TAU); o.moveTo(342, 40); o.arc(300, 40, 42, 0, TAU); o.fillStyle = '#FFFFFF'; o.fill(); o.restore();
+    o.save(); o.setLineDash([10, 8]); o.lineWidth = 3; o.strokeStyle = '#B59A8A'; o.beginPath(); o.arc(300, 330, 266, 0, TAU); o.stroke(); o.beginPath(); o.arc(300, 40, 40, 0, TAU); o.stroke(); o.restore();
+    o.beginPath(); o.roundRect(278, 40, 44, 50, 10); o.fillStyle = tabC; o.fill(); o.lineWidth = 5; o.strokeStyle = INK; o.stroke();
+    o.beginPath(); o.arc(300, 40, 30, 0, TAU); o.fillStyle = tabC; o.fill(); o.stroke(); o.beginPath(); o.arc(300, 40, 11, 0, TAU); o.fillStyle = '#FFFFFF'; o.fill(); o.lineWidth = 4; o.stroke();
+    o.save(); o.translate(300, 330); o.scale(.86, .86); o.translate(-300, -300); drawBadge(o, v); o.restore();
+  }
+  return mono ? gray(out) : out;
+}
+function gray(src) { const g = document.createElement('canvas'); g.width = src.width; g.height = src.height; const gx = g.getContext('2d'); gx.filter = 'grayscale(1) contrast(1.15)'; gx.drawImage(src, 0, 0); return g; }
+function pieceText(i) { const q = st.p[i]; return q.words.trim() || q.img.map(k => ICONS[k][0]).join(' + '); }
+function composeCard(v) {
+  const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
+  const o = out.getContext('2d');
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  o.fillStyle = '#FBEFE6'; o.fillRect(0, 0, W, 760);
+  o.fillStyle = '#D9653B'; o.fillRect(0, 0, W, 120);
+  o.fillStyle = '#FFFFFF'; o.font = "700 54px Fredoka, 'Trebuchet MS', sans-serif"; o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillText('PIECES OF ME', W / 2, 62);
+  o.save(); o.translate(W / 2 - 310, 140); o.scale(620 / 600, 620 / 600); drawBadge(o, v); o.restore();
+  o.textAlign = 'center'; o.textBaseline = 'alphabetic'; o.fillStyle = INK;
+  o.font = "700 70px Fredoka, 'Trebuchet MS', sans-serif"; o.fillText((v.center || '').trim() || 'Me', W / 2, 860);
+  o.fillStyle = '#7A5E50'; o.font = "800 26px Nunito, system-ui, sans-serif"; o.fillText('THE PIECES THAT MAKE ME', W / 2, 918);
+  st.p.forEach((q, i) => {
+    const col = i < 5 ? 0 : 1, row = i % 5, x = 90 + col * 530, y = 960 + row * 150, hex = GLASS[q.col][1];
+    o.beginPath(); o.roundRect(x, y, 96, 96, 22); o.fillStyle = mix(hex, '#FFFFFF', .8); o.fill(); o.lineWidth = 4; o.strokeStyle = INK; o.stroke();
+    q.img.forEach((k, n) => { const off = q.img.length > 1 ? (n ? 16 : -16) : 0; drawIcon(o, k, x + 48 + off, y + 48 + off * .6, q.img.length > 1 ? 56 : 80, hex); });
+    o.textAlign = 'left'; o.textBaseline = 'alphabetic';
+    o.fillStyle = '#7A5E50'; o.font = "800 21px Nunito, system-ui, sans-serif"; o.fillText(TILES[i].k.toUpperCase(), x + 118, y + 30);
+    o.fillStyle = INK; o.font = "700 29px Nunito, system-ui, sans-serif"; wrapText(o, pieceText(i), x + 118, y + 66, 380, 34, 2);
+  });
+  o.fillStyle = '#B59A8A'; o.font = "700 22px Nunito, system-ui, sans-serif"; o.textAlign = 'center';
+  o.fillText('ESU Graphics Center · Every piece chosen by me', W / 2, 1750);
+  return st.mono ? gray(out) : out;
+}
+
+/* =============================== UI =============================== */
+const panel = document.getElementById('panel'), cap = document.getElementById('cap'), outimg = document.getElementById('outimg'), stage = document.getElementById('stage');
+const esc = s2 => String(s2).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const THUMB = {};
+function thumb(key, col) {
+  const id = key + col; if (THUMB[id]) return THUMB[id];
+  const t = document.createElement('canvas'); t.width = t.height = 184; const c = t.getContext('2d');
+  c.beginPath(); c.roundRect(4, 4, 176, 176, 34); c.fillStyle = mix(col, '#FFFFFF', .82); c.fill();
+  drawIcon(c, key, 92, 92, 142, col);
+  return (THUMB[id] = t.toDataURL('image/png'));
+}
+function pips() {
+  [['pips1', 1, TILES.length], ['pips2', P2, Q2.length]].forEach(([id, start, n]) => {
+    let h = ''; for (let i = 0; i < n; i++) { const at = start + i; h += `<span class="pip ${pos > at ? 'done' : pos === at ? 'now' : ''}"></span>`; }
+    document.getElementById(id).innerHTML = h;
+  });
+  document.getElementById('leg1').classList.toggle('on', pos >= 1 && pos < P2);
+  document.getElementById('leg2').classList.toggle('on', pos >= P2 && FLOW[pos] !== 'finish');
+}
+function canNext() {
+  const f = FLOW[pos];
+  if (f === 'intro') return true;
+  if (f.p === 1) return st.p[f.i].img.length > 0;
+  if (Q2[f.i].k === 'center') return !!st.center.trim();
+  return true;
+}
+function navHTML(label) {
+  return `<div class="nav">${pos > 0 ? '<button type="button" class="btn" data-a="back">Back</button>' : ''}<button type="button" class="btn go" id="next" data-a="next" ${canNext() ? '' : 'disabled'}>${label}</button></div>`;
+}
+function refreshNext() { const n = document.getElementById('next'); if (n) n.disabled = !canNext(); }
+
+function tileBody(i) {
+  const t = TILES[i], q = st.p[i], col = glassCol(i);
+  return `<div class="imgs" role="group" aria-label="Images for ${esc(t.k)}">${t.imgs.map(k => `<button type="button" class="img" data-a="img" data-v="${k}" aria-pressed="${q.img.includes(k)}"><img src="${thumb(k, col)}" alt=""><span>${esc(ICONS[k][0])}</span></button>`).join('')}</div>
+    ${t.multi ? `<p class="hint">${q.img.length} of 2 picked. Tap one again to remove it.</p>` : ''}
+    <div class="lbl">Glass color</div>
+    <div class="sws" role="group" aria-label="Glass color">${GLASS.map(([n, h], k) => `<button type="button" class="sw" data-a="col" data-v="${k}" style="background:${h}" aria-label="${n}" aria-pressed="${q.col === k}" title="${n}"></button>`).join('')}</div>
+    <div class="field"><label for="words">In your own words (optional)</label><input id="words" maxlength="28" autocomplete="off" value="${esc(q.words)}" placeholder="${esc(t.ph)}"></div>`;
+}
+function optBtn(k, key, label, desc, art, on) {
+  return `<button type="button" class="opt" data-a="q2" data-k="${k}" data-v="${key}" aria-pressed="${on}">${art}<span class="t"><b>${esc(label)}</b>${desc ? `<span>${esc(desc)}</span>` : ''}</span></button>`;
+}
+const dots = cols => `<span class="dots" aria-hidden="true">${cols.slice(0, 5).map(h => `<i style="background:${h}"></i>`).join('')}</span>`;
+const stripeBg = cols => `linear-gradient(${cols.map((h, i) => `${h} ${i / cols.length * 100}% ${(i + 1) / cols.length * 100}%`).join(',')})`;
+const roundStripe = cols => `<span class="dots" aria-hidden="true"><i style="background:${stripeBg(cols)}"></i></span>`;
+const stripe = cols => `<span class="stripe" aria-hidden="true" style="background:linear-gradient(${cols.map((h, i) => `${h} ${i / cols.length * 100}% ${(i + 1) / cols.length * 100}%`).join(',')})"></span>`;
+function designBody(i) {
+  const k = Q2[i].k;
+  if (k === 'center') return `<div class="field"><label for="center">Center word</label><input id="center" maxlength="12" autocomplete="off" value="${esc(st.center)}" placeholder="Name, initials, or a word"></div><p class="hint">Up to 12 letters.</p>`;
+  if (k === 'grout') return `<div class="opts">${Object.entries(GROUTS).map(([key, [n, h]]) => optBtn('grout', key, n, '', h ? dots([h]) : roundStripe(['#E40303', '#FF8C00', '#FFED00', '#008026', '#004DFF', '#750787']), st.grout === key)).join('')}</div>`;
+  if (k === 'pal') return `<div class="opts">${Object.entries(PALS).map(([key, p]) => optBtn('pal', key, p.n, p.d || '', dots(p.c ? [...new Set(p.c)] : st.p.map(q => GLASS[q.col][1])), st.pal === key)).join('')}</div>`;
+  if (k === 'finish') return `<div class="opts">${Object.entries(FINISHES).map(([key, [n, d]]) => optBtn('finish', key, n, d, '', st.finish === key)).join('')}</div>`;
+  if (k === 'pattern') return `<div class="opts">${Object.entries(PATTERNS).map(([key, [n, d]]) => optBtn('pattern', key, n, d, '', st.pattern === key)).join('')}</div>`;
+  if (k === 'ring') return `<div class="opts">${Object.entries(RINGS).map(([key, [n, h]]) => optBtn('ring', key, n, '', Array.isArray(h) ? roundStripe(h) : dots([h]), st.ring === key)).join('')}</div>`;
+}
+function screenHTML() {
+  const f = FLOW[pos];
+  if (f.p === 1) { const t = TILES[f.i]; return `<div class="kicker">Piece ${f.i + 1} of ${TILES.length} · ${esc(t.k)}</div><h1>${esc(t.h)}</h1>${t.sub ? `<p class="sub">${esc(t.sub)}</p>` : ''}${tileBody(f.i)}${navHTML(f.i === TILES.length - 1 ? 'Set it in glass' : 'Next')}`; }
+  const q = Q2[f.i];
+  return `<div class="kicker">Set it in glass · ${f.i + 1} of ${Q2.length}</div><h1>${esc(q.h)}</h1>${q.sub ? `<p class="sub">${esc(q.sub)}</p>` : ''}${designBody(f.i)}${navHTML(f.i === Q2.length - 1 ? 'Finish my mosaic' : 'Next')}`;
+}
+function render() {
+  const f = FLOW[pos];
+  hover = null; dirty = true;
+  panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter');
+  pips();
+  outimg.hidden = true; cv.hidden = false; stage.classList.remove('tall');
+  if (f === 'intro') {
+    panel.innerHTML = `<div class="kicker">ESU Graphics Center</div>
+      <h1>What pieces make you, you?</h1>
+      <p class="sub">Answer 10 questions about your heritage and your culture: the food, the music, the people, the places. Each answer becomes a piece of glass in your mosaic, with an image you pick and a color you choose.</p>
+      <p>There’s no wrong way to answer. Your roots might be one place, many places, or something you’re still discovering. All of it counts.</p>
+      <p class="sub">Then set your glass and leave with it as a button, sticker, keychain, iron-on for a shirt, or a profile card.</p>
+      ${navHTML('Start')}`;
+    cap.textContent = 'Your mosaic fills in as you answer.';
+  } else if (f === 'finish') {
+    panel.innerHTML = finishHTML();
+    makeOut();
+  } else {
+    panel.innerHTML = screenHTML(); wire();
+    cap.textContent = f.p === 1 ? 'The glowing piece is the one you’re filling in.' : 'Point at an option to preview it. The dashed line shows where a button folds.';
+  }
+}
+function rerender(focusSel) {
+  const y = window.scrollY; panel.innerHTML = screenHTML(); wire(); window.scrollTo(0, y); dirty = true;
+  const el = focusSel && panel.querySelector(focusSel); if (el) el.focus({ preventScroll: true });
+}
+function wire() {
+  const w = document.getElementById('words'); if (w) w.addEventListener('input', () => { st.p[FLOW[pos].i].words = w.value; });
+  const c = document.getElementById('center'); if (c) { c.addEventListener('input', () => { st.center = c.value; dirty = true; refreshNext(); }); c.addEventListener('keydown', e => { if (e.key === 'Enter' && canNext()) go(1); }); }
+  panel.querySelectorAll('[data-a="q2"]').forEach(b => {
+    b.addEventListener('pointerenter', () => { hover = { k: b.dataset.k, v: b.dataset.v }; dirty = true; });
+    b.addEventListener('pointerleave', () => { hover = null; dirty = true; });
+  });
+}
+
+let restartArmed = null;
+document.getElementById('restart').onclick = e => {
+  const b = e.currentTarget;
+  if (restartArmed) { clearTimeout(restartArmed); restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; st = fresh(); pos = 0; render(); return; }
+  b.classList.add('armed'); b.textContent = 'Tap again to start over';
+  restartArmed = setTimeout(() => { restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; }, 3000);
+};
+document.getElementById('recut').onclick = () => { st.seed = (Math.random() * 1e9) | 0; dirty = true; if (FLOW[pos] === 'finish') makeOut(); };
+function go(d) {
+  pos = Math.max(0, Math.min(FLOW.length - 1, pos + d));
+  render(); window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+panel.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const act = b.dataset.a, v = b.dataset.v, f = FLOW[pos];
+  if (act === 'next') { if (canNext()) go(1); return; }
+  if (act === 'back') { go(-1); return; }
+  if (act === 'again') { st = fresh(); pos = 0; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'fmt') { st.format = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'shirt') { st.shirt = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'q2') { st[b.dataset.k] = v; hover = null; rerender(`[data-a="q2"][data-k="${b.dataset.k}"][data-v="${v}"]`); return; }
+  if (typeof f !== 'object' || f.p !== 1) return;
+  const q = st.p[f.i], t = TILES[f.i];
+  if (act === 'img') {
+    const n = q.img.indexOf(v);
+    if (n >= 0) q.img.splice(n, 1);
+    else if (t.multi) { q.img.push(v); if (q.img.length > t.multi) q.img.shift(); }
+    else q.img = [v];
+    rerender(`[data-a="img"][data-v="${v}"]`); return;
+  }
+  if (act === 'col') { q.col = +v; rerender(`[data-a="col"][data-v="${v}"]`); return; }
+});
+
+/* ---------- finish ---------- */
+const FMTS = [['button', 'Button'], ['sticker', 'Sticker'], ['keychain', 'Keychain'], ['shirt', 'Shirt (Cricut)'], ['card', 'Profile card']];
+function finishHTML() {
+  const tips = {
+    button: '<p>The outer ring wraps around the edge of the button. Your 10 pieces and center word stay on the front.</p>',
+    sticker: '<p>Print on sticker paper and cut along the dotted line.</p>',
+    keychain: '<p>Print, laminate, and cut along the dotted line. Punch the small circle at the top for the ring.</p>',
+    card: '<p>A 4 × 6 profile card with your mosaic and what each piece means, in your words. Print it on cardstock.</p>',
+    shirt: st.shirt === 'vinyl'
+      ? `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space. Choose <b>Complex</b> so the small pieces stay, and keep it as one layer.</li><li>Size it about 8–10 in wide for the front. Mosaics get busy small, so skip chest-logo size for vinyl.</li><li>Load heat transfer vinyl shiny side down. Turn on <b>Mirror</b> on the mat screen before you cut.</li><li>Weed out the grout lines and press it using your vinyl’s heat guide.</li></ol>`
+      : `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space as a <b>Print Then Cut</b> image.</li><li>Keep it within about 6.75 × 9.25 in (the Print Then Cut limit).</li><li>Print on printable heat transfer paper. Light-shirt paper usually needs a mirrored print, so turn on <b>Mirror</b> below. Dark-shirt paper does not.</li><li>Cut, peel, and press using the paper’s heat guide.</li></ol>`
+  };
+  cap.textContent = 'Right-click the picture and choose “Save image as” to keep it.';
+  return `<div class="kicker">Your mosaic is ready</div>
+    <h1>Every piece is yours.</h1>
+    <p class="sub">Here’s what your mosaic holds.</p>
+    <div class="pcs">${st.p.map((q, i) => `<div class="pc"><img src="${thumb(q.img[0], GLASS[q.col][1])}" alt=""><div><small>${esc(TILES[i].k)}</small><b>${esc(pieceText(i))}</b></div></div>`).join('')}</div>
+    <h2>Make it</h2>
+    <div class="seg" role="group" aria-label="What are you making?">${FMTS.map(([k, l]) => `<button type="button" class="chip" data-a="fmt" data-v="${k}" aria-pressed="${st.format === k}">${l}</button>`).join('')}</div>
+    ${st.format === 'shirt' ? `<div class="seg" role="group" aria-label="Shirt method">${[['color', 'Full color (printable iron-on)'], ['vinyl', 'One color (vinyl cut)']].map(([k, l]) => `<button type="button" class="chip" data-a="shirt" data-v="${k}" aria-pressed="${st.shirt === k}">${l}</button>`).join('')}</div>
+      ${st.shirt === 'color' ? `<label class="toggle"><input type="checkbox" id="mirror" ${st.mirror ? 'checked' : ''}> Mirror the picture</label>` : '<p class="hint">Leave this picture unmirrored. Design Space mirrors it for you when you turn on Mirror.</p>'}`
+      : `<label class="toggle"><input type="checkbox" id="mono" ${st.mono ? 'checked' : ''}> Black and white (saves color ink)</label>`}
+    ${tips[st.format]}
+    <div class="note"><b>To save:</b> right-click your picture and choose <b>Save image as</b>. Then print or upload the saved file. Want a different arrangement? Tap <b>Cut new glass</b>.</div>
+    <p class="credit">Images drawn for the ESU Graphics Center. The meaning of each piece is yours.</p>
+    <div class="nav"><button type="button" class="btn" data-a="back">Back</button><button type="button" class="btn go" data-a="again">Start a new mosaic</button></div>`;
+}
+function makeOut() {
+  const m = document.getElementById('mono'); if (m) m.onchange = () => { st.mono = m.checked; makeOut(); };
+  const mi = document.getElementById('mirror'); if (mi) mi.onchange = () => { st.mirror = mi.checked; makeOut(); };
+  const run = () => {
+    const out = compose(st.format);
+    outimg.src = out.toDataURL('image/png');
+    outimg.alt = `${st.center.trim()}’s Pieces of Me ${st.format === 'card' ? 'profile card' : st.format}, ready to print`;
+    stage.classList.toggle('tall', st.format === 'card');
+    outimg.hidden = false; cv.hidden = true;
+    outimg.style.background = st.format === 'shirt' ? 'repeating-conic-gradient(var(--chip) 0 25%, var(--surface) 0 50%) 0 0/24px 24px' : 'transparent';
+  };
+  document.fonts && document.fonts.ready ? document.fonts.ready.then(run) : run();
+}
+
+render();
+requestAnimationFrame(loop);
+document.fonts && document.fonts.ready.then(() => { dirty = true; });
+</script>
+</body>
+</html>
