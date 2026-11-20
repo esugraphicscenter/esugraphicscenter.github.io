@@ -797,12 +797,12 @@ function body9() {
     <ul class="key">${key.map(([k, v]) => `<li><b>${esc(k)}:</b> ${esc(v)}</li>`).join('')}</ul>
     <h2>Make it</h2>
     <div class="seg" role="group" aria-label="What are you making?">
-      ${[['button', 'Button'], ['keychain', 'Keychain'], ['shirt', 'Shirt iron-on']].map(([v, l]) => `<button type="button" id="fmt-${v}" data-fmt="${v}" aria-pressed="${state.format === v}">${l}</button>`).join('')}
+      ${[['button', 'Button'], ['sticker', 'Sticker'], ['keychain', 'Keychain'], ['shirt', 'Shirt iron-on'], ['card', 'Profile card']].map(([v, l]) => `<button type="button" id="fmt-${v}" data-fmt="${v}" aria-pressed="${state.format === v}">${l}</button>`).join('')}
     </div>
     <label class="toggle"><input type="checkbox" id="mono" ${state.mono ? 'checked' : ''}> Print-friendly black and white</label>
     <div class="out">
       <img id="outimg" alt="Your finished badge image">
-      <p>${{ button: 'Line it up with your button maker’s cutting template so the outer rim wraps the edge.', keychain: 'Same badge with a punch mark at the top for the ring. Laminate before punching.', shirt: 'Mirrored so it reads correctly once ironed on. Print on transfer paper, trim close, press face down.' }[state.format]}<br><br>To save it, right-click the image and choose <strong>Save image as</strong>, or take a screenshot. Then open it in Adobe Express with your own ESU account to size it for printing.</p>
+      <p>${{ button: 'Line it up with your button maker’s cutting template so the outer rim wraps the edge.', sticker: 'Print on sticker paper and cut along the dotted line.', card: 'A 4 × 6 profile card with your badge, your motto, your gear, and your field notes. Print it on cardstock.', keychain: 'Same badge with a punch mark at the top for the ring. Laminate before punching.', shirt: 'Mirrored so it reads correctly once ironed on. Print on transfer paper, trim close, press face down.' }[state.format]}<br><br>To save it, right-click the image and choose <strong>Save image as</strong>, or take a screenshot. Then open it in Adobe Express with your own ESU account to size it for printing.</p>
     </div>`;
 }
 const BODIES = [body0, body1, body2, body3, body4, body5, body6, body7, body8, body9];
@@ -975,12 +975,84 @@ async function askNotes() {
   }
 }
 
+function badgeCanvas(size) {
+  const b = document.createElement('canvas'); b.width = b.height = size;
+  render(b, Object.assign(badgeState(), { format: 'button' }), { final: true });
+  return b;
+}
+function wrapLines(c, text, x, y, w, lh, maxLines = 6) {
+  const words = String(text || '').split(/\s+/).filter(Boolean); let ln = '', n = 0;
+  for (const wd of words) {
+    const t = ln ? ln + ' ' + wd : wd;
+    if (c.measureText(t).width > w && ln) { if (++n >= maxLines) { c.fillText(ln + '…', x, y); return y + lh; } c.fillText(ln, x, y); y += lh; ln = wd; }
+    else ln = t;
+  }
+  if (ln) { c.fillText(ln, x, y); y += lh; }
+  return y;
+}
+/* 4 x 6 in profile card at 300 dpi */
+function composeTrailCard() {
+  const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
+  const o = out.getContext('2d'), bs = badgeState(), p = state.mono ? PAL.mono : PAL[bs.pal || 'easy'];
+  const n = state.notes || offlineNotes();
+  const DSP = w => `${w} Overpass, 'Arial Narrow', Arial, sans-serif`, BDY = w => `${w} 'Atkinson Hyperlegible', 'Segoe UI', Arial, sans-serif`;
+  const soft = state.mono ? '#555555' : p.rock, ink = p.ink;
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  o.fillStyle = p.skyLow; o.fillRect(0, 0, W, 760);
+  o.fillStyle = state.mono ? '#222222' : p.near; o.fillRect(0, 0, W, 120);
+  o.fillStyle = '#FFFFFF'; o.font = DSP('900 54px'); o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillText('MY TRAIL BADGE', W / 2, 64);
+  o.drawImage(badgeCanvas(1240), W / 2 - 310, 140, 620, 620);
+
+  o.textAlign = 'center'; o.textBaseline = 'alphabetic'; o.fillStyle = ink; o.font = DSP('900 56px');
+  let y = wrapLines(o, n.headline, W / 2, 858, 1000, 62, 2);
+  if (state.motto) { o.fillStyle = soft; o.font = BDY('italic 700 34px'); o.fillText(`“${state.motto.charAt(0) + state.motto.slice(1).toLowerCase()}”`, W / 2, y + 6); y += 50; }
+
+  const label = (t, x, yy) => { o.fillStyle = soft; o.font = DSP('800 26px'); o.textAlign = 'left'; o.fillText(t, x, yy); };
+  const dot = (x, yy) => { o.beginPath(); o.arc(x, yy, 8, 0, Math.PI * 2); o.fillStyle = state.mono ? '#444444' : p.accent; o.fill(); o.lineWidth = 3; o.strokeStyle = ink; o.stroke(); };
+  const top = Math.max(y + 40, 1010);
+  // left: gear
+  label('GEAR I ALWAYS CARRY', 110, top);
+  let ly = top + 50;
+  state.pack.map(gearBy).filter(Boolean).forEach(g => {
+    dot(122, ly - 10); o.fillStyle = ink; o.font = BDY('700 30px'); o.fillText(g.label, 146, ly);
+    o.fillStyle = soft; o.font = BDY('400 26px'); o.fillText(g.skill, 146, ly + 34); ly += 84;
+  });
+  // right: growth + storm
+  const g = state.growth ? gearBy(state.growth) : null, st = STORM.find(x => x.v === state.storm[0]);
+  let ry = top;
+  if (g) { label('STILL LEARNING TO CARRY', 640, ry); o.fillStyle = ink; o.font = BDY('700 30px'); o.fillText(g.label, 640, ry + 50); o.fillStyle = soft; o.font = BDY('400 26px'); o.fillText(g.skill, 640, ry + 84); ry += 140; }
+  if (st) { label('FIRST MOVE IN A STORM', 640, ry); o.fillStyle = ink; o.font = BDY('700 30px'); o.fillText(st.skill, 640, ry + 50); o.fillStyle = soft; o.font = BDY('400 26px'); wrapLines(o, st.label, 640, ry + 84, 450, 32, 2); ry += 160; }
+  // full width: try this week
+  const ty = Math.max(ly, ry) + 20;
+  o.beginPath(); o.roundRect(90, ty, 1020, Math.min(1700 - ty, 220), 22); o.fillStyle = p.skyLow; o.fill(); o.lineWidth = 3; o.strokeStyle = ink; o.stroke();
+  label('TRY THIS WEEK', 124, ty + 48);
+  o.fillStyle = ink; o.font = BDY('700 30px'); wrapLines(o, n.try, 124, ty + 94, 950, 40, 3);
+
+  o.fillStyle = state.mono ? '#888888' : p.far; o.font = DSP('700 22px'); o.textAlign = 'center';
+  o.fillText('ESU Graphics Center · Trail Badge Builder', W / 2, 1750);
+  return out;
+}
+function composeSticker() {
+  const out = document.createElement('canvas'); out.width = out.height = 1500;
+  const o = out.getContext('2d');
+  o.beginPath(); o.arc(750, 750, 740, 0, Math.PI * 2); o.fillStyle = '#FFFFFF'; o.fill();
+  o.save(); o.setLineDash([25, 20]); o.lineWidth = 7; o.strokeStyle = '#9AA3B5'; o.beginPath(); o.arc(750, 750, 735, 0, Math.PI * 2); o.stroke(); o.restore();
+  o.drawImage(badgeCanvas(1350), 75, 75, 1350, 1350);
+  return out;
+}
 function makeOutput() {
   const img = document.getElementById('outimg');
   if (!img) return;
-  const cv = document.createElement('canvas');
-  cv.width = cv.height = 1500;
-  render(cv, badgeState(), { final: true, mirror: state.format === 'shirt' });
+  let cv;
+  if (state.format === 'card') cv = composeTrailCard();
+  else if (state.format === 'sticker') cv = composeSticker();
+  else {
+    cv = document.createElement('canvas');
+    cv.width = cv.height = 1500;
+    render(cv, badgeState(), { final: true, mirror: state.format === 'shirt' });
+  }
+  img.alt = state.format === 'card' ? 'Your printable profile card' : 'Your finished badge image';
   try { img.src = cv.toDataURL('image/png'); } catch (e) { img.alt = 'Image could not be generated. Take a screenshot of the badge instead.'; }
 }
 
