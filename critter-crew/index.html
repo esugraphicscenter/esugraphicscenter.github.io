@@ -109,7 +109,8 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 
 .easel{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
 .stage{width:100%;max-width:520px;aspect-ratio:1;position:relative}
-.stage canvas,.stage img{width:100%;height:100%;display:block}
+.stage.tall{aspect-ratio:2/3;max-width:400px}
+.stage canvas,.stage img{width:100%;height:100%;display:block;object-fit:contain}
 .stage img{background:transparent}
 .stage [hidden]{display:none}
 .cap{font:700 15px var(--body);color:var(--muted);text-align:center;max-width:40ch}
@@ -169,6 +170,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   .app{grid-template-columns:minmax(0,1fr)}
   .easel{position:static;order:-1}
   .stage{max-width:300px}
+  .stage.tall{max-width:260px}
   .panel{padding:22px 18px 20px}
 }
 @media (max-width:520px){
@@ -195,7 +197,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
   <div class="app">
     <section class="panel" id="panel" aria-live="polite"></section>
     <aside class="easel">
-      <div class="stage">
+      <div class="stage" id="stage">
         <canvas id="badge" width="1080" height="1080" aria-label="Your badge, updating as you answer"></canvas>
         <img id="outimg" alt="Your finished creature badge" hidden>
       </div>
@@ -977,8 +979,77 @@ function compose(size, fmt, mono, mirror) {
   return res;
 }
 
+
+/* ---------- profile card (4 x 6 in at 300 dpi = 1200 x 1800) ---------- */
+function wrapText(c, text, x, y, w, lh, maxLines = 9) {
+  const words = String(text).split(' '); let ln = '', n = 0;
+  for (let i = 0; i < words.length; i++) {
+    const t = ln ? ln + ' ' + words[i] : words[i];
+    if (c.measureText(t).width > w && ln) {
+      if (++n >= maxLines) { c.fillText(ln + '…', x, y); return y + lh; }
+      c.fillText(ln, x, y); y += lh; ln = words[i];
+    } else ln = t;
+  }
+  if (ln) { c.fillText(ln, x, y); y += lh; }
+  return y;
+}
+function composeCard(mono) {
+  const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
+  const o = out.getContext('2d'), v = view(), A = ANIMALS[v.animal], C = colorOf(v.color);
+  const head = C.c, tint = shade(C.c, 84), soft = '#5B6488', faint = '#9AA3B5';
+  const D = "'Trebuchet MS', sans-serif", fd = w => `${w} Fredoka, ${D}`, fb = w => `${w} Nunito, system-ui, sans-serif`;
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  o.fillStyle = tint; o.fillRect(0, 0, W, 760);
+  o.fillStyle = head; o.fillRect(0, 0, W, 120);
+  o.fillStyle = lum(head) > .62 ? INK : '#FFFFFF'; o.font = fd('700 54px'); o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillText('MY LEADER CREATURE', W / 2, 62);
+  o.save(); o.translate(W / 2 - 310, 140); o.scale(620 / 600, 620 / 600); drawBadge(o, v, 'creature', 0); o.restore();
+
+  o.textAlign = 'center'; o.textBaseline = 'alphabetic'; o.fillStyle = INK;
+  o.font = fd('700 70px'); o.fillText((v.name || '').trim() || A.n, W / 2, 862);
+  o.fillStyle = shade(head, -35); if (lum(head) > .62) o.fillStyle = '#8A5A00';
+  o.font = fd('600 44px'); o.fillText(`${A.style} · ${A.n}`, W / 2, 922);
+  const mt = v.motto && v.motto.start ? `“${v.motto.start} ${v.motto.end.trim()}.”` : '';
+  if (mt) { o.fillStyle = soft; o.font = fb('italic 700 34px'); o.fillText(mt, W / 2, 978); }
+
+  // leader mix: same numbers the student saw on the hatch screen
+  const r = ranks(), tot = Object.values(r.sc).reduce((x, y) => x + y, 0) || 1, mx = r.sc[r.order[0]] || 1;
+  o.textAlign = 'left'; o.fillStyle = soft; o.font = fb('800 26px'); o.fillText('MY LEADER MIX', 110, 1048);
+  r.order.slice(0, 3).forEach((k, i) => {
+    const y = 1072 + i * 52;
+    o.fillStyle = INK; o.font = fb(`${k === v.animal ? 800 : 700} 28px`); o.fillText(ANIMALS[k].n, 110, y + 27);
+    rr(o, 330, y + 5, 660, 28, 14); S(o, '#E8EDF7', 3);
+    o.save(); rr(o, 330, y + 5, 660, 28, 14); o.clip(); o.fillStyle = k === v.animal ? head : '#2FB397'; o.fillRect(330, y + 5, 660 * r.sc[k] / mx, 28); o.restore();
+    rr(o, 330, y + 5, 660, 28, 14); S(o, null, 3);
+    o.textAlign = 'right'; o.fillStyle = soft; o.fillText(Math.round(r.sc[k] / tot * 100) + '%', 1090, y + 28); o.textAlign = 'left';
+  });
+
+  // quick facts
+  const fact = (x, label, val) => {
+    rr(o, x, 1250, 480, 96, 18); S(o, '#F4F6FB', 3);
+    o.fillStyle = soft; o.font = fb('800 21px'); o.fillText(label, x + 24, 1286);
+    o.fillStyle = INK; o.font = fb('700 30px'); o.fillText(val, x + 24, 1328);
+  };
+  const sc = SCENE[v.scene] || '';
+  fact(110, 'DREAM JOB', JOB[v.job] || '—');
+  fact(610, 'FREE TIME', sc ? sc[0].toUpperCase() + sc.slice(1) : '—');
+
+  // strengths + growth edge
+  o.fillStyle = soft; o.font = fb('800 26px'); o.fillText('MY STRENGTHS', 110, 1412); o.fillText('MY GROWTH EDGE', 640, 1412);
+  let y = 1460; o.font = fb('700 29px');
+  A.str.forEach(t => { star(o, 124, y - 10, 13, head); o.fillStyle = INK; o.font = fb('700 29px'); y = wrapText(o, t, 148, y, 420, 38) + 14; });
+  o.fillStyle = INK; o.font = fb('700 29px'); wrapText(o, A.edge, 640, 1460, 450, 40, 6);
+
+  o.fillStyle = faint; o.font = fb('700 22px'); o.textAlign = 'center';
+  o.fillText('ESU Graphics Center · Critter Crew', W / 2, 1750);
+  if (!mono) return out;
+  const g = document.createElement('canvas'); g.width = W; g.height = H;
+  const gx = g.getContext('2d'); gx.filter = 'grayscale(1) contrast(1.15)'; gx.drawImage(out, 0, 0);
+  return g;
+}
+
 /* =============================== UI =============================== */
-const panel = document.getElementById('panel'), cap = document.getElementById('cap'), outimg = document.getElementById('outimg');
+const panel = document.getElementById('panel'), cap = document.getElementById('cap'), outimg = document.getElementById('outimg'), stage = document.getElementById('stage');
 const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 const L = 'ABCDEFGH';
 const an = w => /^[AEIOU]/i.test(w) ? 'an' : 'a';
@@ -1016,7 +1087,7 @@ function navHTML(nextLabel) {
 function render(focus, quiet) {
   const f = FLOW[pos];
   hover = null;
-  outimg.hidden = true; cv.hidden = false;
+  outimg.hidden = true; cv.hidden = false; stage.classList.remove('tall');
   let h = '';
   if (f === 'intro') {
     h = `<div class="kicker">Graphics Center · about 10 minutes</div>
@@ -1162,7 +1233,8 @@ function finishHTML() {
     sticker: 'Print on sticker paper and cut along the dotted line.',
     keychain: 'Print, laminate, and cut along the dotted line. Punch the small circle at the top for the ring.',
     cricut: 'Upload the saved picture to Cricut Design Space and choose Print Then Cut. The background is see-through, so the machine cuts around the white border. Keep it 6.75 inches wide or smaller.',
-    shirt: 'Print on iron-on transfer paper, or upload it for heat-transfer vinyl or a shirt printer. The background is see-through, so only the badge goes on the shirt.'
+    shirt: 'Print on iron-on transfer paper, or upload it for heat-transfer vinyl or a shirt printer. The background is see-through, so only the badge goes on the shirt.',
+    card: 'A 4 \u00D7 6 profile card with your creature, your motto, your leader mix, and your strengths. Print it on cardstock.'
   };
   cap.textContent = 'Right-click the picture and choose “Save image as” to keep it.';
   return `<div class="kicker">Your badge is ready</div>
@@ -1177,7 +1249,7 @@ function finishHTML() {
     <div class="note"><b>Growth edge:</b> ${A.edge}</div>
     <h2>Make it</h2>
     <div class="seg" role="group" aria-label="What are you making?">
-      ${[['button', 'Button'], ['sticker', 'Sticker'], ['keychain', 'Keychain'], ['cricut', 'Cricut'], ['shirt', 'T-shirt']].map(([k, l]) => `<button type="button" class="chip" id="fmt-${k}" data-fmt="${k}" aria-pressed="${st.format === k}">${l}</button>`).join('')}
+      ${[['button', 'Button'], ['sticker', 'Sticker'], ['keychain', 'Keychain'], ['cricut', 'Cricut'], ['shirt', 'T-shirt'], ['card', 'Profile card']].map(([k, l]) => `<button type="button" class="chip" id="fmt-${k}" data-fmt="${k}" aria-pressed="${st.format === k}">${l}</button>`).join('')}
     </div>
     <label class="toggle"><input type="checkbox" id="mono" ${st.mono ? 'checked' : ''}> Black and white (saves color ink)</label>
     ${st.format === 'shirt' ? `<label class="toggle"><input type="checkbox" id="mirror" ${st.mirror ? 'checked' : ''}> Mirror it (needed for iron-on paper for light shirts)</label>` : ''}
@@ -1188,11 +1260,12 @@ function finishHTML() {
 
 function makeOut() {
   const go = () => {
-    const shirt = st.format === 'shirt';
-    const out = compose(shirt ? 2400 : 1200, st.format, st.mono, shirt && st.mirror);
+    const shirt = st.format === 'shirt', card = st.format === 'card';
+    const out = card ? composeCard(st.mono) : compose(shirt ? 2400 : 1200, st.format, st.mono, shirt && st.mirror);
     outimg.src = out.toDataURL('image/png');
-    const label = { button: 'button', sticker: 'sticker', keychain: 'keychain', cricut: 'Cricut Print Then Cut image', shirt: 'T-shirt transfer' }[st.format];
+    const label = { button: 'button', sticker: 'sticker', keychain: 'keychain', cricut: 'Cricut Print Then Cut image', shirt: 'T-shirt transfer', card: 'profile card' }[st.format];
     outimg.alt = `${st.name.trim()} the ${ANIMALS[picked].n}, printable ${label}${shirt && st.mirror ? ' (mirrored)' : ''}`;
+    stage.classList.toggle('tall', card);
     outimg.hidden = false; cv.hidden = true;
   };
   document.fonts && document.fonts.ready ? document.fonts.ready.then(go) : go();
