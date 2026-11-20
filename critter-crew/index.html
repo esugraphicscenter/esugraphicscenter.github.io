@@ -835,7 +835,8 @@ function drawCreature(c, v, C, hatch) {
 function colorOf(key) { return COLORS[key] || { c: '#2D7DD2', p: '#FFC83D' }; }
 
 /* ---------- hatch animation ---------- */
-const H_SHAKE = 1300, H_SPLIT = 1700, H_END = 3600;
+const H_SHAKE = 1300, H_SPLIT = 1700, H_END = 3600, CALM_END = 1900, CALM_SWAP = 650;
+const hatchEnd = () => reduce ? CALM_END : H_END;
 let hatchStart = null;
 const easeOutBack = x => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
 const easeOutBounce = x => { const n = 7.5625, d = 2.75;
@@ -851,7 +852,28 @@ function rays(c, e, k) {
   const g = c.createRadialGradient(300, 320, 10, 300, 320, 220); g.addColorStop(0, `rgba(255,248,214,${.9 * k})`); g.addColorStop(1, 'rgba(255,248,214,0)');
   c.fillStyle = g; c.fillRect(0, 0, 600, 600);
 }
+/* calm hatch for computers with animations turned off: no shaking, flashing, rays, or confetti */
+function drawCalmHatch(c, v, C, e) {
+  const glow = Math.min(1, e / 450), k = Math.max(0, Math.min(1, (e - 450) / 500));
+  if (k < 1) {
+    c.save(); c.globalAlpha = 1 - k;
+    ell(c, 300, 486, 140, 32); S(c, '#B9824A', 6);
+    c.save(); c.shadowColor = 'rgba(255,212,94,.9)'; c.shadowBlur = 40 * glow; eggPath(c); F(c, '#FFF6E3'); c.restore();
+    c.save(); eggPath(c); c.clip(); eggSpots(c); c.restore();
+    eggPath(c); S(c, null, 6);
+    CRACKS.forEach(cr => { line(c, cr, `rgba(255,212,94,${glow})`, 10); line(c, cr, INK, 5); });
+    c.restore();
+  }
+  if (k > 0) {
+    c.save(); c.globalAlpha = k;
+    drawPower(c, v.power, C);
+    c.translate(300, 286); c.scale(.94, .94); c.translate(-300, -300);
+    drawCreature(c, v, C, true);
+    c.restore();
+  }
+}
 function drawHatching(c, v, C, e) {
+  if (reduce) return drawCalmHatch(c, v, C, e);
   const raysK = e < 1000 ? 0 : Math.min(1, (e - 1000) / 500) * (e > 2900 ? Math.max(0, 1 - (e - 2900) / 700) : 1);
   rays(c, e, raysK);
   if (e < H_SPLIT) {
@@ -894,7 +916,7 @@ function drawBadge(c, v, mode, t) {
   const C = colorOf(v.color);
   const rim = mode === 'egg' || mode === 'hatching' ? INK : (v.color ? C.c : INK);
   const e = mode === 'hatching' && hatchStart != null ? t - hatchStart : 0;
-  const showAnimal = mode === 'creature' || mode === 'hatch' || (mode === 'hatching' && e > H_SPLIT + 500);
+  const showAnimal = mode === 'creature' || mode === 'hatch' || (mode === 'hatching' && e > (reduce ? CALM_SWAP : H_SPLIT + 500));
   c.save();
   circ(c, 300, 300, 296); S(c, rim, 6);
   c.save(); circ(c, 300, 300, 252); c.clip();
@@ -926,12 +948,12 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function paint(t = performance.now()) {
   cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
   cx.setTransform(cv.width / 600, 0, 0, cv.width / 600, 0, 0);
-  drawBadge(cx, view(), mode(), reduce ? 0 : t);
+  drawBadge(cx, view(), mode(), reduce && mode() !== 'hatching' ? 0 : t);
 }
 function loop(t) {
   const m = mode();
   if (m === 'hatching') {
-    if (performance.now() - hatchStart > H_END) { hatchStart = null; render('next'); }
+    if (performance.now() - hatchStart > hatchEnd()) { hatchStart = null; render('next'); }
     else paint(performance.now());
   } else if (m === 'egg' && !reduce) paint(t);
   requestAnimationFrame(loop);
@@ -1274,7 +1296,7 @@ function makeOut() {
 function go(d) {
   const f = FLOW[pos];
   hatchStart = null;
-  if (d > 0 && f !== 'intro' && f !== 'finish' && f.p === 1 && f.i === 9) { picked = ranks().order[0]; if (!reduce) hatchStart = performance.now(); }
+  if (d > 0 && f !== 'intro' && f !== 'finish' && f.p === 1 && f.i === 9) { picked = ranks().order[0]; hatchStart = performance.now(); }
   if (d > 0 && f === 'intro') picked = null;
   pos = Math.max(0, Math.min(FLOW.length - 1, pos + d));
   ui = { r: 0, touched: false, msg: '' };
