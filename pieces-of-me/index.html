@@ -176,7 +176,7 @@ const GLASS = [['Terracotta', '#D9653B'], ['Marigold', '#F2A900'], ['Chili', '#C
 const TILES = [
   { k: 'Roots', h: 'Where do your roots trace back to?', sub: 'Pick one or two images. Your roots can be one place, many places, or a question you’re still answering.', ph: 'e.g. Puebla + Ghana', multi: 2,
     imgs: ['globe', 'pin', 'compass', 'treeRoots', 'mountains', 'wave', 'palm', 'cactus', 'river', 'boat', 'plane', 'magnifier'] },
-  { k: 'Food', h: 'What food tastes like home?', sub: 'Pick the image closest to it.', ph: 'e.g. Abuela’s pozole',
+  { k: 'Food', h: 'What food tastes like home?', sub: 'Pick the image closest to it, then name the dish if you want.', ph: 'e.g. Abuela’s pozole',
     imgs: ['bowl', 'pot', 'skillet', 'bread', 'riceBowl', 'flatbread', 'dumpling', 'pepper', 'corn', 'fruit', 'cup', 'cake'] },
   { k: 'Music or sound', h: 'What sound or music moves you?', sub: 'The song at every family party counts. So does a voice you grew up hearing.', ph: 'e.g. Bachata on Sundays',
     imgs: ['drum', 'guitar', 'maracas', 'flute', 'piano', 'violin', 'trumpet', 'mic', 'headphones', 'notes', 'dancer', 'radio'] },
@@ -184,7 +184,7 @@ const TILES = [
     imgs: ['confetti', 'lantern', 'fireworks', 'gift', 'balloons', 'lights', 'garland', 'moonStar', 'sun', 'table', 'sparkler', 'banner'] },
   { k: 'Tradition', h: 'What tradition or ritual matters to you?', sub: 'Something your family does, makes, or keeps.', ph: 'e.g. Building the ofrenda',
     imgs: ['candle', 'photo', 'flower', 'book', 'needle', 'clayPot', 'joined', 'bell', 'path', 'seedling', 'textile', 'incense'] },
-  { k: 'A word', h: 'What word or phrase from your family stays with you?', sub: 'Pick the image that fits it best.', ph: 'e.g. Ubuntu',
+  { k: 'A word', h: 'What word or phrase from your family stays with you?', sub: 'Type it in the box below if you want it on your profile card.', ph: 'e.g. Ubuntu',
     imgs: ['speech', 'quotes', 'letters', 'pen', 'envelope', 'scroll', 'signHand', 'ear', 'chatHearts', 'language', 'bookmark', 'megaphone'] },
   { k: 'My person', h: 'Who carries your culture?', sub: 'The person who keeps it alive for you.', ph: 'e.g. My Lola',
     imgs: ['grandma', 'grandpa', 'mother', 'father', 'siblings', 'auntUncle', 'family', 'teacher', 'friends', 'child', 'ancestors', 'chosen'] },
@@ -719,7 +719,7 @@ function compose(fmt) {
 function gray(src) { const g = document.createElement('canvas'); g.width = src.width; g.height = src.height; const gx = g.getContext('2d'); gx.filter = 'grayscale(1) contrast(1.15)'; gx.drawImage(src, 0, 0); return g; }
 const MEANS = ['Where I come from', 'Tastes like home', 'Moves me', 'I look forward to it', 'Matters to my family',
   'Stays with me', 'Carries my culture', 'My home base', 'Passed down to me', 'What I want you to know'];
-function pieceText(i) { return MEANS[i] || ''; }
+function pieceText(i) { return st.p[i].words.trim() || MEANS[i] || ''; }
 function composeCard(v) {
   const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
   const o = out.getContext('2d');
@@ -781,7 +781,8 @@ function tileBody(i) {
   return `<div class="imgs" role="group" aria-label="Images for ${esc(t.k)}">${t.imgs.map(k => `<button type="button" class="img" data-a="img" data-v="${k}" aria-pressed="${q.img.includes(k)}"><img src="${thumb(k, col)}" alt=""><span>${esc(ICONS[k][0])}</span></button>`).join('')}</div>
     ${t.multi ? `<p class="hint">${q.img.length} of 2 picked. Tap one again to remove it.</p>` : ''}
     <div class="lbl">Glass color</div>
-    <div class="sws" role="group" aria-label="Glass color">${GLASS.map(([n, h], k) => `<button type="button" class="sw" data-a="col" data-v="${k}" style="background:${h}" aria-label="${n}" aria-pressed="${q.col === k}" title="${n}"></button>`).join('')}</div>`;
+    <div class="sws" role="group" aria-label="Glass color">${GLASS.map(([n, h], k) => `<button type="button" class="sw" data-a="col" data-v="${k}" style="background:${h}" aria-label="${n}" aria-pressed="${q.col === k}" title="${n}"></button>`).join('')}</div>
+    <div class="field"><label for="words">In your own words (optional)</label><input id="words" maxlength="28" autocomplete="off" value="${esc(q.words)}" placeholder="${esc(t.ph)}"></div>`;
 }
 function optBtn(k, key, label, desc, art, on) {
   return `<button type="button" class="opt" data-a="q2" data-k="${k}" data-v="${key}" aria-pressed="${on}">${art}<span class="t"><b>${esc(label)}</b>${desc ? `<span>${esc(desc)}</span>` : ''}</span></button>`;
@@ -832,6 +833,7 @@ function rerender(focusSel) {
   const el = focusSel && panel.querySelector(focusSel); if (el) el.focus({ preventScroll: true });
 }
 function wire() {
+  const w = document.getElementById('words'); if (w) w.addEventListener('input', () => { st.p[FLOW[pos].i].words = w.value; });
   const c = document.getElementById('center'); if (c) { c.addEventListener('input', () => { st.center = c.value; dirty = true; refreshNext(); }); c.addEventListener('keydown', e => { if (e.key === 'Enter' && canNext()) go(1); }); }
   panel.querySelectorAll('[data-a="q2"]').forEach(b => {
     b.addEventListener('pointerenter', () => { hover = { k: b.dataset.k, v: b.dataset.v }; dirty = true; });
@@ -879,7 +881,7 @@ function finishHTML() {
     button: '<p>The outer ring wraps around the edge of the button. Your 10 pieces and center word stay on the front.</p>',
     sticker: '<p>Print on sticker paper and cut along the dotted line.</p>',
     keychain: '<p>Print, laminate, and cut along the dotted line. Punch the small circle at the top for the ring.</p>',
-    card: '<p>A 4 × 6 profile card with your mosaic and the 10 pieces that make you. Print it on cardstock.</p>',
+    card: '<p>A 4 × 6 profile card with your mosaic and what each piece means, in your words. Print it on cardstock.</p>',
     shirt: st.shirt === 'vinyl'
       ? `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space. Choose <b>Complex</b> so the small pieces stay, and keep it as one layer.</li><li>Size it about 8–10 in wide for the front. Mosaics get busy small, so skip chest-logo size for vinyl.</li><li>Load heat transfer vinyl shiny side down. Turn on <b>Mirror</b> on the mat screen before you cut.</li><li>Weed out the grout lines and press it using your vinyl’s heat guide.</li></ol>`
       : `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space as a <b>Print Then Cut</b> image.</li><li>Keep it within about 6.75 × 9.25 in (the Print Then Cut limit).</li><li>Print on printable heat transfer paper. Light-shirt paper usually needs a mirrored print, so turn on <b>Mirror</b> below. Dark-shirt paper does not.</li><li>Cut, peel, and press using the paper’s heat guide.</li></ol>`
