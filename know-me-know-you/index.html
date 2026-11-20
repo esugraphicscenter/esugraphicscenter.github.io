@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Know Me, Know You Badge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: kiosk split — question card on the left, the live friendship badge on the right; stacks on phones */
+:root{
+  --bg:#EEF3FF; --dot:#D9E3FA; --surface:#FFFFFF; --ink:#1B1E2E; --muted:#56607E;
+  --edge:#1B1E2E; --accent:#2357C7; --on-accent:#FFFFFF; --sun:#FFC72C; --on-sun:#1B1E2E;
+  --chip:#F4F7FF; --track:#D3DCF2; --good:#1E9E5A; --miss:#C8102E;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11152A; --dot:#1A2040; --surface:#1A2038; --ink:#EEF3FF; --muted:#AEB8D6;
+  --edge:#05070F; --accent:#5B8CFF; --on-accent:#FFFFFF; --sun:#FFD25A; --on-sun:#1B1E2E;
+  --chip:#232B4A; --track:#2E3860; --good:#4CD38A; --miss:#FF6B7F; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#11152A; --dot:#1A2040; --surface:#1A2038; --ink:#EEF3FF; --muted:#AEB8D6;
+  --edge:#05070F; --accent:#5B8CFF; --on-accent:#FFFFFF; --sun:#FFD25A; --on-sun:#1B1E2E;
+  --chip:#232B4A; --track:#2E3860; --good:#4CD38A; --miss:#FF6B7F; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  background-image:radial-gradient(var(--dot) 2.5px, transparent 2.6px);background-size:28px 28px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding-block:20px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.5px;line-height:1}
+.brand span{color:var(--accent)}
+.brand small{display:block;font-family:var(--body);font-weight:700;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.restart{font:700 14px var(--body);background:transparent;color:var(--muted);border:2px solid var(--track);border-radius:999px;padding:8px 16px;cursor:pointer}
+.restart.armed{border-color:var(--accent);color:var(--accent)}
+.progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.leg{display:flex;flex-direction:column;gap:6px;min-width:0}
+.leg b{font:700 12px var(--body);letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.leg.on b{color:var(--ink)}
+.bar{height:12px;border-radius:6px;background:var(--track);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .3s}
+.leg.on .bar i{background:var(--sun);box-shadow:inset 0 0 0 2px var(--edge)}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,520px);gap:28px;align-items:start}
+.panel{background:var(--surface);border:3px solid var(--edge);border-radius:28px;box-shadow:0 8px 0 var(--edge);
+  padding:30px 30px 26px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.panel.enter{animation:pop .28s ease-out}
+@keyframes pop{from{transform:translateY(8px);opacity:.4}to{transform:none;opacity:1}}
+.kicker{font:800 13px var(--body);letter-spacing:1.6px;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,3.4vw,40px);line-height:1.12;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.sub{margin:0;color:var(--muted);font-size:17px;max-width:60ch}
+p{margin:0;max-width:62ch}
+.lbl{font:800 13px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--edge);display:inline-block;flex:none}
+
+/* answer widgets */
+.duo{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.four{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ans{display:flex;align-items:center;gap:14px;text-align:left;font:inherit;color:var(--ink);background:var(--surface);
+  border:3px solid var(--edge);border-radius:20px;box-shadow:0 5px 0 var(--edge);padding:14px 16px;cursor:pointer;min-width:0;
+  transition:transform .08s, box-shadow .08s, background .15s}
+.ans:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--edge)}
+.ans:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.ans[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.ans .em{font-size:30px;line-height:1;flex:none}
+.ans b{font-weight:800;font-size:18px;line-height:1.25}
+.duo .ans{flex-direction:column;justify-content:center;text-align:center;padding:22px 14px;min-height:150px}
+.duo .ans .em{font-size:52px}
+.duo .ans b{font-size:21px;font-family:var(--display);font-weight:600}
+.or{display:none}
+.scale{display:flex;flex-direction:column;gap:8px}
+.scale .pts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.pt{display:flex;flex-direction:column;align-items:center;gap:6px;font:inherit;color:var(--ink);background:none;border:0;padding:4px 0;cursor:pointer;min-width:0}
+.pt i{width:52px;height:52px;border-radius:50%;border:3px solid var(--edge);background:var(--surface);box-shadow:0 4px 0 var(--edge);display:block;transition:transform .08s}
+.pt[aria-pressed="true"] i{background:var(--sun)}
+.pt:active i{transform:translateY(3px)}
+.pt span{font-weight:800;font-size:13.5px;line-height:1.2;text-align:center}
+.scale .ends{display:flex;justify-content:space-between;font:800 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.guess-row{display:flex;flex-direction:column;gap:10px;padding:14px;border:2px dashed var(--track);border-radius:20px}
+
+/* pass screen */
+.pass{align-items:flex-start}
+.who{display:inline-block;padding:0 .25em;border:3px solid var(--edge);border-radius:.3em;box-shadow:4px 4px 0 var(--edge);transform:rotate(-2deg)}
+.peek{display:flex;align-items:center;gap:12px;background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:12px 16px;font-weight:700}
+.peek .em{font-size:30px}
+
+/* intro */
+.count{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.count .ans{flex-direction:column;align-items:center;text-align:center;padding:18px 12px}
+.count .ans .ppl{display:flex;gap:4px}
+.count .ans .ppl i{width:26px;height:26px;border-radius:50%;border:3px solid var(--edge);display:block}
+.count .ans small{font-size:14px;opacity:.85}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font:800 13px var(--body);letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.field input{font:700 20px var(--display);color:var(--ink);background:var(--chip);border:3px solid var(--edge);border-radius:16px;padding:10px 16px;width:100%;max-width:440px}
+.field input:focus{outline:3px solid var(--accent);outline-offset:2px}
+.hint{font-size:14px;color:var(--muted)}
+
+/* design */
+.sws{display:flex;flex-wrap:wrap;gap:10px}
+.sw{width:42px;height:42px;border-radius:50%;border:3px solid var(--edge);cursor:pointer;padding:0;box-shadow:0 3px 0 var(--edge)}
+.sw[aria-pressed="true"]{outline:4px solid var(--sun);outline-offset:2px}
+.syms{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.sym{display:flex;flex-direction:column;align-items:center;gap:2px;font:inherit;color:var(--ink);background:var(--surface);border:3px solid var(--edge);border-radius:16px;box-shadow:0 3px 0 var(--edge);padding:6px 4px;cursor:pointer;min-width:0}
+.sym[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.sym img{width:100%;max-width:56px;aspect-ratio:1;display:block}
+.sym span{font-weight:800;font-size:12.5px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--ink);background:var(--surface);
+  border:3px solid var(--edge);border-radius:20px;box-shadow:0 5px 0 var(--edge);padding:12px 14px;cursor:pointer;
+  transition:transform .08s, box-shadow .08s, background .15s;min-width:0}
+.opt:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.opt[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.opt .t{display:flex;flex-direction:column;min-width:0}
+.opt .t b{font-weight:800;font-size:17px;line-height:1.25}
+.opt .t span{font-size:14px;opacity:.8;line-height:1.35}
+.opt img{width:46px;height:46px;flex:none}
+.friend-block{display:flex;flex-direction:column;gap:10px}
+
+/* reveal */
+.tier{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.pct{font:700 64px var(--display);line-height:1;background:var(--sun);color:var(--on-sun);border:3px solid var(--edge);border-radius:24px;box-shadow:0 6px 0 var(--edge);padding:10px 18px;transform:rotate(-3deg)}
+.scores{display:flex;flex-direction:column;gap:10px}
+.score{display:grid;grid-template-columns:minmax(0,1fr) 140px 54px;gap:12px;align-items:center;font-weight:800}
+.score .bar{height:16px;border-radius:8px;border:2px solid var(--edge)}
+.score em{font-style:normal;text-align:right;font-family:var(--display);font-weight:600;font-size:20px}
+.rv{display:flex;flex-direction:column;gap:10px}
+.rq{background:var(--chip);border:2px solid var(--edge);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.rq > b{font-family:var(--display);font-weight:600;font-size:18px}
+.rl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:15.5px}
+.said{font-weight:800}
+.g{font-weight:700;font-size:14px;border-radius:999px;padding:3px 10px;border:2px solid var(--edge);background:var(--surface)}
+.g.hit{background:var(--good);color:#fff}
+.g.close{background:var(--sun);color:var(--on-sun)}
+.g.miss{background:var(--surface);color:var(--ink);text-decoration:none}
+
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}
+.btn{font:700 18px var(--display);letter-spacing:.3px;border:3px solid var(--edge);border-radius:999px;padding:12px 26px;cursor:pointer;
+  background:var(--surface);color:var(--ink);box-shadow:0 5px 0 var(--edge);transition:transform .08s, box-shadow .08s;text-decoration:none;display:inline-block}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--edge)}
+.btn.go{background:var(--accent);color:var(--on-accent);margin-left:auto}
+.btn.sm{font-size:15px;padding:8px 18px;box-shadow:0 4px 0 var(--edge)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:0 5px 0 var(--edge)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+.note{background:var(--chip);border:2px dashed var(--track);border-radius:16px;padding:12px 16px;font-size:15px;color:var(--muted)}
+.note b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:700 16px var(--body);color:var(--ink);background:var(--chip);border:2px solid var(--edge);border-radius:999px;padding:8px 16px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--sun);color:var(--on-sun)}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.toggle input{width:22px;height:22px;accent-color:var(--accent)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:15.5px}
+.credit{font-size:13px;color:var(--muted)}
+
+.easel{position:sticky;top:16px;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.stage{width:100%;max-width:520px;aspect-ratio:1;position:relative}
+.stage.tall{aspect-ratio:2/3;max-width:400px}
+.stage canvas,.stage img{width:100%;height:100%;display:block;object-fit:contain}
+.minis{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.mini{display:flex;flex-direction:column;align-items:center;gap:2px;font:800 12px var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.mini canvas{width:120px;height:120px}
+.cap{font:700 15px var(--body);color:var(--muted);text-align:center;max-width:44ch}
+
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .easel{position:static;order:-1}
+  .stage{max-width:280px}
+  .stage.tall{max-width:240px}
+  .mini canvas{width:90px;height:90px}
+  .panel{padding:22px 18px 20px}
+}
+@media (max-width:560px){
+  .four,.opts{grid-template-columns:minmax(0,1fr)}
+  .duo .ans{min-height:120px}
+  .progress{grid-template-columns:minmax(0,1fr);gap:8px}
+  .syms{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pt i{width:44px;height:44px}
+  .score{grid-template-columns:minmax(0,1fr) 90px 48px}
+  .pct{font-size:48px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a href="../" class="gc-home" aria-label="Back to all badges">&larr; All badges</a>
+<style>.gc-home{position:fixed;left:16px;bottom:16px;z-index:50;font:700 15px system-ui,sans-serif;color:#141414;background:#FFC72C;border:3px solid #141414;border-radius:999px;padding:9px 16px;box-shadow:3px 3px 0 #141414;text-decoration:none}.gc-home:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #141414}@media print{.gc-home{display:none}}</style>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">Know Me, <span>Know You</span><small>Graphics Center · A badge for friends</small></div>
+    <button type="button" class="restart" id="restart">Start over</button>
+  </header>
+  <div class="progress" aria-label="Progress">
+    <div class="leg" id="leg1"><b>Round 1 · About me</b><div class="bar"><i id="bar1"></i></div></div>
+    <div class="leg" id="leg2"><b>Round 2 · Guess</b><div class="bar"><i id="bar2"></i></div></div>
+    <div class="leg" id="leg3"><b>Part 3 · Make the badge</b><div class="bar"><i id="bar3"></i></div></div>
+  </div>
+  <div class="app">
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <aside class="easel">
+      <div class="stage" id="stage">
+        <canvas id="badge" width="1080" height="1080" aria-label="Your friendship badge, one piece for each friend"></canvas>
+        <img id="outimg" alt="" hidden>
+      </div>
+      <div class="minis" id="minis" hidden></div>
+      <div class="cap" id="cap"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* =============================== DATA =============================== */
+const INK = '#1B1E2E', TAU = Math.PI * 2, LW = 5;
+const COLORS = [['Cobalt', '#2357C7'], ['Bubblegum', '#FF7AB6'], ['Sunshine', '#FFC72C'], ['Lime', '#9BD13A'], ['Teal', '#00A3AD'],
+  ['Tangerine', '#FF8A2B'], ['Cherry', '#D7263D'], ['Grape', '#7B4DFF'], ['Mint', '#5FD3B0'], ['Midnight', '#24315E']];
+const SYMS = { star: 'Star', bolt: 'Bolt', moon: 'Moon', sun: 'Sun', flower: 'Flower', note: 'Music', sparkle: 'Sparkle', smile: 'Smile', flame: 'Flame', cloud: 'Cloud' };
+const SHAPES = { heart: ['Heart', 'The classic BFF split'], star: ['Star', 'A point for every friend'], circle: ['Circle', 'Clean and simple'] };
+const PATS = { dots: ['Polka dots', ''], stripes: ['Stripes', ''], checks: ['Checkers', ''], confetti: ['Confetti', ''], plain: ['Plain', 'Just your color'] };
+
+/* Questions: light and public-safe. One wording works for "you" and for guessing a friend. */
+const QS = [
+  { t: 'pick', k: '2 a.m. snack', h: 'Go-to 2 a.m. snack?', o: [['🍟', 'Chips'], ['🍫', 'Something sweet'], ['🍜', 'Instant noodles'], ['🍕', 'Leftover pizza']] },
+  { t: 'wyr', k: 'Friday night', h: 'Perfect Friday night?', o: [['🎉', 'Out with a crowd'], ['🛋️', 'In with a movie']] },
+  { t: 'scale', k: '“On my way” means', h: 'Texts “on my way.” Where are they really?', o: ['Still in bed', 'Getting dressed', 'Halfway there', 'Around the corner', 'Already parked'] },
+  { t: 'pick', k: 'Group chat role', h: 'Role in the group chat?', o: [['😂', 'Meme sender'], ['📅', 'The planner'], ['🎙️', 'Voice-note sender'], ['👻', 'Leaves everyone on read']] },
+  { t: 'wyr', k: 'Beach or mountains', h: 'Beach day or mountain trail?', o: [['🏖️', 'Beach day'], ['⛰️', 'Mountain trail']] },
+  { t: 'pick', k: 'Superpower', h: 'Pick a superpower.', o: [['🕊️', 'Fly'], ['💨', 'Turn invisible'], ['🌀', 'Teleport'], ['🧠', 'Read minds']] },
+  { t: 'scale', k: 'Room right now', h: 'How clean is their room right now?', o: ['Spotless', 'Pretty neat', 'Lived-in', 'Messy', 'Floor-drobe'] },
+  { t: 'pick', k: 'Go-to drink', h: 'Go-to drink?', o: [['🧊', 'Iced coffee'], ['🍵', 'Tea'], ['⚡', 'Energy drink'], ['💧', 'Just water']] },
+  { t: 'wyr', k: 'Text or call', h: 'Text or call?', o: [['💬', 'Text me'], ['📞', 'Just call']] },
+  { t: 'pick', k: 'Karaoke move', h: 'Karaoke move?', o: [['🎤', 'Belt the ballad'], ['🔥', 'Take the rap verse'], ['🙌', 'Hype person'], ['🍿', 'Hide by the snacks']] }
+];
+const SELF_H = { 2: 'Where are you, really, when you text “on my way”?', 6: 'How clean is your room right now?' };
+const NQ = QS.length;
+const TIERS = [[.85, 'Ride or Die', 'Basically mind readers. Nothing gets past you.'],
+  [.65, 'Day Ones', 'You know each other for real, with a few surprises left.'],
+  [.4, 'Good Company', 'A solid start, plus some new things you just learned.'],
+  [0, 'New Mutuals', 'Lots still to learn, and that’s the fun part.']];
+const DESIGN = [
+  { k: 'colors', h: 'Each friend picks a color', sub: 'Your color fills your piece and your own button.' },
+  { k: 'symbols', h: 'Each friend picks a symbol', sub: 'It sits on your piece, so everyone knows which one is yours.' },
+  { k: 'shape', h: 'What shape do your pieces make?', sub: 'Put your buttons side by side and the edges fit together.' },
+  { k: 'pattern', h: 'Pick a background pattern', sub: 'Each button gets it in that friend’s color.' },
+  { k: 'words', h: 'What goes on the ring?', sub: 'Your names go on top. This goes on the bottom. Keep it something you’d wear in public.' }
+];
+const DEF_COL = [0, 1, 2], DEF_SYM = ['star', 'bolt', 'moon'];
+
+let st, FLOW, pos = 0;
+function fresh(n = 2) {
+  return { n, names: ['', '', ''], self: [0, 1, 2].map(() => Array(NQ).fill(null)), guess: {}, col: DEF_COL.slice(), sym: DEF_SYM.slice(),
+    shape: 'heart', pat: 'dots', phrase: 'tier', year: '', custom: '', format: 'button', shirt: 'color', mono: false, mirror: false, seed: (Math.random() * 1e9) | 0 };
+}
+const others = p => [...Array(st.n).keys()].filter(t => t !== p);
+const gk = (g, t) => g + '>' + t;
+function buildFlow() {
+  const F = ['intro', 'names'];
+  for (let p = 0; p < st.n; p++) { F.push({ t: 'pass', r: 'self', p }); for (let i = 0; i < NQ; i++) F.push({ t: 'self', p, i }); }
+  for (let p = 0; p < st.n; p++) {
+    others(p).forEach(t => { if (!st.guess[gk(p, t)]) st.guess[gk(p, t)] = Array(NQ).fill(null); });
+    F.push({ t: 'pass', r: 'guess', p }); for (let i = 0; i < NQ; i++) F.push({ t: 'guess', p, i });
+  }
+  F.push('reveal'); DESIGN.forEach((_, i) => F.push({ t: 'design', i })); F.push('finish');
+  FLOW = F;
+}
+const idxOf = x => FLOW.indexOf(x);
+const name = p => (st.names[p] || '').trim() || `Friend ${p + 1}`;
+const colOf = p => COLORS[st.col[p]][1];
+
+/* =============================== SCORING =============================== */
+function match(i, a, b) { if (a == null || b == null) return 0; if (a === b) return 1; return QS[i].t === 'scale' && Math.abs(a - b) === 1 ? .5 : 0; }
+function known(g, t) { const G = st.guess[gk(g, t)] || []; return QS.reduce((s, _, i) => s + match(i, st.self[t][i], G[i]), 0); }
+function pairs() { const P = []; for (let g = 0; g < st.n; g++) others(g).forEach(t => P.push([g, t])); return P; }
+function overall() { const P = pairs(); return P.reduce((s, [g, t]) => s + known(g, t), 0) / (P.length * NQ); }
+function tier() { const o = overall(); return TIERS.find(t => o >= t[0]); }
+function ansLabel(i, v) { const q = QS[i]; return q.t === 'scale' ? q.o[v] : q.o[v][1]; }
+function ansEm(i, v) { const q = QS[i]; return q.t === 'scale' ? '' : q.o[v][0] + ' '; }
+function sameAll() { return QS.map((_, i) => i).filter(i => { const a = st.self[0][i]; for (let p = 1; p < st.n; p++) if (st.self[p][i] !== a) return false; return true; }); }
+function misses() {
+  const M = [];
+  pairs().forEach(([g, t]) => QS.forEach((_, i) => { const G = st.guess[gk(g, t)][i]; if (match(i, st.self[t][i], G) === 0) M.push({ g, t, i }); }));
+  // spread the misses across questions so the card isn't one topic over and over
+  const seen = new Set(), out = [];
+  M.forEach(m => { if (!seen.has(m.i)) { seen.add(m.i); out.push(m); } });
+  return out;
+}
+
+/* =============================== DRAWING =============================== */
+function hex2rgb(h) { h = h.replace('#', ''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function rgb2hex(a) { return '#' + a.map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join(''); }
+function mix(a, b, t) { const A = hex2rgb(a), B = hex2rgb(b); return rgb2hex(A.map((v, i) => v + (B[i] - v) * t)); }
+function lum(hex) { const [r, g, b] = hex2rgb(hex); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; }
+function rng(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function fin(c, fill, w) {
+  if (fill) { c.fillStyle = fill; c.fill(); } else { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; c.fill(); c.restore(); }
+  c.lineWidth = w; c.strokeStyle = INK; c.lineJoin = 'round'; c.lineCap = 'round'; c.stroke();
+}
+function uni(c, builders, fill, w) {
+  builders.forEach(b => { b(); c.lineWidth = w * 2; c.strokeStyle = INK; c.lineJoin = 'round'; c.stroke(); });
+  builders.forEach(b => { b(); if (fill) { c.fillStyle = fill; c.fill(); } else { c.save(); c.globalCompositeOperation = 'destination-out'; c.fill(); c.restore(); } });
+}
+function drawSym(c, k, x, y, z, fill, w = LW) {
+  c.save(); c.translate(x, y);
+  const B = () => c.beginPath();
+  if (k === 'star') { B(); for (let i = 0; i < 10; i++) { const r = i % 2 ? z * .46 : z, a = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(Math.cos(a) * r, Math.sin(a) * r); } c.closePath(); fin(c, fill, w); }
+  else if (k === 'bolt') { B(); [[.22, -1], [-.52, .12], [-.04, .12], [-.24, 1], [.56, -.2], [.08, -.2], [.34, -1]].forEach(([a, b]) => c.lineTo(a * z, b * z)); c.closePath(); fin(c, fill, w); }
+  else if (k === 'moon') { B(); c.arc(0, 0, z * .95, Math.PI * .35, Math.PI * 1.65, false); c.arc(z * .48, 0, z * .85, Math.PI * 1.48, Math.PI * .52, true); c.closePath(); fin(c, fill, w); }
+  else if (k === 'sun') {
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; B(); c.moveTo(Math.cos(a) * z * .7, Math.sin(a) * z * .7); c.lineTo(Math.cos(a) * z, Math.sin(a) * z); c.lineWidth = w * 3.2; c.strokeStyle = INK; c.lineCap = 'round'; c.stroke(); }
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; B(); c.moveTo(Math.cos(a) * z * .7, Math.sin(a) * z * .7); c.lineTo(Math.cos(a) * z, Math.sin(a) * z); c.lineWidth = w * 1.2; if (fill) { c.strokeStyle = fill; c.stroke(); } else { c.save(); c.globalCompositeOperation = 'destination-out'; c.stroke(); c.restore(); } }
+    B(); c.arc(0, 0, z * .5, 0, TAU); fin(c, fill, w);
+  }
+  else if (k === 'flower') {
+    const P = [0, 1, 2, 3, 4].map(i => () => { const a = -Math.PI / 2 + i / 5 * TAU; B(); c.arc(Math.cos(a) * z * .55, Math.sin(a) * z * .55, z * .42, 0, TAU); });
+    uni(c, P, fill, w); B(); c.arc(0, 0, z * .3, 0, TAU); fin(c, fill ? '#FFC72C' : null, w);
+  }
+  else if (k === 'note') {
+    uni(c, [() => { B(); c.ellipse(-z * .3, z * .58, z * .38, z * .28, -.45, 0, TAU); },
+      () => { B(); c.roundRect(-z * .02, -z * .95, z * .17, z * 1.55, z * .05); },
+      () => { B(); c.moveTo(z * .12, -z * .95); c.quadraticCurveTo(z * .7, -z * .7, z * .55, -z * .1); c.quadraticCurveTo(z * .45, -z * .45, z * .12, -z * .5); c.closePath(); }], fill, w);
+  }
+  else if (k === 'sparkle') {
+    const sp = (sx, sy, r) => () => { const q = r * .2; B(); c.moveTo(sx, sy - r); c.quadraticCurveTo(sx + q, sy - q, sx + r, sy); c.quadraticCurveTo(sx + q, sy + q, sx, sy + r); c.quadraticCurveTo(sx - q, sy + q, sx - r, sy); c.quadraticCurveTo(sx - q, sy - q, sx, sy - r); c.closePath(); };
+    sp(-z * .12, z * .1, z * .85)(); fin(c, fill, w); sp(z * .62, -z * .62, z * .34)(); fin(c, fill, w);
+  }
+  else if (k === 'smile') {
+    B(); c.arc(0, 0, z * .92, 0, TAU); fin(c, fill, w);
+    c.fillStyle = INK; B(); c.ellipse(-z * .32, -z * .2, z * .1, z * .15, 0, 0, TAU); c.fill(); B(); c.ellipse(z * .32, -z * .2, z * .1, z * .15, 0, 0, TAU); c.fill();
+    B(); c.arc(0, z * .05, z * .48, .2 * Math.PI, .8 * Math.PI); c.lineWidth = w; c.strokeStyle = INK; c.lineCap = 'round'; c.stroke();
+  }
+  else if (k === 'flame') { B(); c.moveTo(0, -z); c.bezierCurveTo(z * .5, -z * .45, z * .8, z * .05, z * .6, z * .55); c.bezierCurveTo(z * .42, z * 1, -z * .42, z * 1, -z * .6, z * .55); c.bezierCurveTo(-z * .78, z * .12, -z * .35, -z * .15, -z * .18, -z * .48); c.bezierCurveTo(-z * .02, -z * .2, z * .08, -z * .62, 0, -z); c.closePath(); fin(c, fill, w); }
+  else if (k === 'cloud') {
+    uni(c, [() => { B(); c.arc(-z * .45, z * .12, z * .42, 0, TAU); }, () => { B(); c.arc(z * .05, -z * .18, z * .55, 0, TAU); }, () => { B(); c.arc(z * .52, z * .14, z * .4, 0, TAU); }, () => { B(); c.roundRect(-z * .87, z * .1, z * 1.79, z * .44, z * .22); }], fill, w);
+  }
+  c.restore();
+}
+
+/* The shared shape and how it splits. Shape is centered on 0,0 with size R. */
+function shapePath(c, k, R) {
+  c.beginPath();
+  if (k === 'heart') { c.moveTo(0, .92 * R); c.bezierCurveTo(-1.32 * R, .02 * R, -.8 * R, -1.12 * R, 0, -.5 * R); c.bezierCurveTo(.8 * R, -1.12 * R, 1.32 * R, .02 * R, 0, .92 * R); c.closePath(); }
+  else if (k === 'star') { for (let i = 0; i < 10; i++) { const r = i % 2 ? R * .5 : R, a = -Math.PI / 2 + i * Math.PI / 5; c.lineTo(Math.cos(a) * r, Math.sin(a) * r + R * .06); } c.closePath(); }
+  else c.arc(0, 0, R, 0, TAU);
+}
+const SR = { heart: 166, star: 176, circle: 168 };
+const CUTS = { 2: [-Math.PI / 2, Math.PI / 2], 3: [-Math.PI / 2, Math.PI / 6, Math.PI * 5 / 6] };
+const REGION = { 2: [1, 0], 3: [2, 0, 1] };  // friend -> region (friend 1 on the left / top left)
+function zig(a, R) {
+  const px = -Math.sin(a), py = Math.cos(a), P = [[0, 0]], step = R * .19, z = R * .08;
+  for (let k = 1; k <= 7; k++) { const r = k * step, o = k === 7 ? 0 : (k % 2 ? z : -z); P.push([Math.cos(a) * r + px * o, Math.sin(a) * r + py * o]); }
+  P.push([Math.cos(a) * R * 3, Math.sin(a) * R * 3]); return P;
+}
+function regionPath(c, n, r, R) {
+  const cuts = CUTS[n], a0 = cuts[r]; let a1 = cuts[(r + 1) % n]; if (a1 <= a0) a1 += TAU;
+  const A = zig(a0, R), Bz = zig(a1, R).reverse();
+  c.beginPath(); A.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y));
+  c.arc(0, 0, R * 3, a0, a1, false); Bz.forEach(([x, y]) => c.lineTo(x, y)); c.closePath();
+}
+/* Measure each piece once (bounding box + center of mass) so it can sit centered on its own button. */
+const GEO = {};
+function pieceGeo(shape, n, f) {
+  const key = shape + n + f; if (GEO[key]) return GEO[key];
+  const S = 400, t = document.createElement('canvas'); t.width = t.height = S; const c = t.getContext('2d', { willReadFrequently: true });
+  c.translate(S / 2, S / 2); c.save(); shapePath(c, shape, 100); c.clip(); regionPath(c, n, REGION[n][f], 100); c.fillStyle = '#000'; c.fill(); c.restore();
+  const d = c.getImageData(0, 0, S, S).data; let x0 = S, y0 = S, x1 = 0, y1 = 0, sx = 0, sy = 0, cnt = 0;
+  for (let y = 0; y < S; y += 2) for (let x = 0; x < S; x += 2) if (d[(y * S + x) * 4 + 3] > 128) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); sx += x; sy += y; cnt++; }
+  // inscribed-ish: farthest point from the edge near the centroid gives a safe symbol size
+  const g = { bx: (x0 + x1) / 2 - S / 2, by: (y0 + y1) / 2 - S / 2, bw: x1 - x0, bh: y1 - y0, cx: sx / cnt - S / 2, cy: sy / cnt - S / 2 };
+  return (GEO[key] = g);
+}
+
+function drawPiece(c, v, f, R, o = {}) {
+  const r = REGION[v.n][f], col = o.vinyl ? INK : (o.fill ? o.fill[f] : COLORS[v.col[f]][1]);
+  c.save(); shapePath(c, v.shape, R); c.clip();
+  regionPath(c, v.n, r, R); c.fillStyle = col; c.fill();
+  c.lineWidth = LW; c.strokeStyle = INK; c.lineJoin = 'round'; regionPath(c, v.n, r, R); c.stroke();
+  c.restore();
+  c.save(); regionPath(c, v.n, r, R); c.clip(); shapePath(c, v.shape, R); c.lineWidth = LW * 1.2; c.strokeStyle = INK; c.lineJoin = 'round'; c.stroke(); c.restore();
+  if (o.sym !== false) {
+    const g = pieceGeo(v.shape, v.n, f), k = R / 100, z = Math.min(g.bw, g.bh) * k * (v.n === 2 ? .27 : .25);
+    drawSym(c, v.sym[f], g.cx * k, g.cy * k, z, o.vinyl ? null : '#FFFFFF', LW * .9);
+  }
+}
+
+function patternFill(c, kind, cols, seed, alpha) {
+  // assumes a circular clip around 300,300 is already set
+  c.save(); c.globalAlpha = alpha;
+  if (kind === 'dots') { let k = 0; for (let y = 60; y <= 540; y += 36) for (let x = 60 + ((y / 36) % 2) * 18; x <= 540; x += 36) { c.beginPath(); c.arc(x, y, 7, 0, TAU); c.fillStyle = cols[k++ % cols.length]; c.fill(); } }
+  else if (kind === 'stripes') { c.translate(300, 300); c.rotate(-Math.PI / 6); for (let i = -12; i <= 12; i++) { c.fillStyle = cols[(i + 24) % cols.length]; c.fillRect(i * 44, -420, 20, 840); } }
+  else if (kind === 'checks') { for (let y = 0; y < 600; y += 40) for (let x = 0; x < 600; x += 40) if (((x + y) / 40) % 2 === 0) { c.fillStyle = cols[((x / 40) | 0) % cols.length]; c.fillRect(x, y, 40, 40); } }
+  else if (kind === 'confetti') { const r = rng(seed); for (let i = 0; i < 80; i++) { c.save(); c.translate(60 + r() * 480, 60 + r() * 480); c.rotate(r() * TAU); c.fillStyle = cols[i % cols.length]; if (i % 3) c.fillRect(-9, -4, 18, 8); else { c.beginPath(); c.arc(0, 0, 6, 0, TAU); c.fill(); } c.restore(); } }
+  c.restore();
+}
+function arcText(c, text, r, top, size, color) {
+  c.save(); let sz = size;
+  const font = () => `700 ${sz}px Fredoka, 'Trebuchet MS', sans-serif`;
+  const meas = () => { c.font = font(); return [...text].reduce((s, ch) => s + c.measureText(ch).width + sz * .1, 0); };
+  let tot = meas(); while (tot > r * Math.PI * .82 && sz > 14) { sz--; tot = meas(); }
+  c.fillStyle = color; c.textAlign = 'center'; c.textBaseline = 'middle';
+  let a = top ? -Math.PI / 2 - tot / r / 2 : Math.PI / 2 + tot / r / 2;
+  for (const ch of text) {
+    const da = (c.measureText(ch).width + sz * .1) / r;
+    if (top) { const ang = a + da / 2; c.save(); c.translate(300 + Math.cos(ang) * r, 300 + Math.sin(ang) * r); c.rotate(ang + Math.PI / 2); c.fillText(ch, 0, 0); c.restore(); a += da; }
+    else { const ang = a - da / 2; c.save(); c.translate(300 + Math.cos(ang) * r, 300 + Math.sin(ang) * r); c.rotate(ang - Math.PI / 2); c.fillText(ch, 0, 0); c.restore(); a -= da; }
+  }
+  c.restore();
+}
+const FACE = 250, INNER = 212;
+function ringBand(c, col, top, bottom, o = {}) {
+  c.beginPath(); c.arc(300, 300, 298, 0, TAU); c.arc(300, 300, INNER, 0, TAU, true);
+  if (o.vinyl) { c.fillStyle = INK; c.fill(); } else { c.fillStyle = col; c.fill(); }
+  const tc = o.vinyl ? null : (lum(col) > .62 ? INK : '#FFFFFF');
+  if (o.vinyl) { c.save(); c.globalCompositeOperation = 'destination-out'; arcText(c, top, 231, true, 30, '#000'); arcText(c, bottom, 231, false, 26, '#000'); c.restore(); }
+  else { arcText(c, top, 231, true, 30, tc); arcText(c, bottom, 231, false, 26, tc); }
+  c.beginPath(); c.arc(300, 300, INNER, 0, TAU); c.lineWidth = LW; c.strokeStyle = INK; c.stroke();
+  if (!o.noOutline) { c.beginPath(); c.arc(300, 300, 297, 0, TAU); c.lineWidth = 3; c.stroke(); }
+  if (o.guide) { c.save(); c.setLineDash([8, 8]); c.beginPath(); c.arc(300, 300, FACE, 0, TAU); c.lineWidth = 2; c.strokeStyle = tc === INK ? 'rgba(27,30,46,.45)' : 'rgba(255,255,255,.6)'; c.stroke(); c.restore(); }
+}
+
+/* The whole shape, all pieces together. */
+function drawTogether(c, v, o = {}) {
+  const cols = [...Array(v.n).keys()].map(f => COLORS[v.col[f]][1]);
+  if (!o.vinyl) {
+    c.save(); c.beginPath(); c.arc(300, 300, INNER, 0, TAU); c.fillStyle = '#FFF9EE'; c.fill(); c.clip();
+    patternFill(c, v.pat, cols, v.seed, .3); c.restore();
+  }
+  ringBand(c, '#1B1E2E', v.top, v.bottom, o);
+  const R = SR[v.shape], gap = o.vinyl ? 9 : 5;
+  for (let f = 0; f < v.n; f++) {
+    const g = pieceGeo(v.shape, v.n, f), m = Math.hypot(g.cx, g.cy) || 1;
+    c.save(); c.translate(300 + g.cx / m * gap, 300 + g.cy / m * gap + (v.shape === 'heart' ? 8 : 0));
+    drawPiece(c, v, f, R, { vinyl: o.vinyl, fill: o.fill, sym: o.syms ? o.syms[f] : true }); c.restore();
+  }
+}
+/* One friend's own button: their piece, centered, on their color. */
+function drawButton(c, v, f, o = {}) {
+  const col = COLORS[v.col[f]][1];
+  c.save(); c.beginPath(); c.arc(300, 300, INNER, 0, TAU); c.fillStyle = mix(col, '#FFFFFF', .84); c.fill(); c.clip();
+  patternFill(c, v.pat, [mix(col, '#FFFFFF', .35)], v.seed + f, .55); c.restore();
+  ringBand(c, col, v.names[f], v.bottom, o);
+  const g = pieceGeo(v.shape, v.n, f), fit = Math.min(318 / Math.max(g.bw, g.bh), 205 / (Math.hypot(g.bw, g.bh) / 2)), R = 100 * Math.min(fit, 2.8);
+  const k = R / 100;
+  c.save(); c.translate(300 - g.bx * k, 300 - g.by * k); drawPiece(c, v, f, R); c.restore();
+}
+
+/* =============================== VIEW + PAINT =============================== */
+const cv = document.getElementById('badge'), cx = cv.getContext('2d');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function bottomText() {
+  if (pos < idxOf('reveal')) return 'KNOW ME · KNOW YOU';
+  if (st.phrase === 'tier') return tier()[1].toUpperCase();
+  if (st.phrase === 'since') return st.year.trim() ? `FRIENDS SINCE ${st.year.trim()}` : 'FRIENDS SINCE';
+  if (st.phrase === 'custom') return st.custom.trim().toUpperCase() || 'KNOW ME · KNOW YOU';
+  return 'KNOW ME · KNOW YOU';
+}
+function view() {
+  const names = [...Array(st.n).keys()].map(p => name(p).toUpperCase());
+  return { n: st.n, shape: st.shape, pat: st.pat, col: st.col, sym: st.sym, seed: st.seed, names, top: names.join(' + '), bottom: bottomText() };
+}
+function roundFill() {
+  // during the rounds, each piece goes from pale to full color as that friend answers about themself
+  const f = FLOW[pos]; if (f === 'intro') return null;
+  return [...Array(st.n).keys()].map(p => { const done = st.self[p].filter(x => x != null).length / NQ; return mix('#FFFFFF', colOf(p), .12 + .88 * done); });
+}
+function paint() {
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, cv.width, cv.height);
+  cx.setTransform(cv.width / 600, 0, 0, cv.width / 600, 0, 0);
+  const fill = pos < idxOf('reveal') ? roundFill() : null;
+  const syms = fill ? [...Array(st.n).keys()].map(p => st.self[p].every(x => x != null)) : null;
+  drawTogether(cx, view(), { fill, syms });
+  minis();
+}
+const minisEl = document.getElementById('minis');
+function minis() {
+  const show = pos >= idxOf('reveal') && FLOW[pos] !== 'finish';
+  minisEl.hidden = !show; if (!show) return;
+  if (minisEl.children.length !== st.n) minisEl.innerHTML = [...Array(st.n).keys()].map(p => `<div class="mini"><canvas width="360" height="360"></canvas><span></span></div>`).join('');
+  const v = view();
+  [...minisEl.children].forEach((m, p) => {
+    const c = m.querySelector('canvas').getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, 360, 360); c.setTransform(.6, 0, 0, .6, 0, 0);
+    drawButton(c, v, p, { guide: true }); m.querySelector('span').textContent = name(p) + '’s button';
+  });
+}
+
+/* =============================== EXPORT =============================== */
+function gray(src) { const g = document.createElement('canvas'); g.width = src.width; g.height = src.height; const gx = g.getContext('2d'); gx.filter = 'grayscale(1) contrast(1.15)'; gx.drawImage(src, 0, 0); return g; }
+function sheet(drawOne, H = 1500) {
+  const n = st.n, gap = 90, W = n * H + (n - 1) * gap;
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const o = out.getContext('2d');
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  for (let f = 0; f < n; f++) { o.save(); o.translate(f * (H + gap), 0); o.scale(H / 600, H / 600); drawOne(o, f); o.restore(); }
+  return out;
+}
+function keychainShape(o, col, inner) {
+  o.save(); o.beginPath(); o.arc(300, 330, 268, 0, TAU); o.moveTo(342, 40); o.arc(300, 40, 42, 0, TAU); o.fillStyle = '#FFFFFF'; o.fill(); o.restore();
+  o.save(); o.setLineDash([10, 8]); o.lineWidth = 3; o.strokeStyle = '#9AA6C4'; o.beginPath(); o.arc(300, 330, 266, 0, TAU); o.stroke(); o.beginPath(); o.arc(300, 40, 40, 0, TAU); o.stroke(); o.restore();
+  o.beginPath(); o.roundRect(278, 40, 44, 50, 10); o.fillStyle = col; o.fill(); o.lineWidth = 5; o.strokeStyle = INK; o.stroke();
+  o.beginPath(); o.arc(300, 40, 30, 0, TAU); o.fillStyle = col; o.fill(); o.stroke(); o.beginPath(); o.arc(300, 40, 11, 0, TAU); o.fillStyle = '#FFFFFF'; o.fill(); o.lineWidth = 4; o.stroke();
+  o.save(); o.translate(300, 330); o.scale(.86, .86); o.translate(-300, -300); inner(); o.restore();
+}
+function compose(fmt) {
+  const v = view(), mono = st.mono && fmt !== 'shirt';
+  let out;
+  if (fmt === 'card') out = composeCard(v);
+  else if (fmt === 'button') out = sheet((o, f) => drawButton(o, v, f));
+  else if (fmt === 'keychain') out = sheet((o, f) => keychainShape(o, COLORS[v.col[f]][1], () => drawButton(o, v, f)));
+  else {
+    const size = fmt === 'shirt' ? 2400 : 1500;
+    out = document.createElement('canvas'); out.width = out.height = size; const o = out.getContext('2d'); o.setTransform(size / 600, 0, 0, size / 600, 0, 0);
+    if (fmt === 'sticker') {
+      o.beginPath(); o.arc(300, 300, 296, 0, TAU); o.fillStyle = '#FFFFFF'; o.fill();
+      o.save(); o.setLineDash([10, 8]); o.beginPath(); o.arc(300, 300, 294, 0, TAU); o.lineWidth = 3; o.strokeStyle = '#9AA6C4'; o.stroke(); o.restore();
+      o.save(); o.translate(300, 300); o.scale(.9, .9); o.translate(-300, -300); drawTogether(o, v); o.restore();
+    } else {
+      if (st.mirror && st.shirt === 'color') { o.translate(600, 0); o.scale(-1, 1); }
+      if (st.shirt === 'vinyl') drawTogether(o, v, { vinyl: true, noOutline: true });
+      else { o.save(); o.beginPath(); o.arc(300, 300, FACE + 2, 0, TAU); o.clip(); drawTogether(o, v, { noOutline: true }); o.restore(); o.beginPath(); o.arc(300, 300, FACE + 1, 0, TAU); o.lineWidth = 4; o.strokeStyle = INK; o.stroke(); }
+    }
+  }
+  return mono ? gray(out) : out;
+}
+function joinNames() { const N = [...Array(st.n).keys()].map(name); return N.length === 2 ? N.join(' & ') : `${N[0]}, ${N[1]} & ${N[2]}`; }
+function fitText(o, text, maxW, size, weight = 700, fam = "Fredoka, 'Trebuchet MS', sans-serif") {
+  let s = size; o.font = `${weight} ${s}px ${fam}`; while (o.measureText(text).width > maxW && s > 18) { s -= 2; o.font = `${weight} ${s}px ${fam}`; }
+}
+function composeCard(v) {
+  const W = 1200, H = 1800, out = document.createElement('canvas'); out.width = W; out.height = H;
+  const o = out.getContext('2d'), T = tier(), pct = Math.round(overall() * 100);
+  o.fillStyle = '#FFFFFF'; o.fillRect(0, 0, W, H);
+  o.fillStyle = '#EEF3FF'; o.fillRect(0, 0, W, 740);
+  o.fillStyle = '#2357C7'; o.fillRect(0, 0, W, 120);
+  o.fillStyle = '#FFFFFF'; o.font = "700 54px Fredoka, 'Trebuchet MS', sans-serif"; o.textAlign = 'center'; o.textBaseline = 'middle';
+  o.fillText('KNOW ME, KNOW YOU', W / 2, 62);
+  o.save(); o.translate(W / 2 - 300, 135); drawTogether(o, v); o.restore();
+  o.textBaseline = 'alphabetic'; o.fillStyle = INK; fitText(o, joinNames(), 1040, 66); o.fillText(joinNames(), W / 2, 830);
+  o.fillStyle = '#2357C7'; o.font = "800 30px Nunito, system-ui, sans-serif"; o.fillText(`${T[1].toUpperCase()} · ${pct}% IN SYNC`, W / 2, 882);
+  let y = 960;
+  const head = t => { o.textAlign = 'left'; o.fillStyle = '#56607E'; o.font = "800 24px Nunito, system-ui, sans-serif"; o.fillText(t, 90, y); y += 18; };
+  head('WHO KNOWS WHO');
+  pairs().forEach(([g, t]) => {
+    y += 40; const sc = known(g, t);
+    o.textAlign = 'left'; o.fillStyle = INK; o.font = "700 28px Nunito, system-ui, sans-serif"; o.fillText(`${name(g)} knows ${name(t)}`, 90, y);
+    o.beginPath(); o.roundRect(640, y - 24, 360, 26, 13); o.fillStyle = '#E3E9F7'; o.fill();
+    o.beginPath(); o.roundRect(640, y - 24, Math.max(26, 360 * sc / NQ), 26, 13); o.fillStyle = COLORS[st.col[g]][1]; o.fill();
+    o.beginPath(); o.roundRect(640, y - 24, 360, 26, 13); o.lineWidth = 3; o.strokeStyle = INK; o.stroke();
+    o.textAlign = 'right'; o.font = "700 30px Fredoka, 'Trebuchet MS', sans-serif"; o.fillStyle = INK; o.fillText(`${sc}/${NQ}`, 1110, y);
+  });
+  y += 70; head(st.n === 2 ? 'WE BOTH SAID' : 'WE ALL SAID');
+  const same = sameAll();
+  o.textAlign = 'left'; o.fillStyle = INK; o.font = "700 28px Nunito, system-ui, sans-serif";
+  const sameTxt = same.length ? same.slice(0, 4).map(i => ansLabel(i, st.self[0][i])).join('  ·  ') : 'Nothing the same. Opposites attract.';
+  y += 42; fitText(o, sameTxt, 1020, 28, 700, 'Nunito, system-ui, sans-serif'); o.fillText(sameTxt, 90, y);
+  y += 70; head('DIDN’T SEE THAT COMING');
+  const M = misses().slice(0, st.n === 2 ? 4 : 3);
+  if (!M.length) { y += 42; o.font = "700 28px Nunito, system-ui, sans-serif"; o.fillStyle = INK; o.fillText('Zero surprises. You really know each other.', 90, y); }
+  M.forEach(m => {
+    y += 44; const line = `${name(m.t)}’s ${QS[m.i].k.toLowerCase()}: ${ansLabel(m.i, st.self[m.t][m.i])} (${name(m.g)} guessed ${ansLabel(m.i, st.guess[gk(m.g, m.t)][m.i])})`;
+    o.fillStyle = INK; fitText(o, line, 1020, 26, 700, 'Nunito, system-ui, sans-serif'); o.fillText(line, 90, y);
+  });
+  o.fillStyle = '#9AA6C4'; o.font = "700 22px Nunito, system-ui, sans-serif"; o.textAlign = 'center';
+  o.fillText('ESU Graphics Center · Each button is one piece. Together they make the whole.', W / 2, 1750);
+  return st.mono ? gray(out) : out;
+}
+
+/* =============================== UI =============================== */
+const panel = document.getElementById('panel'), cap = document.getElementById('cap'), outimg = document.getElementById('outimg'), stage = document.getElementById('stage');
+const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+const THUMB = {};
+function symThumb(k, col) {
+  const id = k + col; if (THUMB[id]) return THUMB[id];
+  const t = document.createElement('canvas'); t.width = t.height = 120; const c = t.getContext('2d');
+  c.beginPath(); c.roundRect(4, 4, 112, 112, 24); c.fillStyle = mix(col, '#FFFFFF', .8); c.fill();
+  drawSym(c, k, 60, 60, 38, col, 4);
+  return (THUMB[id] = t.toDataURL('image/png'));
+}
+function shapeThumb(k) {
+  const id = 'shape' + k + st.n + st.col.join(); if (THUMB[id]) return THUMB[id];
+  const t = document.createElement('canvas'); t.width = t.height = 120; const c = t.getContext('2d');
+  c.translate(60, 60); const v = { n: st.n, shape: k, col: st.col, sym: st.sym };
+  for (let f = 0; f < st.n; f++) { c.save(); drawPiece(c, v, f, 52, { sym: false }); c.restore(); }
+  return (THUMB[id] = t.toDataURL('image/png'));
+}
+function bars() {
+  const sIdx = FLOW.findIndex(f => typeof f === 'object' && f.r === 'guess');
+  const rIdx = idxOf('reveal'), fIdx = idxOf('finish');
+  const pct = (a, b) => Math.max(0, Math.min(1, (pos - a) / (b - a))) * 100;
+  document.getElementById('bar1').style.width = pct(2, sIdx) + '%';
+  document.getElementById('bar2').style.width = pct(sIdx, rIdx) + '%';
+  document.getElementById('bar3').style.width = pct(rIdx, fIdx) + '%';
+  document.getElementById('leg1').classList.toggle('on', pos >= 2 && pos < sIdx);
+  document.getElementById('leg2').classList.toggle('on', pos >= sIdx && pos < rIdx);
+  document.getElementById('leg3').classList.toggle('on', pos > rIdx && pos < fIdx);
+}
+function canNext() {
+  const f = FLOW[pos];
+  if (f === 'intro' || f === 'reveal' || f === 'finish') return true;
+  if (f === 'names') { for (let p = 0; p < st.n; p++) if (!st.names[p].trim()) return false; return true; }
+  if (f.t === 'pass') return true;
+  if (f.t === 'self') return st.self[f.p][f.i] != null;
+  if (f.t === 'guess') return others(f.p).every(t => st.guess[gk(f.p, t)][f.i] != null);
+  if (f.t === 'design' && DESIGN[f.i].k === 'words') return st.phrase !== 'custom' || !!st.custom.trim();
+  return true;
+}
+function canBack() {
+  const f = FLOW[pos];
+  if (pos === 0 || f === 'reveal') return false;
+  if (typeof f === 'object' && f.t === 'pass') return f.r === 'self' && f.p === 0; // never step back into someone else's answers
+  return true;
+}
+function navHTML(label) {
+  return `<div class="nav">${canBack() ? '<button type="button" class="btn" data-a="back">Back</button>' : ''}<button type="button" class="btn go" id="next" data-a="next" ${canNext() ? '' : 'disabled'}>${label}</button></div>`;
+}
+function refreshNext() { const n = document.getElementById('next'); if (n) n.disabled = !canNext(); }
+
+function widget(i, val, row) {
+  const q = QS[i];
+  if (q.t === 'scale') return `<div class="scale"><div class="pts" role="group">${q.o.map((l, k) => `<button type="button" class="pt" data-a="ans" data-row="${row}" data-v="${k}" aria-pressed="${val === k}"><i></i><span>${esc(l)}</span></button>`).join('')}</div></div>`;
+  return `<div class="${q.t === 'wyr' ? 'duo' : 'four'}" role="group">${q.o.map(([em, l], k) => `<button type="button" class="ans" data-a="ans" data-row="${row}" data-v="${k}" aria-pressed="${val === k}"><span class="em" aria-hidden="true">${em}</span><b>${esc(l)}</b></button>`).join('')}</div>`;
+}
+const dotFor = p => `<span class="dot" style="background:${colOf(p)}"></span>`;
+
+function screenHTML() {
+  const f = FLOW[pos];
+  if (f === 'names') {
+    return `<div class="kicker">Who’s playing?</div><h1>Type your names</h1>
+      <p class="sub">First names or nicknames. They go on your buttons.</p>
+      ${[...Array(st.n).keys()].map(p => `<div class="field"><label for="nm${p}">${dotFor(p)} Friend ${p + 1}</label><input id="nm${p}" data-p="${p}" maxlength="12" autocomplete="off" value="${esc(st.names[p])}" placeholder="${['Maya', 'Jordan', 'Sam'][p]}"></div>`).join('')}
+      <p class="hint">Up to 12 letters each.</p>
+      ${navHTML('Let’s play')}`;
+  }
+  if (f.t === 'pass') {
+    const p = f.p, nm = esc(name(p));
+    const who = `<span class="who" style="background:${colOf(p)};color:${lum(colOf(p)) > .62 ? INK : '#fff'}">${nm}</span>`;
+    if (f.r === 'self') return `<div class="kicker">Round 1 · About me</div>
+      <h1>${p === 0 ? 'First up' : 'Pass it to'} ${who}</h1>
+      <p class="sub">${nm}, answer ${NQ} quick questions about yourself. Be honest. Your friend${st.n === 3 ? 's are' : ' is'} going to guess.</p>
+      <div class="peek"><span class="em" aria-hidden="true">🙈</span><span>Everyone else, look away. No peeking!</span></div>
+      ${navHTML(`I’m ${nm}, let’s go`)}`;
+    const ts = others(p).map(name).map(esc).join(' and ');
+    return `<div class="kicker">Round 2 · Guess</div>
+      <h1>${p === 0 ? 'Guessing time,' : 'Pass it to'} ${who}</h1>
+      <p class="sub">${nm}, how did ${ts} answer? You can’t see their answers, so go with your gut. ${QS.some(q => q.t === 'scale') ? 'On the sliding scales, one step off still earns half a point.' : ''}</p>
+      <div class="peek"><span class="em" aria-hidden="true">🤫</span><span>${ts}, no hints. Not even a face.</span></div>
+      ${navHTML(`I’m ${nm}, let’s guess`)}`;
+  }
+  if (f.t === 'self') {
+    const q = QS[f.i];
+    return `<div class="kicker">${dotFor(f.p)} ${esc(name(f.p))} · About me · ${f.i + 1} of ${NQ}</div>
+      <h1>${esc(SELF_H[f.i] || q.h)}</h1><p class="sub">Answer for yourself.</p>
+      ${widget(f.i, st.self[f.p][f.i], 'self')}
+      ${navHTML(f.i === NQ - 1 ? 'Done, hide my answers' : 'Next')}`;
+  }
+  if (f.t === 'guess') {
+    const q = QS[f.i], T = others(f.p);
+    return `<div class="kicker">${dotFor(f.p)} ${esc(name(f.p))} guessing · ${f.i + 1} of ${NQ}</div>
+      <h1>${esc(q.h)}</h1>
+      ${T.map(t => `<div class="${T.length > 1 ? 'guess-row' : 'friend-block'}"><div class="lbl">${dotFor(t)} What did ${esc(name(t))} say?</div>${widget(f.i, st.guess[gk(f.p, t)][f.i], t)}</div>`).join('')}
+      ${navHTML(f.i === NQ - 1 ? 'Lock in my guesses' : 'Next')}`;
+  }
+  if (f.t === 'design') return designHTML(f.i);
+}
+function designHTML(i) {
+  const d = DESIGN[i], P = [...Array(st.n).keys()];
+  let body = '';
+  if (d.k === 'colors') body = P.map(p => `<div class="friend-block"><div class="lbl">${dotFor(p)} ${esc(name(p))}</div><div class="sws" role="group" aria-label="${esc(name(p))}’s color">${COLORS.map(([n, h], k) => `<button type="button" class="sw" data-a="col" data-p="${p}" data-v="${k}" style="background:${h}" aria-label="${n}" title="${n}" aria-pressed="${st.col[p] === k}"></button>`).join('')}</div></div>`).join('');
+  if (d.k === 'symbols') body = P.map(p => `<div class="friend-block"><div class="lbl">${dotFor(p)} ${esc(name(p))}</div><div class="syms" role="group" aria-label="${esc(name(p))}’s symbol">${Object.entries(SYMS).map(([k, n]) => `<button type="button" class="sym" data-a="sym" data-p="${p}" data-v="${k}" aria-pressed="${st.sym[p] === k}"><img src="${symThumb(k, colOf(p))}" alt=""><span>${n}</span></button>`).join('')}</div></div>`).join('');
+  if (d.k === 'shape') body = `<div class="opts">${Object.entries(SHAPES).map(([k, [n, ds]]) => `<button type="button" class="opt" data-a="set" data-k="shape" data-v="${k}" aria-pressed="${st.shape === k}"><img src="${shapeThumb(k)}" alt=""><span class="t"><b>${n}</b><span>${ds}</span></span></button>`).join('')}</div>`;
+  if (d.k === 'pattern') body = `<div class="opts">${Object.entries(PATS).map(([k, [n, ds]]) => `<button type="button" class="opt" data-a="set" data-k="pat" data-v="${k}" aria-pressed="${st.pat === k}"><span class="t"><b>${n}</b>${ds ? `<span>${ds}</span>` : ''}</span></button>`).join('')}</div>`;
+  if (d.k === 'words') {
+    const T = tier()[1];
+    body = `<div class="opts">${[['tier', T, 'Your result from the game'], ['kmky', 'Know me · Know you', 'The name of the game'], ['since', 'Friends since…', 'Add the year you met'], ['custom', 'Our own words', 'Up to 16 letters']].map(([k, n, ds]) => `<button type="button" class="opt" data-a="set" data-k="phrase" data-v="${k}" aria-pressed="${st.phrase === k}"><span class="t"><b>${esc(n)}</b><span>${ds}</span></span></button>`).join('')}</div>
+      ${st.phrase === 'since' ? `<div class="field"><label for="year">Year you met</label><input id="year" inputmode="numeric" maxlength="4" autocomplete="off" value="${esc(st.year)}" placeholder="2025"></div>` : ''}
+      ${st.phrase === 'custom' ? `<div class="field"><label for="custom">Your words</label><input id="custom" maxlength="16" autocomplete="off" value="${esc(st.custom)}" placeholder="e.g. Dorm 3B forever"></div>` : ''}`;
+  }
+  return `<div class="kicker">Make the badge · ${i + 1} of ${DESIGN.length}</div><h1>${esc(d.h)}</h1><p class="sub">${esc(d.sub)}</p>${body}${navHTML(i === DESIGN.length - 1 ? 'Finish our badge' : 'Next')}`;
+}
+function revealHTML() {
+  const T = tier(), pct = Math.round(overall() * 100), same = sameAll();
+  return `<div class="kicker">Gather round. The results are in.</div>
+    <div class="tier"><span class="pct">${pct}%</span><div><h1>${esc(T[1])}</h1><p class="sub">${esc(T[2])}</p></div></div>
+    <div class="scores">${pairs().map(([g, t]) => { const s = known(g, t); return `<div class="score"><span>${dotFor(g)} ${esc(name(g))} knows ${esc(name(t))}</span><span class="bar"><i style="width:${s / NQ * 100}%;background:${colOf(g)}"></i></span><em>${s}/${NQ}</em></div>`; }).join('')}</div>
+    ${same.length ? `<p><b>${st.n === 2 ? 'You both' : 'You all'} said:</b> ${same.map(i => esc(ansLabel(i, st.self[0][i]))).join(', ')}.</p>` : ''}
+    <h2>Answer by answer</h2>
+    <div class="rv">${QS.map((q, i) => `<div class="rq"><b>${esc(q.h)}</b>${[...Array(st.n).keys()].map(t => `<div class="rl">${dotFor(t)}<span class="said">${esc(name(t))}: ${ansEm(i, st.self[t][i])}${esc(ansLabel(i, st.self[t][i]))}</span>${others(t).map(g => { const G = st.guess[gk(g, t)][i], m = match(i, st.self[t][i], G); return `<span class="g ${m === 1 ? 'hit' : m ? 'close' : 'miss'}">${esc(name(g))} ${m === 1 ? '✓ got it' : m ? '½ so close' : `guessed ${esc(ansLabel(i, G))}`}</span>`; }).join('')}</div>`).join('')}</div>`).join('')}</div>
+    ${navHTML('Make our badge')}`;
+}
+function introHTML() {
+  return `<div class="kicker">ESU Graphics Center</div>
+    <h1>How well do you really know each other?</h1>
+    <p class="sub">Grab a friend or two. Each of you answers ${NQ} quick questions about yourself while the others look away. Then you take turns guessing each other’s answers.</p>
+    <p>At the end, you design one badge together. Each friend gets their own piece as a button, and the pieces fit together like the old split-heart BFF necklace.</p>
+    <div class="lbl">How many friends?</div>
+    <div class="count" role="group" aria-label="How many friends">${[2, 3].map(n => `<button type="button" class="ans" data-a="count" data-v="${n}" aria-pressed="${st.n === n}"><span class="ppl" aria-hidden="true">${[...Array(n).keys()].map(p => `<i style="background:${COLORS[DEF_COL[p]][1]}"></i>`).join('')}</span><b>${n === 2 ? 'Two of us' : 'Three of us'}</b><small>${n === 2 ? 'About 5 minutes' : 'About 8 minutes'}</small></button>`).join('')}</div>
+    ${navHTML('Start')}`;
+}
+function render() {
+  const f = FLOW[pos];
+  panel.classList.remove('enter'); void panel.offsetWidth; panel.classList.add('enter');
+  bars();
+  outimg.hidden = true; cv.hidden = false; stage.classList.remove('tall');
+  if (f === 'intro') { panel.innerHTML = introHTML(); cap.textContent = 'One shape, one piece for each friend.'; }
+  else if (f === 'reveal') { panel.innerHTML = revealHTML(); cap.textContent = 'Here’s your badge so far. Make it yours next.'; }
+  else if (f === 'finish') { panel.innerHTML = finishHTML(); makeOut(); return; }
+  else {
+    panel.innerHTML = screenHTML(); wire();
+    cap.textContent = typeof f === 'object' && f.t === 'design' ? 'Big picture: all the pieces together. Small ones: each friend’s own button. The dashed line shows where a button folds.'
+      : 'Each piece fills in as that friend answers. Answers stay hidden.';
+  }
+  paint();
+}
+function rerender(focusSel) {
+  const y = window.scrollY; panel.innerHTML = FLOW[pos] === 'intro' ? introHTML() : screenHTML(); wire(); window.scrollTo(0, y); paint();
+  const el = focusSel && panel.querySelector(focusSel); if (el) el.focus({ preventScroll: true });
+}
+function wire() {
+  panel.querySelectorAll('input[data-p]').forEach(inp => {
+    inp.addEventListener('input', () => { st.names[+inp.dataset.p] = inp.value.replace(/[<>]/g, ''); refreshNext(); paint(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { const nx = panel.querySelector(`input[data-p="${+inp.dataset.p + 1}"]`); if (nx) nx.focus(); else if (canNext()) go(1); } });
+  });
+  const yr = document.getElementById('year'); if (yr) yr.addEventListener('input', () => { st.year = yr.value.replace(/\D/g, '').slice(0, 4); paint(); });
+  const cu = document.getElementById('custom'); if (cu) cu.addEventListener('input', () => { st.custom = cu.value; refreshNext(); paint(); });
+}
+
+let restartArmed = null;
+document.getElementById('restart').onclick = e => {
+  const b = e.currentTarget;
+  if (restartArmed) { clearTimeout(restartArmed); restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; st = fresh(st.n); buildFlow(); pos = 0; render(); return; }
+  b.classList.add('armed'); b.textContent = 'Tap again to start over';
+  restartArmed = setTimeout(() => { restartArmed = null; b.classList.remove('armed'); b.textContent = 'Start over'; }, 3000);
+};
+let autoT = null;
+function go(d) {
+  clearTimeout(autoT);
+  pos = Math.max(0, Math.min(FLOW.length - 1, pos + d));
+  render(); window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+}
+panel.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const act = b.dataset.a, v = b.dataset.v, f = FLOW[pos];
+  if (act === 'next') { if (canNext()) go(1); return; }
+  if (act === 'back') { if (canBack()) go(-1); return; }
+  if (act === 'again') { st = fresh(st.n); buildFlow(); pos = 0; render(); window.scrollTo({ top: 0 }); return; }
+  if (act === 'count') { st.n = +v; st.guess = {}; buildFlow(); rerender(`[data-a="count"][data-v="${v}"]`); return; }
+  if (act === 'fmt') { st.format = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'shirt') { st.shirt = v; panel.innerHTML = finishHTML(); makeOut(); return; }
+  if (act === 'col') { st.col[+b.dataset.p] = +v; rerender(`[data-a="col"][data-p="${b.dataset.p}"][data-v="${v}"]`); return; }
+  if (act === 'sym') { st.sym[+b.dataset.p] = v; rerender(`[data-a="sym"][data-p="${b.dataset.p}"][data-v="${v}"]`); return; }
+  if (act === 'set') { st[b.dataset.k] = v; rerender(`[data-a="set"][data-k="${b.dataset.k}"][data-v="${v}"]`); if (v === 'since' || v === 'custom') { const inp = document.getElementById(v === 'since' ? 'year' : 'custom'); if (inp) inp.focus(); } return; }
+  if (act === 'ans' && typeof f === 'object') {
+    const val = +v;
+    if (f.t === 'self') st.self[f.p][f.i] = val;
+    else if (f.t === 'guess') st.guess[gk(f.p, +b.dataset.row)][f.i] = val;
+    rerender(`[data-a="ans"][data-row="${b.dataset.row}"][data-v="${v}"]`);
+    // quick taps: move on by itself once every answer on this screen is in
+    clearTimeout(autoT); const here = pos;
+    if (canNext()) autoT = setTimeout(() => { if (pos === here && canNext()) go(1); }, reduce ? 150 : 420);
+  }
+});
+
+/* ---------- finish ---------- */
+const FMTS = [['button', 'Buttons'], ['sticker', 'Sticker'], ['keychain', 'Keychains'], ['shirt', 'Shirt (Cricut)'], ['card', 'Profile card']];
+function finishHTML() {
+  const many = st.n === 2 ? 'both' : 'all three';
+  const tips = {
+    button: `<p>One sheet with ${many} buttons. Each friend presses their own. The names and words sit inside the fold line, and the outer ring wraps around the edge.</p>`,
+    sticker: '<p>The whole shape, all pieces together. Print on sticker paper and cut along the dotted line. Print one for each friend.</p>',
+    keychain: `<p>One keychain for each friend, on one sheet. Print, laminate, and cut along the dotted lines. Punch the small circle at the top for the ring.</p>`,
+    card: '<p>A 4 × 6 profile card with your badge, who knows who, and the answers nobody saw coming. Print one for each friend on cardstock.</p>',
+    shirt: st.shirt === 'vinyl'
+      ? `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space. Keep it as one layer.</li><li>Size it about 8–10 in wide for the front, or about 4 in for a chest logo.</li><li>Load heat transfer vinyl shiny side down. Turn on <b>Mirror</b> on the mat screen before you cut.</li><li>Weed out the gaps between pieces and the letters, then press using your vinyl’s heat guide.</li></ol>`
+      : `<ol class="steps"><li>Save the picture, then upload it to Cricut Design Space as a <b>Print Then Cut</b> image.</li><li>Keep it within about 6.75 × 9.25 in (the Print Then Cut limit).</li><li>Print on printable heat transfer paper. Light-shirt paper usually needs a mirrored print, so turn on <b>Mirror</b> below. Dark-shirt paper does not.</li><li>Cut, peel, and press using the paper’s heat guide.</li></ol>`
+  };
+  cap.textContent = 'Use Download picture, or right-click the picture and choose “Save image as.”';
+  const T = tier();
+  return `<div class="kicker">Your badge is ready</div>
+    <h1>${esc(joinNames())}: ${esc(T[1])}.</h1>
+    <p class="sub">Separate pieces, one shape. Put your buttons side by side and the edges fit together.</p>
+    <h2>Make it</h2>
+    <div class="chips" role="group" aria-label="What are you making?">${FMTS.map(([k, l]) => `<button type="button" class="chip" data-a="fmt" data-v="${k}" aria-pressed="${st.format === k}">${l}</button>`).join('')}</div>
+    ${st.format === 'shirt' ? `<div class="chips" role="group" aria-label="Shirt method">${[['color', 'Full color (printable iron-on)'], ['vinyl', 'One color (vinyl cut)']].map(([k, l]) => `<button type="button" class="chip" data-a="shirt" data-v="${k}" aria-pressed="${st.shirt === k}">${l}</button>`).join('')}</div>
+      ${st.shirt === 'color' ? `<label class="toggle"><input type="checkbox" id="mirror" ${st.mirror ? 'checked' : ''}> Mirror the picture</label>` : '<p class="hint">Leave this picture unmirrored. Design Space mirrors it for you when you turn on Mirror.</p>'}`
+      : `<label class="toggle"><input type="checkbox" id="mono" ${st.mono ? 'checked' : ''}> Black and white (saves color ink)</label>`}
+    ${tips[st.format]}
+    <div><a class="btn go" id="dl" href="#" download="know-me-know-you.png">Download picture</a></div>
+    <div class="note"><b>To save:</b> tap <b>Download picture</b>, or right-click the picture and choose <b>Save image as</b>. Then print or upload the saved file.</div>
+    <p class="credit">Questions and art made for the ESU Graphics Center. Nothing you typed is saved or sent anywhere.</p>
+    <div class="nav"><button type="button" class="btn" data-a="back">Back</button><button type="button" class="btn go" data-a="again">Play again</button></div>`;
+}
+function makeOut() {
+  const m = document.getElementById('mono'); if (m) m.onchange = () => { st.mono = m.checked; makeOut(); };
+  const mi = document.getElementById('mirror'); if (mi) mi.onchange = () => { st.mirror = mi.checked; makeOut(); };
+  minisEl.hidden = true;
+  const run = () => {
+    const out = compose(st.format), url = out.toDataURL('image/png');
+    outimg.src = url;
+    outimg.alt = `${joinNames()}’s Know Me, Know You ${st.format === 'card' ? 'profile card' : st.format}, ready to print`;
+    stage.classList.toggle('tall', st.format === 'card');
+    outimg.hidden = false; cv.hidden = true;
+    outimg.style.background = st.format === 'shirt' ? 'repeating-conic-gradient(var(--chip) 0 25%, var(--surface) 0 50%) 0 0/24px 24px' : 'transparent';
+    const dl = document.getElementById('dl');
+    if (dl) { dl.href = url; dl.download = `know-me-know-you-${st.format}.png`; }
+  };
+  document.fonts && document.fonts.ready ? document.fonts.ready.then(run) : run();
+}
+
+st = fresh(2); buildFlow();
+render();
+document.fonts && document.fonts.ready.then(() => { if (FLOW[pos] !== 'finish') paint(); });
+</script>
+</body>
+</html>
